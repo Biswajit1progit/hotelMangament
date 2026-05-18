@@ -146,7 +146,7 @@ const Profile = () => {
 
             <button
             onClick={() =>{
-              console.log("Canceling booking with ID:", b._id); 
+             
               handleCancelBooking(b._id)
             } }
             className="bg-red-600 text-white px-3 py-1 rounded mt-2 ml-2"

@@ -8,7 +8,7 @@ const Wishlist = () => {
   useEffect(() => {
     const fetchWishlist = async () => {
       const data = await getWishlist();
-      console.log("Wishlist data:", data); // ✅ DEBUG
+
       setHotels(data);
     };
 
@@ -17,14 +17,14 @@ const Wishlist = () => {
 
   // ✅ Remove a single hotel from wishlist
     const handleRemove = async (hotelId) => {
-      console.log("Removing hotel:", hotelId); // ✅ DEBUG
+     
       await toggleWishlist(hotelId); // toggles OFF (removes) since it's already wishlisted
       setHotels((prev) => prev.filter((h) => String(h._id) !== String(hotelId)));
     };
   
     // ✅ Clear all wishlisted hotels one by one
     const handleClearAll = async () => {
-      console.log("Clearing all wishlist items"); // ✅ DEBUG
+      
       for (const hotel of hotels) {
         await toggleWishlist(hotel._id);
       }
@@ -99,7 +99,7 @@ const Wishlist = () => {
           ))} */}
 
           {hotels.map((hotel) => {
-  console.log("Rendering hotel:", hotel._id, "onRemove:", typeof handleRemove);
+  
   return (
     <HotelCard key={hotel._id} hotel={hotel} onRemove={handleRemove} />
   );

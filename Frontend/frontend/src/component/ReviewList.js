@@ -59,10 +59,9 @@ function ReviewList({ reviews, onReviewAdded }) {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState("");
   const [editRating, setEditRating] = useState(5);
-  console.log("USER FROM SESSION:", user);
-  console.log("ALL REVIEWS:", reviews);
+
   reviews.forEach(r => {
-    console.log("review userId:", r.userId?._id || r.userId, "| user._id:", user?._id, "| match:", String(r.userId?._id || r.userId) === String(user?._id));
+   
   });
   const handleEditSave = async (reviewId) => {
     const token = sessionStorage.getItem("token");

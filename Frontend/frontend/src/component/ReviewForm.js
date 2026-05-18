@@ -34,7 +34,7 @@ function ReviewForm({ hotelId,reviews, onReviewAdded }) {
     });
 
     const data = await res.json();
-    console.log("Review response:", data);
+   
 
     setText("");
 await onReviewAdded();

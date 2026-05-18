@@ -92,7 +92,7 @@ const searchHotels = async (req, res) => {
       query.averageRating = { $gte: Number(rating) };
     }
 
-    /* console.log("QUERY:", query); */ // ✅ DEBUG
+    
 
     const hotels = await Hotel.find(query);
 

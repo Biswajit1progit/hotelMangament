@@ -291,7 +291,7 @@ const handleSubmit = async (e) => {
   try {
     const res = await createBooking(bookingData);
 
-    console.log("BOOKING RESPONSE:", res);
+  
 
     // ✅ get correct id
     const bookingId = res.data?._id || res._id;

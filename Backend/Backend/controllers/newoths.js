@@ -42,7 +42,7 @@ const register = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("REGISTER ERROR:", err);
+    
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -76,7 +76,7 @@ const login = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-   /*  console.log("Passward Match:",isMatch) */
+  
 
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
@@ -166,7 +166,7 @@ const toggleWishlist = async (req, res) => {
     res.json(user.wishlist);
 
   } catch (err) {
-    console.log("Wishlist Error:", err);
+   
     res.status(500).json({ msg: "Server error" });
   }
 };

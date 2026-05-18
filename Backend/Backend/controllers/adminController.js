@@ -70,14 +70,13 @@ const resolveRequest = async (req, res) => {
       switch (request.type) {
 
         case "add_hotel": {
-  console.log("Creating hotel with data:", request.details);
+
   const newHotel = await Hotel.create({
     ...request.details,
     ownerId: request.ownerId,
     pricePerNight: Number(request.details.pricePerNight),
     rooms: Number(request.details.rooms),
   });
-  console.log("Hotel created:", newHotel._id);
   break;
 }
 

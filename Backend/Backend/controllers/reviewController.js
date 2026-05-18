@@ -44,7 +44,7 @@ const addReview = async (req, res) => {
     }
 
     // 🔍 DEBUG (IMPORTANT)
-    // console.log("BODY:", req.body);
+    
 
    const review = new Review({
       hotelId,

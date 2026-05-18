@@ -22,7 +22,7 @@ const PaymentForm = ({ booking }) => {
 
      handler: async function (response) {
       /* const navigate = useNavigate(); */
-  console.log("RAZORPAY RESPONSE:", response);
+ 
 
   try {
     const res = await verifyPayment({
@@ -34,7 +34,7 @@ const PaymentForm = ({ booking }) => {
       method: method.toLowerCase(),
     });
 
-    console.log("VERIFY RESPONSE:", res);
+   
 
     alert("Payment Success ✅");
 

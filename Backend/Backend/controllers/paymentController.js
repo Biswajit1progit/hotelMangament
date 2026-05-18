@@ -56,7 +56,7 @@ exports.verifyPayment = async (req, res) => {
 
     const data = req.body;
     const booking = await Booking.findById(data.bookingId);
-    console.log("Booking Details:",booking);
+    
     const payment = new Payment({
       bookingId,
       amount,

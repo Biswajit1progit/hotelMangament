@@ -15,7 +15,7 @@ const { createNotification } = require("../controllers/notificationController");
 const runCheckoutNotifier = () => {
   // ✅ Runs every hour
   cron.schedule("0 * * * *", async () => {
-    console.log("⏰ Running checkout notifier...");
+   
 
     try {
       const now = new Date();
@@ -42,14 +42,14 @@ const runCheckoutNotifier = () => {
         booking.checkoutNotified = true;
         await booking.save();
 
-        console.log(`✅ Notified ${booking.email} for checkout at ${booking.hotelName}`);
+       
       }
     } catch (err) {
       console.error("Checkout notifier error:", err.message);
     }
   });
 
-  console.log("✅ Checkout notifier cron started");
+  
 };
 
 module.exports = { runCheckoutNotifier };

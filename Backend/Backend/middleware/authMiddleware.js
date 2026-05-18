@@ -2,7 +2,7 @@
 const SECRET_KEY="mysupersecret123";
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization;
-  console.log("AUTH HEADER:", req.headers.authorization);
+ 
   if (!token) return res.status(401).json("Access denied");
 
   try {
@@ -23,7 +23,7 @@ dotenv.config();
 /* const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  console.log("AUTH HEADER:", authHeader);
+
 
   if (!authHeader) {
     return res.status(401).json("Access denied");
@@ -39,7 +39,7 @@ dotenv.config();
     next();
 
   } catch (err) {
-    console.log("JWT ERROR:", err.message); // 🔥 DEBUG
+     // 🔥 DEBUG
     return res.status(400).json("Invalid token");
   }
 }; */
@@ -110,11 +110,11 @@ const verifyAdmin = async (req, res, next) => {
   if (!token) return res.status(401).json({ message: "No token provided" });
  
   try {
-    console.log("JWT_SECRET used:", process.env.JWT_SECRET); 
+    
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-     console.log("DECODED:", decoded);
+     
     req.user = await User.findById(decoded.id).select("-password");
-    console.log("USER FROM DB:", req.user);
+    
     if (!req.user) return res.status(401).json({ message: "User not found" });
     if (req.user?.role !== "admin") {
       return res.status(403).json({ message: "Access denied. Admin only." });

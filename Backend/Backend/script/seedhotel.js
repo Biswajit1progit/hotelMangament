@@ -48,7 +48,6 @@ const seedData = async () => {
 
     await Hotel.insertMany(hotels);
 
-    console.log("✅ Hotels Seeded Successfully");
     process.exit();
   } catch (err) {
     console.error("❌ Error:", err);

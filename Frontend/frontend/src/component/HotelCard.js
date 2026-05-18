@@ -4,8 +4,7 @@ import { toggleWishlist } from "../services/authService";
 import { isLoggedIn } from "../utils/auth";
 
 function HotelCard({ hotel, wishlist=[], setWishlist, onRemove }) {
- console.log("HotelCard props — onRemove:", onRemove, "hotel:", hotel._id);
-  const navigate = useNavigate();
+
  /*  const [liked, setLiked] = useState(false); */
        const handleClick = () => {
     const token = sessionStorage.getItem("token");
