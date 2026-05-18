@@ -1,7 +1,7 @@
  import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
-import generatePDF from "../utils/generatepdf";
+import generatePDF from "../utils/generatePDF";
 import Invoice from "../component/Invoice";
 
 
