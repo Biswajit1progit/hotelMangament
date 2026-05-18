@@ -1,0 +1,15 @@
+ <svg width="36" height="36" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circle background -->
+  <circle cx="32" cy="32" r="30" fill="#2563EB"/>
+
+  <!-- Flight path -->
+  <path d="M10 40 C25 10, 40 10, 54 32" 
+        stroke="white" 
+        stroke-width="3" 
+        fill="none" 
+        stroke-linecap="round"/>
+
+  <!-- Airplane -->
+  <polygon points="36,18 52,26 36,30 40,36 32,30 18,32" 
+           fill="white"/>
+</svg>

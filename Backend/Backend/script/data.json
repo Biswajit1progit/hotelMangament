@@ -1,0 +1,2653 @@
+ 
+  
+   {
+  "states": [
+    {
+      "name": "Odisha",
+      "code": "OD",
+      "districts": [
+        {
+          "name": "Angul",
+          "hotels": [
+            {
+              "name": "Hotel Anand",
+              "address": "Main Road, Angul",
+              "rating": 3.5,
+              "price_per_night": 1200,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6764-230001",
+              "type": "Budget",
+              "lat": 20.84,
+              "lng": 85.1,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Mahanadi",
+              "address": "Station Road, Angul",
+              "rating": 3.2,
+              "price_per_night": 900,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6764-230002",
+              "type": "Budget",
+              "lat": 20.841,
+              "lng": 85.101,
+              "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400"
+            },
+            {
+              "name": "Hotel Nayagarh Inn",
+              "address": "NH-55, Angul",
+              "rating": 3.8,
+              "price_per_night": 1500,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-6764-230003",
+              "type": "Standard",
+              "lat": 20.842,
+              "lng": 85.102,
+              "image": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Balangir",
+          "hotels": [
+            {
+              "name": "Hotel Tushar",
+              "address": "Gandhi Chowk, Balangir",
+              "rating": 3.4,
+              "price_per_night": 1100,
+              "rooms": 25,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6652-232001",
+              "type": "Budget",
+              "lat": 20.72,
+              "lng": 83.49,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Rajdhani",
+              "address": "Station Road, Balangir",
+              "rating": 3.6,
+              "price_per_night": 1400,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6652-232002",
+              "type": "Standard",
+              "lat": 20.721,
+              "lng": 83.491,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sai Palace",
+              "address": "Bus Stand Road, Balangir",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6652-232003",
+              "type": "Budget",
+              "lat": 20.722,
+              "lng": 83.492,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Balasore",
+          "hotels": [
+            {
+              "name": "Hotel Panthanivas",
+              "address": "Chandipur, Balasore",
+              "rating": 4.0,
+              "price_per_night": 2500,
+              "rooms": 50,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Beach View",
+                "Parking"
+              ],
+              "contact": "+91-6782-262001",
+              "type": "Premium",
+              "lat": 21.49,
+              "lng": 87.05,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sagarika",
+              "address": "Station Square, Balasore",
+              "rating": 3.7,
+              "price_per_night": 1600,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6782-262002",
+              "type": "Standard",
+              "lat": 21.491,
+              "lng": 87.051,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sea View",
+              "address": "Chandipur Beach Road, Balasore",
+              "rating": 3.9,
+              "price_per_night": 2200,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Beach View"
+              ],
+              "contact": "+91-6782-262003",
+              "type": "Premium",
+              "lat": 21.43,
+              "lng": 87.02,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Bargarh",
+          "hotels": [
+            {
+              "name": "Hotel Hirakud",
+              "address": "Main Road, Bargarh",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 22,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6646-233001",
+              "type": "Budget",
+              "lat": 21.33,
+              "lng": 83.62,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sambalpur View",
+              "address": "NH-6, Bargarh",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6646-233002",
+              "type": "Standard",
+              "lat": 21.331,
+              "lng": 83.621,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Bhadrak",
+          "hotels": [
+            {
+              "name": "Hotel Kalinga",
+              "address": "Station Road, Bhadrak",
+              "rating": 3.4,
+              "price_per_night": 1100,
+              "rooms": 28,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6784-251001",
+              "type": "Budget",
+              "lat": 21.05,
+              "lng": 86.5,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Nilachal",
+              "address": "College Square, Bhadrak",
+              "rating": 3.6,
+              "price_per_night": 1400,
+              "rooms": 32,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-6784-251002",
+              "type": "Standard",
+              "lat": 21.051,
+              "lng": 86.501,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Boudh",
+          "hotels": [
+            {
+              "name": "Hotel Boudh Residency",
+              "address": "Main Road, Boudh",
+              "rating": 3.1,
+              "price_per_night": 800,
+              "rooms": 15,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6841-222001",
+              "type": "Budget",
+              "lat": 20.84,
+              "lng": 84.32,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Mahanadi View",
+              "address": "River Road, Boudh",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 18,
+              "amenities": [
+                "WiFi",
+                "AC"
+              ],
+              "contact": "+91-6841-222002",
+              "type": "Budget",
+              "lat": 20.841,
+              "lng": 84.321,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Cuttack",
+          "hotels": [
+            {
+              "name": "Hotel Akbari",
+              "address": "Badambadi, Cuttack",
+              "rating": 3.8,
+              "price_per_night": 2000,
+              "rooms": 60,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Parking"
+              ],
+              "contact": "+91-671-2301001",
+              "type": "Premium",
+              "lat": 20.4625,
+              "lng": 85.883,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Maa Tarini",
+              "address": "College Square, Cuttack",
+              "rating": 3.5,
+              "price_per_night": 1500,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-671-2301002",
+              "type": "Standard",
+              "lat": 20.463,
+              "lng": 85.8835,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Garuda",
+              "address": "Link Road, Cuttack",
+              "rating": 3.6,
+              "price_per_night": 1800,
+              "rooms": 45,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-671-2301003",
+              "type": "Standard",
+              "lat": 20.462,
+              "lng": 85.8825,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Konark Inn",
+              "address": "Buxi Bazaar, Cuttack",
+              "rating": 4.0,
+              "price_per_night": 2500,
+              "rooms": 55,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Pool",
+                "Parking"
+              ],
+              "contact": "+91-671-2301004",
+              "type": "Premium",
+              "lat": 20.4635,
+              "lng": 85.884,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Deogarh",
+          "hotels": [
+            {
+              "name": "Hotel Pradhanpat",
+              "address": "Main Road, Deogarh",
+              "rating": 3.2,
+              "price_per_night": 900,
+              "rooms": 18,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6641-225001",
+              "type": "Budget",
+              "lat": 21.54,
+              "lng": 84.73,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Hill View",
+              "address": "NH-200, Deogarh",
+              "rating": 3.4,
+              "price_per_night": 1200,
+              "rooms": 22,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6641-225002",
+              "type": "Budget",
+              "lat": 21.541,
+              "lng": 84.731,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Dhenkanal",
+          "hotels": [
+            {
+              "name": "Hotel Satabdi",
+              "address": "Station Road, Dhenkanal",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6762-221001",
+              "type": "Standard",
+              "lat": 20.66,
+              "lng": 85.59,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Kapilash",
+              "address": "College Road, Dhenkanal",
+              "rating": 3.7,
+              "price_per_night": 1600,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-6762-221002",
+              "type": "Standard",
+              "lat": 20.661,
+              "lng": 85.591,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Gajapati",
+          "hotels": [
+            {
+              "name": "Hotel Mahendragiri",
+              "address": "Main Road, Paralakhemundi",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "AC"
+              ],
+              "contact": "+91-6815-222001",
+              "type": "Budget",
+              "lat": 18.78,
+              "lng": 84.1,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Green Valley",
+              "address": "Bus Stand Road, Paralakhemundi",
+              "rating": 3.5,
+              "price_per_night": 1200,
+              "rooms": 25,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6815-222002",
+              "type": "Budget",
+              "lat": 18.781,
+              "lng": 84.101,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Ganjam",
+          "hotels": [
+            {
+              "name": "Hotel & Resort Gopalpur Palm",
+              "address": "Beach Road, Gopalpur-on-Sea",
+              "rating": 4.2,
+              "price_per_night": 3500,
+              "rooms": 65,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach View",
+                "Spa"
+              ],
+              "contact": "+91-680-2262001",
+              "type": "Luxury",
+              "lat": 19.26,
+              "lng": 84.91,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Mermaid",
+              "address": "Gopalpur Beach, Ganjam",
+              "rating": 3.8,
+              "price_per_night": 2200,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Beach View"
+              ],
+              "contact": "+91-680-2262002",
+              "type": "Premium",
+              "lat": 19.261,
+              "lng": 84.911,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Liton",
+              "address": "Berhampur Main Road, Ganjam",
+              "rating": 3.5,
+              "price_per_night": 1400,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-680-2262003",
+              "type": "Standard",
+              "lat": 19.31,
+              "lng": 84.79,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Nandan",
+              "address": "Dharma Nagar, Berhampur",
+              "rating": 3.6,
+              "price_per_night": 1500,
+              "rooms": 38,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-680-2262004",
+              "type": "Standard",
+              "lat": 19.311,
+              "lng": 84.791,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Jagatsinghpur",
+          "hotels": [
+            {
+              "name": "Hotel Paradeep Port",
+              "address": "Port Area, Paradeep",
+              "rating": 3.6,
+              "price_per_night": 1500,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6722-222001",
+              "type": "Standard",
+              "lat": 20.32,
+              "lng": 86.61,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Blue Ocean",
+              "address": "Beach Road, Paradeep",
+              "rating": 3.8,
+              "price_per_night": 1800,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Sea View"
+              ],
+              "contact": "+91-6722-222002",
+              "type": "Premium",
+              "lat": 20.321,
+              "lng": 86.611,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Jajpur",
+          "hotels": [
+            {
+              "name": "Hotel Biraja",
+              "address": "Temple Road, Jajpur",
+              "rating": 3.4,
+              "price_per_night": 1100,
+              "rooms": 25,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6728-222001",
+              "type": "Budget",
+              "lat": 20.85,
+              "lng": 86.34,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Vyasa",
+              "address": "Vyasanagar, Jajpur",
+              "rating": 3.6,
+              "price_per_night": 1400,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6728-222002",
+              "type": "Standard",
+              "lat": 20.851,
+              "lng": 86.341,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Jharsuguda",
+          "hotels": [
+            {
+              "name": "Hotel Ib Valley",
+              "address": "Station Road, Jharsuguda",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6645-270001",
+              "type": "Standard",
+              "lat": 21.86,
+              "lng": 84.01,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Grand Residency",
+              "address": "NH-6, Jharsuguda",
+              "rating": 3.8,
+              "price_per_night": 2000,
+              "rooms": 45,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Parking"
+              ],
+              "contact": "+91-6645-270002",
+              "type": "Premium",
+              "lat": 21.861,
+              "lng": 84.011,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Kalahandi",
+          "hotels": [
+            {
+              "name": "Hotel Bhawanipatna",
+              "address": "Main Road, Bhawanipatna",
+              "rating": 3.4,
+              "price_per_night": 1100,
+              "rooms": 25,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6670-230001",
+              "type": "Budget",
+              "lat": 19.9,
+              "lng": 83.17,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Royal Palace",
+              "address": "Bus Stand, Bhawanipatna",
+              "rating": 3.6,
+              "price_per_night": 1500,
+              "rooms": 32,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6670-230002",
+              "type": "Standard",
+              "lat": 19.901,
+              "lng": 83.171,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Kandhamal",
+          "hotels": [
+            {
+              "name": "Hotel Panthanivas Daringbadi",
+              "address": "Daringbadi, Kandhamal",
+              "rating": 3.9,
+              "price_per_night": 2000,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Hill View"
+              ],
+              "contact": "+91-6842-252001",
+              "type": "Premium",
+              "lat": 20.01,
+              "lng": 84.12,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Hill Top",
+              "address": "Phulbani, Kandhamal",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6842-252002",
+              "type": "Budget",
+              "lat": 20.47,
+              "lng": 84.23,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Kendrapara",
+          "hotels": [
+            {
+              "name": "Hotel Bhitarkanika",
+              "address": "Main Road, Kendrapara",
+              "rating": 3.5,
+              "price_per_night": 1200,
+              "rooms": 22,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6727-232001",
+              "type": "Budget",
+              "lat": 20.5,
+              "lng": 86.42,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Mangrove",
+              "address": "River Road, Kendrapara",
+              "rating": 3.7,
+              "price_per_night": 1500,
+              "rooms": 28,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6727-232002",
+              "type": "Standard",
+              "lat": 20.501,
+              "lng": 86.421,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Kendujhar (Keonjhar)",
+          "hotels": [
+            {
+              "name": "Hotel Meghasani",
+              "address": "Town Centre, Keonjhar",
+              "rating": 3.5,
+              "price_per_night": 1200,
+              "rooms": 25,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6766-255001",
+              "type": "Budget",
+              "lat": 21.63,
+              "lng": 85.58,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sana",
+              "address": "Station Road, Keonjhar",
+              "rating": 3.7,
+              "price_per_night": 1500,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6766-255002",
+              "type": "Standard",
+              "lat": 21.631,
+              "lng": 85.581,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Khordha",
+          "hotels": [
+            {
+              "name": "Mayfair Lagoon Bhubaneswar",
+              "address": "Jaydev Vihar, Bhubaneswar",
+              "rating": 4.5,
+              "price_per_night": 7500,
+              "rooms": 120,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Gym",
+                "Bar",
+                "Conference Hall"
+              ],
+              "contact": "+91-674-6660101",
+              "type": "Luxury",
+              "lat": 20.2961,
+              "lng": 85.8245,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Trident Bhubaneswar",
+              "address": "CB-1, Nayapalli, Bhubaneswar",
+              "rating": 4.4,
+              "price_per_night": 6500,
+              "rooms": 100,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Gym",
+                "Spa",
+                "Bar"
+              ],
+              "contact": "+91-674-2301010",
+              "type": "Luxury",
+              "lat": 20.29,
+              "lng": 85.82,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Swosti Premium",
+              "address": "Janpath, Bhubaneswar",
+              "rating": 4.2,
+              "price_per_night": 4500,
+              "rooms": 80,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-674-2535679",
+              "type": "Premium",
+              "lat": 20.275,
+              "lng": 85.84,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Hindustan International",
+              "address": "Sachivalaya Marg, Bhubaneswar",
+              "rating": 3.9,
+              "price_per_night": 3200,
+              "rooms": 65,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking",
+                "Conference Hall"
+              ],
+              "contact": "+91-674-2536420",
+              "type": "Premium",
+              "lat": 20.28,
+              "lng": 85.835,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Arya Palace",
+              "address": "Cuttack Road, Bhubaneswar",
+              "rating": 3.6,
+              "price_per_night": 1800,
+              "rooms": 45,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-674-2534321",
+              "type": "Standard",
+              "lat": 20.27,
+              "lng": 85.85,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Pal Heights",
+              "address": "Jaydev Vihar Square, Bhubaneswar",
+              "rating": 4.0,
+              "price_per_night": 3800,
+              "rooms": 70,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Pool",
+                "Bar"
+              ],
+              "contact": "+91-674-2300888",
+              "type": "Premium",
+              "lat": 20.295,
+              "lng": 85.825,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Ginger Hotel",
+              "address": "Nayapalli, Bhubaneswar",
+              "rating": 3.7,
+              "price_per_night": 2200,
+              "rooms": 100,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym"
+              ],
+              "contact": "+91-674-6614545",
+              "type": "Standard",
+              "lat": 20.292,
+              "lng": 85.818,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Lemon Tree Premier",
+              "address": "Patia, Bhubaneswar",
+              "rating": 4.1,
+              "price_per_night": 4000,
+              "rooms": 90,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Gym",
+                "Bar",
+                "Spa"
+              ],
+              "contact": "+91-674-6633333",
+              "type": "Premium",
+              "lat": 20.35,
+              "lng": 85.82,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Crown",
+              "address": "Cuttack Road, Bhubaneswar",
+              "rating": 3.4,
+              "price_per_night": 1400,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-674-2530444",
+              "type": "Budget",
+              "lat": 20.268,
+              "lng": 85.852,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sandy Tower",
+              "address": "Station Square, Bhubaneswar",
+              "rating": 3.5,
+              "price_per_night": 1600,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-674-2530555",
+              "type": "Standard",
+              "lat": 20.272,
+              "lng": 85.845,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Koraput",
+          "hotels": [
+            {
+              "name": "Hotel Panthanivas Koraput",
+              "address": "Main Road, Koraput",
+              "rating": 3.8,
+              "price_per_night": 1800,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Hill View"
+              ],
+              "contact": "+91-6852-251001",
+              "type": "Premium",
+              "lat": 18.81,
+              "lng": 82.71,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Tribal Heritage",
+              "address": "NH-26, Koraput",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 25,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6852-251002",
+              "type": "Standard",
+              "lat": 18.811,
+              "lng": 82.711,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Malkangiri",
+          "hotels": [
+            {
+              "name": "Hotel Chitrakonda",
+              "address": "Main Road, Malkangiri",
+              "rating": 3.1,
+              "price_per_night": 800,
+              "rooms": 15,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6861-230001",
+              "type": "Budget",
+              "lat": 18.35,
+              "lng": 81.89,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Forest View",
+              "address": "Bus Stand, Malkangiri",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 18,
+              "amenities": [
+                "WiFi",
+                "AC"
+              ],
+              "contact": "+91-6861-230002",
+              "type": "Budget",
+              "lat": 18.351,
+              "lng": 81.891,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Mayurbhanj",
+          "hotels": [
+            {
+              "name": "Hotel Panthanivas Simlipal",
+              "address": "Baripada, Mayurbhanj",
+              "rating": 4.0,
+              "price_per_night": 2200,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Forest View",
+                "Parking"
+              ],
+              "contact": "+91-6792-252001",
+              "type": "Premium",
+              "lat": 21.93,
+              "lng": 86.72,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Ambika",
+              "address": "Main Road, Baripada",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 28,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6792-252002",
+              "type": "Standard",
+              "lat": 21.931,
+              "lng": 86.721,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Belgadia Palace Heritage",
+              "address": "Belgadia, Baripada",
+              "rating": 4.3,
+              "price_per_night": 5000,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Heritage",
+                "Garden",
+                "Spa"
+              ],
+              "contact": "+91-6792-252003",
+              "type": "Luxury",
+              "lat": 21.932,
+              "lng": 86.722,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Nabarangpur",
+          "hotels": [
+            {
+              "name": "Hotel Nabarangpur Inn",
+              "address": "Main Road, Nabarangpur",
+              "rating": 3.2,
+              "price_per_night": 900,
+              "rooms": 18,
+              "amenities": [
+                "WiFi",
+                "AC"
+              ],
+              "contact": "+91-6858-222001",
+              "type": "Budget",
+              "lat": 19.23,
+              "lng": 82.55,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Padmapur",
+              "address": "Bus Stand Road, Nabarangpur",
+              "rating": 3.4,
+              "price_per_night": 1100,
+              "rooms": 22,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6858-222002",
+              "type": "Budget",
+              "lat": 19.231,
+              "lng": 82.551,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Nayagarh",
+          "hotels": [
+            {
+              "name": "Hotel Baisipalli",
+              "address": "Main Road, Nayagarh",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "AC"
+              ],
+              "contact": "+91-6753-252001",
+              "type": "Budget",
+              "lat": 20.13,
+              "lng": 85.1,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Green Park",
+              "address": "Bus Stand, Nayagarh",
+              "rating": 3.5,
+              "price_per_night": 1200,
+              "rooms": 24,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6753-252002",
+              "type": "Budget",
+              "lat": 20.131,
+              "lng": 85.101,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Nuapada",
+          "hotels": [
+            {
+              "name": "Hotel Sunabeda",
+              "address": "Main Road, Nuapada",
+              "rating": 3.1,
+              "price_per_night": 800,
+              "rooms": 15,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6678-220001",
+              "type": "Budget",
+              "lat": 20.81,
+              "lng": 82.54,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Highway Inn",
+              "address": "NH-353, Nuapada",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 18,
+              "amenities": [
+                "WiFi",
+                "AC"
+              ],
+              "contact": "+91-6678-220002",
+              "type": "Budget",
+              "lat": 20.811,
+              "lng": 82.541,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Puri",
+          "hotels": [
+            {
+              "name": "Mayfair Heritage Puri",
+              "address": "CT Road, Puri",
+              "rating": 4.5,
+              "price_per_night": 8000,
+              "rooms": 80,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach View",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-6752-227800",
+              "type": "Luxury",
+              "lat": 19.798,
+              "lng": 85.825,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Hans Coco Palms",
+              "address": "Swargadwar, Puri",
+              "rating": 4.2,
+              "price_per_night": 5500,
+              "rooms": 60,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach View",
+                "Gym"
+              ],
+              "contact": "+91-6752-230038",
+              "type": "Premium",
+              "lat": 19.797,
+              "lng": 85.824,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Toshali Sands Puri",
+              "address": "Konark Marine Drive, Puri",
+              "rating": 4.3,
+              "price_per_night": 6000,
+              "rooms": 100,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach View",
+                "Gym",
+                "Kids Area"
+              ],
+              "contact": "+91-6752-253821",
+              "type": "Luxury",
+              "lat": 19.82,
+              "lng": 85.9,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Gandhara",
+              "address": "CT Road, Puri",
+              "rating": 3.8,
+              "price_per_night": 2500,
+              "rooms": 50,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Beach View"
+              ],
+              "contact": "+91-6752-222117",
+              "type": "Standard",
+              "lat": 19.799,
+              "lng": 85.826,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Holiday Resort",
+              "address": "CT Road, Puri",
+              "rating": 4.0,
+              "price_per_night": 3500,
+              "rooms": 55,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach View"
+              ],
+              "contact": "+91-6752-223882",
+              "type": "Premium",
+              "lat": 19.7985,
+              "lng": 85.8255,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Lotus",
+              "address": "Grand Road, Puri",
+              "rating": 3.5,
+              "price_per_night": 1500,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6752-225585",
+              "type": "Standard",
+              "lat": 19.806,
+              "lng": 85.83,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Samudra",
+              "address": "Marine Drive, Puri",
+              "rating": 3.7,
+              "price_per_night": 2000,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Sea View"
+              ],
+              "contact": "+91-6752-222302",
+              "type": "Standard",
+              "lat": 19.796,
+              "lng": 85.823,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "OTDC Panthanivas Puri",
+              "address": "CT Road, Puri",
+              "rating": 3.9,
+              "price_per_night": 2800,
+              "rooms": 45,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Beach View",
+                "Parking"
+              ],
+              "contact": "+91-6752-222562",
+              "type": "Premium",
+              "lat": 19.7975,
+              "lng": 85.8245,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Love & Life",
+              "address": "VIP Road, Puri",
+              "rating": 3.6,
+              "price_per_night": 1800,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-6752-226655",
+              "type": "Standard",
+              "lat": 19.81,
+              "lng": 85.835,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Z Hotel",
+              "address": "CT Road, Puri",
+              "rating": 4.1,
+              "price_per_night": 4000,
+              "rooms": 50,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach View",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-6752-229900",
+              "type": "Premium",
+              "lat": 19.7988,
+              "lng": 85.8252,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Rayagada",
+          "hotels": [
+            {
+              "name": "Hotel Sai International",
+              "address": "Main Road, Rayagada",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 28,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant"
+              ],
+              "contact": "+91-6856-222001",
+              "type": "Standard",
+              "lat": 19.17,
+              "lng": 83.42,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Tribal Inn",
+              "address": "Station Road, Rayagada",
+              "rating": 3.3,
+              "price_per_night": 1000,
+              "rooms": 22,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6856-222002",
+              "type": "Budget",
+              "lat": 19.171,
+              "lng": 83.421,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Sambalpur",
+          "hotels": [
+            {
+              "name": "Hotel Sheela Towers",
+              "address": "VSS Nagar, Sambalpur",
+              "rating": 3.9,
+              "price_per_night": 2500,
+              "rooms": 55,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Parking"
+              ],
+              "contact": "+91-663-2410001",
+              "type": "Premium",
+              "lat": 21.47,
+              "lng": 83.97,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Uphar Palace",
+              "address": "Budharaja, Sambalpur",
+              "rating": 3.6,
+              "price_per_night": 1600,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-663-2410002",
+              "type": "Standard",
+              "lat": 21.471,
+              "lng": 83.971,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Paramount",
+              "address": "Ainthapali, Sambalpur",
+              "rating": 3.7,
+              "price_per_night": 1800,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-663-2410003",
+              "type": "Standard",
+              "lat": 21.472,
+              "lng": 83.972,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Subarnapur (Sonepur)",
+          "hotels": [
+            {
+              "name": "Hotel Sonepur",
+              "address": "Main Road, Sonepur",
+              "rating": 3.2,
+              "price_per_night": 900,
+              "rooms": 18,
+              "amenities": [
+                "WiFi",
+                "Parking"
+              ],
+              "contact": "+91-6654-220001",
+              "type": "Budget",
+              "lat": 20.83,
+              "lng": 83.9,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Mahanadi Stay",
+              "address": "River Road, Sonepur",
+              "rating": 3.4,
+              "price_per_night": 1100,
+              "rooms": 22,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-6654-220002",
+              "type": "Budget",
+              "lat": 20.831,
+              "lng": 83.901,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Sundargarh",
+          "hotels": [
+            {
+              "name": "Hotel Mayfair Rourkela",
+              "address": "Panposh Road, Rourkela",
+              "rating": 4.2,
+              "price_per_night": 4500,
+              "rooms": 70,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Gym",
+                "Spa",
+                "Bar"
+              ],
+              "contact": "+91-661-2500001",
+              "type": "Luxury",
+              "lat": 22.26,
+              "lng": 84.85,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Deepti",
+              "address": "Main Road, Rourkela",
+              "rating": 3.6,
+              "price_per_night": 1500,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-661-2500002",
+              "type": "Standard",
+              "lat": 22.261,
+              "lng": 84.851,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Basera",
+              "address": "Civil Township, Rourkela",
+              "rating": 3.8,
+              "price_per_night": 2000,
+              "rooms": 45,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Parking"
+              ],
+              "contact": "+91-661-2500003",
+              "type": "Premium",
+              "lat": 22.262,
+              "lng": 84.852,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel BNR Chandbali",
+              "address": "Station Road, Rourkela",
+              "rating": 3.5,
+              "price_per_night": 1300,
+              "rooms": 30,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Parking"
+              ],
+              "contact": "+91-661-2500004",
+              "type": "Standard",
+              "lat": 22.263,
+              "lng": 84.853,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Rajasthan",
+      "code": "RJ",
+      "districts": [
+        {
+          "name": "Jaipur",
+          "hotels": [
+            {
+              "name": "Rambagh Palace",
+              "address": "Bhawani Singh Road, Jaipur",
+              "rating": 4.8,
+              "price_per_night": 25000,
+              "rooms": 78,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Heritage",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-141-2211919",
+              "type": "Heritage Luxury",
+              "lat": 26.89,
+              "lng": 75.81,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "ITC Rajputana",
+              "address": "Palace Road, Jaipur",
+              "rating": 4.5,
+              "price_per_night": 8000,
+              "rooms": 218,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Gym",
+                "Bar",
+                "Conference Hall"
+              ],
+              "contact": "+91-141-5101100",
+              "type": "Luxury",
+              "lat": 26.912,
+              "lng": 75.787,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Clarks Amer",
+              "address": "JLN Marg, Jaipur",
+              "rating": 4.2,
+              "price_per_night": 5500,
+              "rooms": 200,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Gym"
+              ],
+              "contact": "+91-141-2550616",
+              "type": "Premium",
+              "lat": 26.88,
+              "lng": 75.805,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Pearl Palace",
+              "address": "Hathroi Fort, Jaipur",
+              "rating": 4.4,
+              "price_per_night": 2500,
+              "rooms": 28,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Rooftop Restaurant",
+                "Heritage"
+              ],
+              "contact": "+91-141-2373700",
+              "type": "Heritage Budget",
+              "lat": 26.91,
+              "lng": 75.79,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Zostel Jaipur",
+              "address": "MI Road, Jaipur",
+              "rating": 3.9,
+              "price_per_night": 800,
+              "rooms": 50,
+              "amenities": [
+                "WiFi",
+                "Common Kitchen",
+                "Lounge"
+              ],
+              "contact": "+91-141-4037400",
+              "type": "Hostel",
+              "lat": 26.915,
+              "lng": 75.795,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Alsisar Haveli",
+              "address": "Sansar Chandra Road, Jaipur",
+              "rating": 4.3,
+              "price_per_night": 6000,
+              "rooms": 45,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Heritage",
+                "Garden"
+              ],
+              "contact": "+91-141-2368290",
+              "type": "Heritage",
+              "lat": 26.92,
+              "lng": 75.792,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sarang Palace",
+              "address": "Hathroi, Jaipur",
+              "rating": 3.8,
+              "price_per_night": 2000,
+              "rooms": 32,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Rooftop"
+              ],
+              "contact": "+91-141-2364481",
+              "type": "Standard",
+              "lat": 26.9105,
+              "lng": 75.791,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Shahpura House",
+              "address": "Devi Marg, Bani Park, Jaipur",
+              "rating": 4.1,
+              "price_per_night": 4000,
+              "rooms": 38,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Heritage"
+              ],
+              "contact": "+91-141-4032300",
+              "type": "Heritage",
+              "lat": 26.93,
+              "lng": 75.785,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Diggi Palace",
+              "address": "Shivaji Nagar, Jaipur",
+              "rating": 4.0,
+              "price_per_night": 3500,
+              "rooms": 42,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Garden",
+                "Heritage"
+              ],
+              "contact": "+91-141-2373091",
+              "type": "Heritage",
+              "lat": 26.905,
+              "lng": 75.798,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Jaipur Palace",
+              "address": "Tonk Road, Jaipur",
+              "rating": 3.7,
+              "price_per_night": 1800,
+              "rooms": 55,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Parking"
+              ],
+              "contact": "+91-141-2601010",
+              "type": "Standard",
+              "lat": 26.87,
+              "lng": 75.815,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Udaipur",
+          "hotels": [
+            {
+              "name": "Taj Lake Palace",
+              "address": "Pichola Lake, Udaipur",
+              "rating": 4.9,
+              "price_per_night": 45000,
+              "rooms": 65,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Lake View",
+                "Heritage",
+                "Bar"
+              ],
+              "contact": "+91-294-2428800",
+              "type": "Heritage Luxury",
+              "lat": 24.57,
+              "lng": 73.68,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "The Oberoi Udaivilas",
+              "address": "Haridasji Ki Magri, Udaipur",
+              "rating": 4.8,
+              "price_per_night": 35000,
+              "rooms": 87,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Lake View",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-294-2433300",
+              "type": "Luxury",
+              "lat": 24.575,
+              "lng": 73.685,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Lakend",
+              "address": "Fateh Sagar, Udaipur",
+              "rating": 4.0,
+              "price_per_night": 4000,
+              "rooms": 55,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Lake View",
+                "Parking"
+              ],
+              "contact": "+91-294-2431100",
+              "type": "Premium",
+              "lat": 24.59,
+              "lng": 73.69,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Jodhpur",
+          "hotels": [
+            {
+              "name": "Umaid Bhawan Palace",
+              "address": "Circuit House Road, Jodhpur",
+              "rating": 4.9,
+              "price_per_night": 50000,
+              "rooms": 64,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Heritage",
+                "Museum",
+                "Bar"
+              ],
+              "contact": "+91-291-2510101",
+              "type": "Heritage Luxury",
+              "lat": 26.28,
+              "lng": 73.03,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Raas Jodhpur",
+              "address": "Tunvarji Ka Jhalra, Jodhpur",
+              "rating": 4.5,
+              "price_per_night": 12000,
+              "rooms": 39,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Fort View"
+              ],
+              "contact": "+91-291-2636455",
+              "type": "Luxury",
+              "lat": 26.295,
+              "lng": 73.025,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Goa",
+      "code": "GA",
+      "districts": [
+        {
+          "name": "North Goa",
+          "hotels": [
+            {
+              "name": "Taj Fort Aguada Resort",
+              "address": "Sinquerim, Candolim",
+              "rating": 4.6,
+              "price_per_night": 15000,
+              "rooms": 145,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-832-6645858",
+              "type": "Luxury",
+              "lat": 15.495,
+              "lng": 73.77,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "W Goa",
+              "address": "Vagator Beach",
+              "rating": 4.5,
+              "price_per_night": 18000,
+              "rooms": 108,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach",
+                "Bar",
+                "Nightclub"
+              ],
+              "contact": "+91-832-6712222",
+              "type": "Luxury",
+              "lat": 15.6,
+              "lng": 73.735,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Calangute Towers",
+              "address": "Calangute Beach Road",
+              "rating": 3.7,
+              "price_per_night": 2500,
+              "rooms": 55,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach Access"
+              ],
+              "contact": "+91-832-2276061",
+              "type": "Standard",
+              "lat": 15.544,
+              "lng": 73.755,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "La Gulls Court",
+              "address": "Baga Road, North Goa",
+              "rating": 3.5,
+              "price_per_night": 1800,
+              "rooms": 40,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool"
+              ],
+              "contact": "+91-832-2279066",
+              "type": "Standard",
+              "lat": 15.555,
+              "lng": 73.751,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Anjuna Beach Resort",
+              "address": "Anjuna, North Goa",
+              "rating": 3.8,
+              "price_per_night": 3000,
+              "rooms": 48,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach View"
+              ],
+              "contact": "+91-832-2274332",
+              "type": "Premium",
+              "lat": 15.583,
+              "lng": 73.74,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "South Goa",
+          "hotels": [
+            {
+              "name": "The Leela Goa",
+              "address": "Mobor, Cavelossim",
+              "rating": 4.7,
+              "price_per_night": 20000,
+              "rooms": 206,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach",
+                "Golf",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-832-6621234",
+              "type": "Luxury",
+              "lat": 15.17,
+              "lng": 73.94,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Taj Exotica Resort",
+              "address": "Benaulim",
+              "rating": 4.6,
+              "price_per_night": 18000,
+              "rooms": 140,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-832-6683333",
+              "type": "Luxury",
+              "lat": 15.26,
+              "lng": 73.92,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Colva Kinara",
+              "address": "Colva Beach, South Goa",
+              "rating": 3.6,
+              "price_per_night": 2000,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Beach Access"
+              ],
+              "contact": "+91-832-2788247",
+              "type": "Standard",
+              "lat": 15.28,
+              "lng": 73.91,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Nanu Resort",
+              "address": "Betalbatim, South Goa",
+              "rating": 3.9,
+              "price_per_night": 3500,
+              "rooms": 60,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach"
+              ],
+              "contact": "+91-832-2880121",
+              "type": "Premium",
+              "lat": 15.3,
+              "lng": 73.9,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Kerala",
+      "code": "KL",
+      "districts": [
+        {
+          "name": "Ernakulam (Kochi)",
+          "hotels": [
+            {
+              "name": "Taj Malabar Resort",
+              "address": "Willingdon Island, Kochi",
+              "rating": 4.5,
+              "price_per_night": 12000,
+              "rooms": 95,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Harbor View",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-484-6666811",
+              "type": "Luxury",
+              "lat": 9.95,
+              "lng": 76.27,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Brunton Boatyard",
+              "address": "Fort Kochi",
+              "rating": 4.4,
+              "price_per_night": 10000,
+              "rooms": 26,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Heritage",
+                "Harbor View"
+              ],
+              "contact": "+91-484-2215461",
+              "type": "Heritage Luxury",
+              "lat": 9.966,
+              "lng": 76.242,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Fort House",
+              "address": "Calvathy Road, Fort Kochi",
+              "rating": 3.8,
+              "price_per_night": 2500,
+              "rooms": 20,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Waterfront"
+              ],
+              "contact": "+91-484-2217103",
+              "type": "Standard",
+              "lat": 9.964,
+              "lng": 76.244,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Alappuzha (Alleppey)",
+          "hotels": [
+            {
+              "name": "Kumarakom Lake Resort",
+              "address": "Kumarakom, Alappuzha",
+              "rating": 4.6,
+              "price_per_night": 15000,
+              "rooms": 60,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Backwater View",
+                "Houseboat",
+                "Ayurveda"
+              ],
+              "contact": "+91-481-2524900",
+              "type": "Luxury",
+              "lat": 9.61,
+              "lng": 76.43,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Raheem Residency",
+              "address": "Beach Road, Alleppey",
+              "rating": 4.2,
+              "price_per_night": 6000,
+              "rooms": 10,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Heritage",
+                "Beach View"
+              ],
+              "contact": "+91-477-2239767",
+              "type": "Heritage",
+              "lat": 9.49,
+              "lng": 76.34,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Thiruvananthapuram",
+          "hotels": [
+            {
+              "name": "Taj Green Cove Resort",
+              "address": "Kovalam, Thiruvananthapuram",
+              "rating": 4.5,
+              "price_per_night": 14000,
+              "rooms": 59,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Beach",
+                "Ayurveda",
+                "Gym"
+              ],
+              "contact": "+91-471-6613000",
+              "type": "Luxury",
+              "lat": 8.399,
+              "lng": 76.978,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Samudra KTDC",
+              "address": "Kovalam Beach",
+              "rating": 3.8,
+              "price_per_night": 3500,
+              "rooms": 60,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Beach View"
+              ],
+              "contact": "+91-471-2480089",
+              "type": "Premium",
+              "lat": 8.396,
+              "lng": 76.977,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tamil Nadu",
+      "code": "TN",
+      "districts": [
+        {
+          "name": "Chennai",
+          "hotels": [
+            {
+              "name": "ITC Grand Chola",
+              "address": "Mount Road, Guindy, Chennai",
+              "rating": 4.7,
+              "price_per_night": 12000,
+              "rooms": 600,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Gym",
+                "Bar",
+                "Conference Hall",
+                "Shopping"
+              ],
+              "contact": "+91-44-22200000",
+              "type": "Luxury",
+              "lat": 13.01,
+              "lng": 80.22,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Taj Coromandel",
+              "address": "Nungambakkam, Chennai",
+              "rating": 4.5,
+              "price_per_night": 9000,
+              "rooms": 213,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Gym",
+                "Bar"
+              ],
+              "contact": "+91-44-66002827",
+              "type": "Luxury",
+              "lat": 13.06,
+              "lng": 80.25,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "The Park Chennai",
+              "address": "Anna Salai, Chennai",
+              "rating": 4.2,
+              "price_per_night": 5500,
+              "rooms": 214,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Gym",
+                "Bar",
+                "Nightclub"
+              ],
+              "contact": "+91-44-42676000",
+              "type": "Premium",
+              "lat": 13.055,
+              "lng": 80.255,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "GRT Grand",
+              "address": "T Nagar, Chennai",
+              "rating": 4.0,
+              "price_per_night": 4000,
+              "rooms": 95,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Gym",
+                "Parking"
+              ],
+              "contact": "+91-44-28150500",
+              "type": "Premium",
+              "lat": 13.04,
+              "lng": 80.23,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Savera",
+              "address": "Dr Radhakrishnan Salai, Chennai",
+              "rating": 3.7,
+              "price_per_night": 2800,
+              "rooms": 110,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Parking"
+              ],
+              "contact": "+91-44-28114700",
+              "type": "Standard",
+              "lat": 13.045,
+              "lng": 80.26,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Madurai",
+          "hotels": [
+            {
+              "name": "Heritage Madurai",
+              "address": "Melakkal Main Road, Madurai",
+              "rating": 4.4,
+              "price_per_night": 7000,
+              "rooms": 60,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Spa",
+                "Heritage",
+                "Garden"
+              ],
+              "contact": "+91-452-2385455",
+              "type": "Heritage Luxury",
+              "lat": 9.87,
+              "lng": 78.07,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Sangam",
+              "address": "Alagarkol Road, Madurai",
+              "rating": 3.8,
+              "price_per_night": 3000,
+              "rooms": 65,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Pool",
+                "Parking"
+              ],
+              "contact": "+91-452-2537531",
+              "type": "Standard",
+              "lat": 9.92,
+              "lng": 78.12,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Germanus",
+              "address": "West Perumal Maistry St, Madurai",
+              "rating": 3.6,
+              "price_per_night": 1800,
+              "rooms": 48,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Temple View"
+              ],
+              "contact": "+91-452-2342020",
+              "type": "Standard",
+              "lat": 9.919,
+              "lng": 78.119,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        },
+        {
+          "name": "Ooty (Nilgiris)",
+          "hotels": [
+            {
+              "name": "Savoy Hotel",
+              "address": "77 Sylks Road, Ooty",
+              "rating": 4.5,
+              "price_per_night": 10000,
+              "rooms": 43,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Garden",
+                "Heritage",
+                "Hill View",
+                "Fireplace"
+              ],
+              "contact": "+91-423-2225572",
+              "type": "Heritage Luxury",
+              "lat": 11.41,
+              "lng": 76.69,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Sterling Ooty Elk Hill",
+              "address": "Elk Hill, Ooty",
+              "rating": 4.0,
+              "price_per_night": 4500,
+              "rooms": 50,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Garden",
+                "Hill View",
+                "Kids Area"
+              ],
+              "contact": "+91-423-2244638",
+              "type": "Premium",
+              "lat": 11.405,
+              "lng": 76.695,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            },
+            {
+              "name": "Hotel Lakeview",
+              "address": "West Lake Road, Ooty",
+              "rating": 3.7,
+              "price_per_night": 2500,
+              "rooms": 35,
+              "amenities": [
+                "WiFi",
+                "AC",
+                "Restaurant",
+                "Lake View"
+              ],
+              "contact": "+91-423-2443180",
+              "type": "Standard",
+              "lat": 11.412,
+              "lng": 76.688,
+              "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "total_states": 5,
+    "total_districts": 41,
+    "total_hotels": 129,
+    "last_updated": "2026-04-06",
+    "currency": "INR",
+    "fields_per_hotel": [
+      "name",
+      "address",
+      "rating",
+      "price_per_night",
+      "rooms",
+      "amenities",
+      "contact",
+      "type",
+      "lat",
+      "lng",
+      "image"
+    ]
+  }
+}
