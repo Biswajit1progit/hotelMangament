@@ -11,7 +11,7 @@ cloudinary.config({
 
 // ✅ Cloudinary Storage — saves directly to cloud
 const storage = new CloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinary, 
   params: {
     folder: "safarsetu/hotels", // folder name in Cloudinary
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
