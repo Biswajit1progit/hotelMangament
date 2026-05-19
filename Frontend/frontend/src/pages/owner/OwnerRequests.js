@@ -61,7 +61,7 @@ function OwnerRequests() {
       const formData = new FormData();
       selectedFiles.forEach((f) => formData.append("images", f));
       const res = await axios.post(UPLOAD_API, formData, {
-        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "multipart/form-data" },
+        headers: { Authorization: `Bearer ${getToken()}`},
       });
       setUploadedImages(res.data.images);
       toast.success(`${res.data.images.length} image(s) uploaded ✅`);
@@ -286,7 +286,7 @@ function OwnerRequests() {
                   {r.type === "add_hotel" && r.details?.images?.length > 0 && (
                     <div className="flex gap-2 mt-2">
                       {r.details.images.slice(0, 3).map((img, i) => (
-                        <img key={i} src={`${process.env.REACT_APP_API_URL}${img}`}
+                        <img key={i} src={/* `${process.env.REACT_APP_API_URL}${img}` */img}
                           alt={`hotel-${i}`} className="w-14 h-10 object-cover rounded-lg" />
                       ))}
                       {r.details.images.length > 3 && (

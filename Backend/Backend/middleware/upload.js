@@ -16,12 +16,20 @@ console.log("Cloudinary config:", {
 });
 
 // ✅ Cloudinary Storage
-const storage = new CloudinaryStorage({
+/* const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "safarsetu/hotels",
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
   },
+}); */
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: "safarsetu/hotels",
+    format: file.mimetype.split("/")[1],
+    public_id: Date.now() + "-" + file.originalname,
+  }),
 });
 
 const fileFilter = (req, file, cb) => {
