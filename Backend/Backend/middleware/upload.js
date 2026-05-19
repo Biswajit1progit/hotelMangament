@@ -1,25 +1,25 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("cloudinary").v2;
 
-// ✅ Ensure upload folder exists
-const uploadDir = path.join(__dirname, "../public/images");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// ✅ Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // ✅ unique filename: timestamp + original name
-    const uniqueName = `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`;
-    cb(null, uniqueName);
+// ✅ Cloudinary Storage — saves directly to cloud
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "safarsetu/hotels", // folder name in Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    transformation: [{ width: 1200, height: 800, crop: "limit" }], // auto resize
   },
 });
 
-// ✅ Only allow images
+// ✅ File filter
 const fileFilter = (req, file, cb) => {
   const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
   if (allowed.includes(file.mimetype)) {
@@ -32,7 +32,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per image
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 module.exports = upload;
