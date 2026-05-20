@@ -30,7 +30,7 @@ const router = express.Router();
 const upload = require("../middleware/upload");
 const { verifyToken } = require("../middleware/authMiddleware");
 
-router.post("/images", verifyToken, (req, res, next) => {
+/* router.post("/images", verifyToken, (req, res, next) => {
   upload.array("images", 5)(req, res, (err) => {
     if (err) {
       console.error("Multer/Cloudinary Error:", err); // ← logs exact error
@@ -54,6 +54,25 @@ router.post("/images", verifyToken, (req, res, next) => {
 
   } catch (err) {
     console.error("Upload route error:", err); // ← logs exact error
+    res.status(500).json({ error: err.message });
+  }
+}); */
+router.post("/images", verifyToken, (req, res, next) => {
+  upload.array("images", 5)(req, res, (err) => {
+    if (err) {
+      console.error("Multer error:", err.message);
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No images uploaded" });
+    }
+    const imagePaths = req.files.map((file) => file.path);
+    res.json({ message: "Images uploaded successfully", images: imagePaths });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
