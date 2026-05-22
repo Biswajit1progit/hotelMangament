@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getToken } from "../../utils/auth";
 import { toast } from "react-toastify";
+import { uploadImagesToCloudinary } from "../../services/uploadService";
 
 const API = `${process.env.REACT_APP_API_URL}/api/owners`;
-const UPLOAD_API = `${process.env.REACT_APP_API_URL}/api/upload/images`;
 
 const REQUEST_TYPES = [
   { value: "add_hotel", label: "➕ Add New Hotel", desc: "Request to list a new hotel on the platform" },
@@ -28,14 +28,16 @@ function OwnerRequests() {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
+  const [myHotel, setMyHotel] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState({});
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => { fetchRequests(); }, []);
+  useEffect(() => { fetchRequests(); fetchMyHotel(); }, []);
 
   const fetchRequests = async () => {
     try {
@@ -46,27 +48,35 @@ function OwnerRequests() {
     } catch (err) { console.error(err); }
   };
 
+  const fetchMyHotel = async () => {
+    try {
+      const res = await axios.get(`${API}/hotel`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setMyHotel(res.data);
+    } catch (err) { console.log("No hotel found"); }
+  };
+
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 5) { toast.error("Maximum 5 images allowed"); return; }
     setSelectedFiles(files);
     setPreviewUrls(files.map((f) => URL.createObjectURL(f)));
     setUploadedImages([]);
+    setUploadProgress({});
   };
 
   const handleUploadImages = async () => {
     if (selectedFiles.length === 0) { toast.error("Please select images first"); return; }
     setUploading(true);
     try {
-      const formData = new FormData();
-      selectedFiles.forEach((f) => formData.append("images", f));
-      const res = await axios.post(UPLOAD_API, formData, {
-        headers: { Authorization: `Bearer ${getToken()}`},
+      const urls = await uploadImagesToCloudinary(selectedFiles, (index, percent) => {
+        setUploadProgress((prev) => ({ ...prev, [index]: percent }));
       });
-      setUploadedImages(res.data.images);
-      toast.success(`${res.data.images.length} image(s) uploaded ✅`);
+      setUploadedImages(urls);
+      toast.success(`${urls.length} image(s) uploaded to Cloudinary ✅`);
     } catch (err) {
-      toast.error("Image upload failed");
+      toast.error("Image upload failed. Please try again.");
     } finally { setUploading(false); }
   };
 
@@ -74,11 +84,12 @@ function OwnerRequests() {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
     setPreviewUrls(previewUrls.filter((_, i) => i !== index));
     setUploadedImages([]);
+    setUploadProgress({});
   };
 
   const resetForm = () => {
-    setShowForm(false); setType("add_hotel"); setReason("");
-    setDetails({}); setSelectedFiles([]); setPreviewUrls([]); setUploadedImages([]);
+    setShowForm(false); setType("add_hotel"); setReason(""); setDetails({});
+    setSelectedFiles([]); setPreviewUrls([]); setUploadedImages([]); setUploadProgress({});
   };
 
   const handleSubmit = async () => {
@@ -90,7 +101,8 @@ function OwnerRequests() {
     try {
       setLoading(true);
       const finalDetails = { ...details, ...(type === "add_hotel" && { images: uploadedImages }) };
-      await axios.post(`${API}/request`, { type, details: finalDetails, reason },
+      const hotelId = ["delete_hotel", "update_hotel", "room_availability"].includes(type) ? myHotel?._id : undefined;
+      await axios.post(`${API}/request`, { type, details: finalDetails, reason, hotelId },
         { headers: { Authorization: `Bearer ${getToken()}` } });
       toast.success("Request submitted to admin ✅");
       resetForm(); fetchRequests();
@@ -115,13 +127,11 @@ function OwnerRequests() {
         {showForm && (
           <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
             <h2 className="font-bold text-gray-800 mb-4">Submit New Request</h2>
-
-            {/* Type Selection */}
             <p className="text-sm font-medium text-gray-600 mb-2">Request Type:</p>
             <div className="grid grid-cols-1 gap-2 mb-5">
               {REQUEST_TYPES.map((r) => (
                 <button key={r.value} type="button"
-                  onClick={() => { setType(r.value); setDetails({}); setSelectedFiles([]); setPreviewUrls([]); setUploadedImages([]); }}
+                  onClick={() => { setType(r.value); setDetails({}); setSelectedFiles([]); setPreviewUrls([]); setUploadedImages([]); setUploadProgress({}); }}
                   className={`text-left p-3 rounded-xl border-2 transition ${type === r.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}>
                   <p className="font-medium text-sm">{r.label}</p>
                   <p className="text-gray-400 text-xs mt-0.5">{r.desc}</p>
@@ -129,7 +139,6 @@ function OwnerRequests() {
               ))}
             </div>
 
-            {/* Add Hotel Form */}
             {type === "add_hotel" && (
               <div className="space-y-4 mb-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -163,14 +172,15 @@ function OwnerRequests() {
                   </div>
                 </div>
 
-                {/* ✅ Image Upload */}
                 <div className="border-2 border-dashed border-gray-200 rounded-xl p-4">
-                  <p className="text-sm font-medium text-gray-600 mb-3">
-                    📸 Hotel Images <span className="text-red-400">*</span>
-                    <span className="text-gray-400 font-normal ml-1">(Max 5, 5MB each)</span>
-                  </p>
-                  <input ref={fileInputRef} type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-gray-600">
+                      📸 Hotel Images <span className="text-red-400">*</span>
+                      <span className="text-gray-400 font-normal ml-1">(Max 5, 5MB each)</span>
+                    </p>
+                    <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-100">☁️ Cloudinary CDN</span>
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
                     multiple className="hidden" onChange={handleFileSelect} />
 
                   {previewUrls.length > 0 ? (
@@ -179,14 +189,25 @@ function OwnerRequests() {
                         {previewUrls.map((url, i) => (
                           <div key={i} className="relative group">
                             <img src={url} alt={`preview-${i}`} className="w-full h-24 object-cover rounded-lg" />
-                            <button type="button" onClick={() => removeImage(i)}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>
+                            {uploading && uploadProgress[i] !== undefined && uploadProgress[i] < 100 && (
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/50 rounded-b-lg p-1">
+                                <div className="bg-gray-300 rounded-full h-1.5">
+                                  <div className="bg-blue-400 h-1.5 rounded-full transition-all duration-300"
+                                    style={{ width: `${uploadProgress[i]}%` }} />
+                                </div>
+                                <p className="text-white text-xs text-center mt-0.5">{uploadProgress[i]}%</p>
+                              </div>
+                            )}
                             {uploadedImages.length > 0 && (
                               <div className="absolute bottom-1 right-1 bg-green-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">✓</div>
                             )}
+                            {!uploading && (
+                              <button type="button" onClick={() => removeImage(i)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>
+                            )}
                           </div>
                         ))}
-                        {previewUrls.length < 5 && (
+                        {previewUrls.length < 5 && !uploading && (
                           <button type="button" onClick={() => fileInputRef.current?.click()}
                             className="h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-400 transition text-2xl">+</button>
                         )}
@@ -194,11 +215,12 @@ function OwnerRequests() {
                       {uploadedImages.length === 0 ? (
                         <button type="button" onClick={handleUploadImages} disabled={uploading}
                           className="w-full bg-blue-50 text-blue-600 border border-blue-200 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition disabled:opacity-60">
-                          {uploading ? "⏳ Uploading..." : "☁️ Upload Images to Server"}
+                          {uploading ? `☁️ Uploading... ${Math.min(...Object.values(uploadProgress).filter(v => v !== undefined), 100) || 0}%` : "☁️ Upload to Cloudinary"}
                         </button>
                       ) : (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
-                          <p className="text-green-600 text-sm font-medium">✅ {uploadedImages.length} image(s) uploaded!</p>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                          <p className="text-green-600 text-sm font-medium">✅ {uploadedImages.length} image(s) uploaded to Cloudinary CDN!</p>
+                          <p className="text-green-400 text-xs mt-0.5">Images permanently hosted in cloud</p>
                         </div>
                       )}
                     </div>
@@ -208,6 +230,7 @@ function OwnerRequests() {
                       <span className="text-4xl">📷</span>
                       <span className="text-sm font-medium">Click to select images</span>
                       <span className="text-xs">JPEG, PNG, WEBP — max 5MB each</span>
+                      <span className="text-xs text-blue-400">Powered by Cloudinary CDN ☁️</span>
                     </button>
                   )}
                 </div>
@@ -216,6 +239,11 @@ function OwnerRequests() {
 
             {type === "update_hotel" && (
               <div className="grid grid-cols-1 gap-3 mb-4">
+                {myHotel && (
+                  <div className="bg-blue-50 rounded-xl p-3 mb-2">
+                    <p className="text-xs text-blue-600 font-medium">Updating: <span className="font-bold text-blue-800">{myHotel.name}</span></p>
+                  </div>
+                )}
                 {["pricePerNight", "description", "amenities"].map((field) => (
                   <div key={field}>
                     <label className="text-xs font-medium text-gray-500 capitalize">{field}</label>
@@ -229,10 +257,26 @@ function OwnerRequests() {
 
             {type === "room_availability" && (
               <div className="mb-4">
+                {myHotel && (
+                  <div className="bg-blue-50 rounded-xl p-3 mb-3">
+                    <p className="text-xs text-blue-600 font-medium">Hotel: <span className="font-bold text-blue-800">{myHotel.name}</span> · Current rooms: {myHotel.rooms}</p>
+                  </div>
+                )}
                 <label className="text-xs font-medium text-gray-500">New Room Count</label>
                 <input type="number" min="1" placeholder="e.g. 25"
                   onChange={(e) => setDetails({ rooms: Number(e.target.value) })}
                   className="w-full border rounded-lg p-2 text-sm mt-1" />
+              </div>
+            )}
+
+            {type === "delete_hotel" && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-600 font-medium">⚠️ This will request permanent removal</p>
+                {myHotel ? (
+                  <p className="text-xs text-gray-600 mt-2">Hotel: <span className="font-bold">{myHotel.name}</span></p>
+                ) : (
+                  <p className="text-xs text-red-400 mt-2">No hotel found.</p>
+                )}
               </div>
             )}
 
@@ -245,7 +289,6 @@ function OwnerRequests() {
               </div>
             )}
 
-            {/* Reason */}
             <div className="mb-4">
               <label className="text-sm font-medium text-gray-600">Reason / Notes <span className="text-red-400">*</span></label>
               <textarea rows={3} placeholder="Explain your request..." value={reason}
@@ -267,7 +310,6 @@ function OwnerRequests() {
           </div>
         )}
 
-        {/* Requests List */}
         <div className="space-y-4">
           {requests.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
@@ -279,20 +321,15 @@ function OwnerRequests() {
             <div key={r._id} className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-800">
-                    {REQUEST_TYPES.find((t) => t.value === r.type)?.label || r.type}
-                  </p>
+                  <p className="font-semibold text-gray-800">{REQUEST_TYPES.find((t) => t.value === r.type)?.label || r.type}</p>
                   <p className="text-gray-500 text-sm mt-1">{r.reason}</p>
                   {r.type === "add_hotel" && r.details?.images?.length > 0 && (
                     <div className="flex gap-2 mt-2">
                       {r.details.images.slice(0, 3).map((img, i) => (
-                        <img key={i} src={/* `${process.env.REACT_APP_API_URL}${img}` */img}
-                          alt={`hotel-${i}`} className="w-14 h-10 object-cover rounded-lg" />
+                        <img key={i} src={img} alt={`hotel-${i}`} className="w-14 h-10 object-cover rounded-lg" />
                       ))}
                       {r.details.images.length > 3 && (
-                        <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-500">
-                          +{r.details.images.length - 3}
-                        </div>
+                        <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-500">+{r.details.images.length - 3}</div>
                       )}
                     </div>
                   )}

@@ -14,7 +14,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const uploadRoutes = require("./routes/uploadRoutes");
+/* const uploadRoutes = require("./routes/uploadRoutes"); */
 const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const app = express();
 
@@ -46,7 +46,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/upload", uploadRoutes);
+/* app.use("/api/upload", uploadRoutes); */
 // Test route
 app.get("/", (req, res) => {
   res.send("API Working ✅");
