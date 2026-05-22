@@ -30,8 +30,8 @@ const ownerRequestSchema = new mongoose.Schema({
     default: null,
   },
   details: {
-    type: mongoose.Schema.Types.Mixed, // flexible — stores any request data
-    required: true,
+   type: mongoose.Schema.Types.Mixed,
+  default: {},  
   },
   reason: { type: String },
   status: {

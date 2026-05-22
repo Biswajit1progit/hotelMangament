@@ -92,7 +92,7 @@ function OwnerRequests() {
     setSelectedFiles([]); setPreviewUrls([]); setUploadedImages([]); setUploadProgress({});
   };
 
-  const handleSubmit = async () => {
+  /* const handleSubmit = async () => {
     if (!reason) return toast.error("Please provide a reason");
     if (type === "add_hotel") {
       if (!details.name || !details.district || !details.state) return toast.error("Name, district, state required");
@@ -108,8 +108,41 @@ function OwnerRequests() {
       resetForm(); fetchRequests();
     } catch (err) { toast.error("Failed to submit request"); }
     finally { setLoading(false); }
-  };
+  }; */
+const handleSubmit = async () => {
+  if (!reason) return toast.error("Please provide a reason");
 
+  if (type === "add_hotel") {
+    if (!details.name || !details.district || !details.state) return toast.error("Name, district, state required");
+    if (uploadedImages.length === 0) return toast.error("Please upload at least one image");
+  }
+
+  try {
+    setLoading(true);
+    const finalDetails = {
+      ...details,
+      ...(type === "add_hotel" && { images: uploadedImages }),
+      // ✅ Always ensure details has something
+      requestType: type,
+    };
+
+    const hotelId = ["delete_hotel", "update_hotel", "room_availability"]
+      .includes(type) ? myHotel?._id : undefined;
+
+    await axios.post(`${API}/request`,
+      { type, details: finalDetails, reason, hotelId },
+      { headers: { Authorization: `Bearer ${getToken()}` } }
+    );
+
+    toast.success("Request submitted to admin ✅");
+    resetForm();
+    fetchRequests();
+  } catch (err) {
+    toast.error("Failed to submit request");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
