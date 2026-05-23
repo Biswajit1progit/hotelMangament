@@ -7,14 +7,29 @@ import { uploadImagesToCloudinary } from "../../services/uploadService";
 
 const API = `${process.env.REACT_APP_API_URL}/api/owners`;
 
-const REQUEST_TYPES = [
+/* const REQUEST_TYPES = [
   { value: "add_hotel", label: "➕ Add New Hotel", desc: "Request to list a new hotel on the platform" },
   { value: "update_hotel", label: "✏️ Update Hotel Details", desc: "Request changes to price, amenities, description" },
   { value: "delete_hotel", label: "🗑️ Remove Hotel", desc: "Request to remove your hotel listing" },
   { value: "cancel_booking", label: "❌ Cancel a Booking", desc: "Request to cancel a guest's booking" },
   { value: "room_availability", label: "🛏️ Change Room Count", desc: "Request to update available rooms" },
-];
+]; */
+// ❌ REMOVE lines 10-16 (the const REQUEST_TYPES = [...])
 
+// ✅ REPLACE WITH this function
+const getRequestTypes = (hasHotel) => {
+  if (!hasHotel) {
+    return [
+      { value: "add_hotel", label: "➕ Add New Hotel", desc: "Request to list a new hotel on the platform" },
+    ];
+  }
+  return [
+    { value: "update_hotel", label: "✏️ Update Hotel Details", desc: "Request changes to price, amenities, description" },
+    { value: "delete_hotel", label: "🗑️ Remove Hotel", desc: "Request to remove your hotel listing" },
+    { value: "cancel_booking", label: "❌ Cancel a Booking", desc: "Request to cancel a guest's booking" },
+    { value: "room_availability", label: "🛏️ Change Room Count", desc: "Request to update available rooms" },
+  ];
+};
 const STATUS_COLORS = {
   pending: "bg-yellow-100 text-yellow-700",
   approved: "bg-green-100 text-green-700",
@@ -24,7 +39,7 @@ const STATUS_COLORS = {
 function OwnerRequests() {
   const [requests, setRequests] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [type, setType] = useState("add_hotel");
+ 
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState({});
   const [loading, setLoading] = useState(false);
@@ -48,15 +63,27 @@ function OwnerRequests() {
     } catch (err) { console.error(err); }
   };
 
-  const fetchMyHotel = async () => {
+  /* const fetchMyHotel = async () => {
     try {
       const res = await axios.get(`${API}/hotel`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       setMyHotel(res.data);
     } catch (err) { console.log("No hotel found"); }
-  };
-
+  }; */
+ const fetchMyHotel = async () => {
+  try {
+    const res = await axios.get(`${API}/hotel`, {
+      headers: { Authorization: `Bearer ${getToken()}` },
+    });
+    setMyHotel(res.data);
+    setType("update_hotel"); // ✅ hotel exists → default to update
+  } catch (err) {
+    setMyHotel(null);
+    setType("add_hotel"); // ✅ no hotel → default to add
+  }
+};
+  const [type, setType] = useState("add_hotel");
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 5) { toast.error("Maximum 5 images allowed"); return; }
@@ -92,7 +119,7 @@ function OwnerRequests() {
     setSelectedFiles([]); setPreviewUrls([]); setUploadedImages([]); setUploadProgress({});
   };
 
-  /* const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!reason) return toast.error("Please provide a reason");
     if (type === "add_hotel") {
       if (!details.name || !details.district || !details.state) return toast.error("Name, district, state required");
@@ -108,41 +135,11 @@ function OwnerRequests() {
       resetForm(); fetchRequests();
     } catch (err) { toast.error("Failed to submit request"); }
     finally { setLoading(false); }
-  }; */
-const handleSubmit = async () => {
-  if (!reason) return toast.error("Please provide a reason");
+  };
+  // ✅ ADD these two lines just before the return statement
+const REQUEST_TYPES = getRequestTypes(!!myHotel);
+const hasPendingAddRequest = requests.some(r => r.type === "add_hotel" && r.status === "pending");
 
-  if (type === "add_hotel") {
-    if (!details.name || !details.district || !details.state) return toast.error("Name, district, state required");
-    if (uploadedImages.length === 0) return toast.error("Please upload at least one image");
-  }
-
-  try {
-    setLoading(true);
-    const finalDetails = {
-      ...details,
-      ...(type === "add_hotel" && { images: uploadedImages }),
-      // ✅ Always ensure details has something
-      requestType: type,
-    };
-
-    const hotelId = ["delete_hotel", "update_hotel", "room_availability"]
-      .includes(type) ? myHotel?._id : undefined;
-
-    await axios.post(`${API}/request`,
-      { type, details: finalDetails, reason, hotelId },
-      { headers: { Authorization: `Bearer ${getToken()}` } }
-    );
-
-    toast.success("Request submitted to admin ✅");
-    resetForm();
-    fetchRequests();
-  } catch (err) {
-    toast.error("Failed to submit request");
-  } finally {
-    setLoading(false);
-  }
-};
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
@@ -150,16 +147,38 @@ const handleSubmit = async () => {
           <button onClick={() => navigate("/owner/dashboard")} className="text-gray-500 hover:text-gray-700">← Back</button>
           <h1 className="text-xl font-bold text-gray-800">📝 My Requests</h1>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-          + New Request
-        </button>
+         <button
+          onClick={() => setShowForm(!showForm)}
+          disabled={hasPendingAddRequest && !myHotel}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+           {hasPendingAddRequest && !myHotel ? "⏳ Request Pending..." : "+ New Request"}
+          </button>
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-8">
         {showForm && (
           <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
             <h2 className="font-bold text-gray-800 mb-4">Submit New Request</h2>
+            
+     {myHotel ? (
+     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+    <p className="text-sm font-bold text-blue-800">🏨 Your Hotel: {myHotel.name}</p>
+    <p className="text-xs text-blue-600 mt-1">
+      {myHotel.district}, {myHotel.state} · ₹{myHotel.pricePerNight}/night · {myHotel.rooms} rooms
+    </p>
+    <p className="text-xs text-blue-400 mt-1">
+      To add another hotel, first request deletion of your current hotel.
+    </p>
+  </div>
+) : (
+  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
+    <p className="text-sm font-bold text-yellow-800">📋 No Hotel Listed Yet</p>
+    <p className="text-xs text-yellow-600 mt-1">
+      Submit a request to add your hotel. Admin will review and approve it.
+    </p>
+  </div>
+)}
             <p className="text-sm font-medium text-gray-600 mb-2">Request Type:</p>
             <div className="grid grid-cols-1 gap-2 mb-5">
               {REQUEST_TYPES.map((r) => (
