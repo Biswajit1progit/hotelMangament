@@ -121,7 +121,15 @@ import NotificationBell from "../bell";
             <Link to="/wishlist" className="block hover:hover:shadow-lg p-2 rounded courser-pointer hover:text-blue-500">Wishlist</Link>
             <Link to="/profile" className="block hover:hover:shadow-lg p-2 rounded courser-pointer hover:text-blue-500">Profile</Link>
             <Link to="/contact" className="block hover:hover:shadow-lg p-2 rounded courser-pointer hover:text-blue-500">Contact Us</Link>
-
+            <button
+  onClick={() => {
+    sessionStorage.clear();
+    navigate("/login");
+  }}
+  className="block w-full text-left p-2 rounded text-red-500 font-semibold hover:bg-red-50 hover:shadow-lg transition"
+>
+  🚪 Logout
+            </button>
           </div>
         )}
 

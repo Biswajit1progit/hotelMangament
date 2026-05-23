@@ -54,12 +54,12 @@ const Profile = () => {
   }, []);
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       
       <h1 className="text-2xl font-bold">My Profile</h1>
        
       {user && (
-        <div className="mt-4 shadow p-4 rounded relative flex ">
+        <div className="mt-4 shadow p-4 rounded relative flex items-center pr-12 sm:pr-4 ">
           <div className="  border-2 rounded-full p-2 bg-gray-200">
                  <svg
   xmlns="http://www.w3.org/2000/svg"
@@ -83,43 +83,22 @@ const Profile = () => {
           <p><strong>Email:</strong> {user.email}</p>
           </div>
            <div className="absolute right-2 top-4">
-         <svg
-      width="160"
-      height="50"
-      viewBox="0 0 160 50"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Icon */}
-      <g transform="translate(0,5)">
-        <circle cx="25" cy="20" r="18" fill="#2563EB" />
+            {/* Mobile — circle icon only */}
+          <svg className="block sm:hidden" width="40" height="40" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="25" cy="25" r="22" fill="#2563EB" />
+    <path d="M8 33 C20 8, 37 8, 48 25" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    <polygon points="32,14 46,20 32,24 36,30 28,24 16,26" fill="white" />
+         </svg>
 
-        <path
-          d="M5 28 C18 5, 32 5, 45 20"
-          stroke="white"
-          strokeWidth="2.5"
-          fill="none"
-          strokeLinecap="round"
-        />
-
-        <polygon
-          points="28,10 42,16 28,20 32,26 24,20 12,22"
-          fill="white"
-        />
-      </g>
-
-      {/* Text */}
-      <text
-        x="50"
-        y="31"
-        fontFamily="Poppins, Arial, sans-serif"
-        fontSize="20"
-        fontWeight="600"
-        fill="#091fed"
-        display="flex"
-      >
-       SafarSetu
-      </text>
-       </svg> 
+            {/* Desktop — full logo with text */}
+            <svg className="hidden sm:block" width="160" height="50" viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg">
+             <g transform="translate(0,5)">
+             <circle cx="25" cy="20" r="18" fill="#2563EB" />
+             <path d="M5 28 C18 5, 32 5, 45 20" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+             <polygon points="28,10 42,16 28,20 32,26 24,20 12,22" fill="white" />
+             </g>
+            <text x="50" y="31" fontFamily="Poppins, Arial, sans-serif" fontSize="20" fontWeight="600" fill="#091fed">SafarSetu</text>
+           </svg>
            </div>
         </div>
       )}
