@@ -32,8 +32,8 @@ const Wishlist = () => {
     };
 
   return (
-    <div className="p-6">
-      <div className="shadow p-4 relative">
+   <div className="p-3 sm:p-6">
+      <div className="shadow p-4 relative min-h-[60px]">
         <div>
            <h1 className="text-xl font-bold mb-4  ">❤️ My Wishlist</h1>
         </div>
@@ -93,7 +93,7 @@ const Wishlist = () => {
       {hotels.length === 0 ? (
         <p>No items in wishlist</p>
       ) : (
-        <div className="grid grid-cols-3 gap-4 mt-2">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
           {/* {hotels.map((hotel) => (
             <HotelCard key={hotel._id} hotel={hotel} onRemove={handleRemove} />
           ))} */}
