@@ -28,34 +28,7 @@ function Home() {
       <div className="text-center text-yellow-50  sm:mt-10 text-2xl sm:text-4xl font-bold px-4">
         {/*  <h1 className="mt-38">Book Your Next Adventure</h1> */}
 
-        <h1 className="
-  text-5xl md:text-7xl 
-  font-extrabold 
-  tracking-tight
-  text-white
-  drop-shadow-[0_6px_20px_rgba(0,0,0,0.5)]
-  relative
-">
-  <span className="
-    bg-gradient-to-r 
-    from-blue-400 
-    via-cyan-300 
-    to-indigo-500
-    bg-clip-text 
-    text-transparent
-  ">
-    Book Your
-  </span>
-
-  <br />
-
-  <span className="
-    text-white
-    [text-shadow:_0_2px_0_rgb(180_180_180),_0_4px_10px_rgba(0,0,0,0.4)]
-  ">
-    Next Adventure
-  </span>
-</h1>
+          <h1 className="mt-38">Book Your Next Adventure</h1>
         </div>
       
       {/* Searchbar Section */}
