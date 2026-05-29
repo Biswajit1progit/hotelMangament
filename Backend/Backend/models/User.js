@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin", "hotelOwner"],
     default: "user",
   },
+  googleId:    { type: String,  default: null  },
+avatar:      { type: String,  default: null  },
+isVerified:  { type: Boolean, default: false },
+verifyToken: { type: String,  default: null  },
   // ❤️ NEW FIELD
   wishlist: [
     {

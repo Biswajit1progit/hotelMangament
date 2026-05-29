@@ -5,4 +5,4 @@ const { chat } = require("../controllers/chatController");
 // POST /api/chat
 router.post("/", chat);
 
-module.exports = router;
+module.exports = router; 
