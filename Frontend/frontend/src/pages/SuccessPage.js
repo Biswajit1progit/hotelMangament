@@ -32,71 +32,7 @@ const SuccessPage = () => {
 
   return (
     <> 
-    {/* <div className=" flex justify-center items-center h-screen   ">
-     <div className="p-6 bg-white shadow rounded-lg hover:shadow-lg transition-shadow duration-300 scale-107"> */}
-        {/* <div className="ml-26 ">
-          <svg
-      width="160"
-      height="50"
-      viewBox="0 0 160 50"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Icon */}
-     {/*  <g transform="translate(0,5)">
-        <circle cx="25" cy="20" r="18" fill="#2563EB" />
-
-        <path
-          d="M5 28 C18 5, 32 5, 45 20"
-          stroke="white"
-          strokeWidth="2.5"
-          fill="none"
-          strokeLinecap="round"
-        />
-
-        <polygon
-          points="28,10 42,16 28,20 32,26 24,20 12,22"
-          fill="white"
-        />
-      </g> */}
-
-      {/* Text */}
-     {/*  <text
-        x="50"
-        y="31"
-        fontFamily="Poppins, Arial, sans-serif"
-        fontSize="20"
-        fontWeight="600"
-        fill="#091fed"
-        display="flex"
-      >
-      
-      </text> */}
-       {/*  </svg>
-        </div> * */}
-      {/* <h2 className="text-green-600 text-xl mb-4 ml-8">
-        Payment Successful ✅
-      </h2> */}
-     {/*  <p><b>User:</b> {data.name}</p>
-      <p><b>Email:</b> {data.email}</p>
-      <p><b>Phone:</b> {data.phone}</p> */}
-
-      {/* <p><b>Order No:</b> {data.orderNumber}</p>
-      <p><b>Transaction ID:</b> {data.razorpayPaymentId}</p>
-      <p><b>Amount:</b> ₹{data.amount}</p>
-      <p><b>Hotel:</b> {data.hotelName}</p>
-      <p><b>Guests:</b> {data.guests}</p>
-      <p><b>Rooms:</b> {data.rooms}</p> */}
-     
-      {/* PRINT BUTTON */}
-     {/*  <button
-        onClick={downloadPDF}
-        className="mt-4 bg-blue-600 text-white ml-19 px-4 py-2 rounded-lg hover:scale-105 transition-transform duration-300 "
-      >
-        Print Invoice
-      </button>
- */}
-   {/*  </div>
-    </div> */}
+   
      <div className="p-6 flex flex-col items-center">
 
       <Invoice data={data} />

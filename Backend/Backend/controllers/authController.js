@@ -176,7 +176,7 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const verifyToken = crypto.randomUUID();
 
-    await User.create({
+    /* await User.create({
       name, email,
       password: hashedPassword,
       role: assignedRole,
@@ -189,8 +189,33 @@ const register = async (req, res) => {
 
     res.status(201).json({
       message: "Account created! Please check your email and click the verification link to activate your account.",
-    });
+    }); */
+    // Auto-verify hotel owners and admins
+// Only regular users need email verification
+const needsVerification = assignedRole === "user"
 
+await User.create({
+  name, email,
+  password: hashedPassword,
+  role: assignedRole,
+  isVerified: !needsVerification,  // owners and admins auto-verified
+  verifyToken: needsVerification ? verifyToken : null,
+})
+
+// Only send verification email for regular users
+if (needsVerification) {
+  try {
+    await sendVerificationEmail({ to: email, userName: name, token: verifyToken })
+  } catch (emailErr) {
+    console.warn("Verification email failed:", emailErr.message)
+  }
+}
+
+   res.status(201).json({
+  message: needsVerification
+    ? "Account created! Please check your email to verify your account."
+    : "Account created successfully! You can now login.",
+})
   } catch (err) {
     console.log("REGISTER ERROR:", err);
     res.status(500).json({ message: "Server error" });
@@ -227,8 +252,14 @@ const login = async (req, res) => {
     if (!user.password)
       return res.status(400).json({ message: "This account uses Google sign-in. Please use Continue with Google." });
 
-    if (!user.isVerified)
-      return res.status(401).json({ message: "Please verify your email first. Check your inbox for the verification link." });
+   /*  if (!user.isVerified)
+      return res.status(401).json({ message: "Please verify your email first. Check your inbox for the verification link." }); */
+   // Only block regular users who haven't verified
+if (user.role === "user" && !user.isVerified) {
+  return res.status(401).json({ 
+    message: "Please verify your email first. Check your inbox for the verification link." 
+  })
+}
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });

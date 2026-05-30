@@ -4,6 +4,8 @@ const Booking=require("../models/Booking");
 const { verifySignature } = require("../utils/verifySignature");
 const generateOrderId = require("../utils/generateOrderId");
 const path = require("path");
+const generateInvoicePDF = require("../utils/generateInvoicepdf");   
+const { sendPaymentConfirmation } = require("../service/emailService")
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -83,7 +85,43 @@ exports.verifyPayment = async (req, res) => {
 generateInvoicePDF(payment, filePath); */
 
 // Send Email
-
+    try {
+    
+  // Generate PDF from payment data
+  const pdfBuffer = await generateInvoicePDF({
+    orderNumber: payment.orderNumber,
+    razorpayPaymentId: razorpay_payment_id,
+    name: booking.name,
+    email: booking.email,
+    hotelName: booking.hotelName,
+    rooms: booking.rooms,
+    guests: booking.guests,
+    nights: booking.nights,
+    amount: amount,
+    createdAt: payment.createdAt,
+  })
+  await sendPaymentConfirmation({
+    to: booking.email,
+    userName: booking.name,
+    hotel: {
+      name: booking.hotelName,
+      location: "",
+      price: Math.round(amount / booking.nights),
+    },
+    booking: {
+      bookingId: payment._id,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      amount: amount,
+      nights: booking.nights,
+      paymentId: razorpay_payment_id,
+      paymentDate: payment.createdAt,
+    },
+    pdfBuffer,  
+  })
+} catch (emailErr) {
+  console.warn("Payment email failed:", emailErr.message)
+}
 
     res.json({ message: "Payment Successful" });
 

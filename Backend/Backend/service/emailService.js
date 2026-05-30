@@ -119,8 +119,8 @@ async function sendWelcomeEmail({ to, userName }) {
 // EMAIL 3: Payment confirmation with invoice
 // Called after Razorpay payment verified
 // ─────────────────────────────────────────────────────────────
-async function sendPaymentConfirmation({ to, userName, hotel, booking }) {
-  const { bookingId, checkIn, checkOut, amount, nights = 1, paymentId } = booking
+async function sendPaymentConfirmation({ to, userName, hotel, booking,pdfBuffer  }) {
+  const { bookingId, checkIn, checkOut, amount, nights = 1, paymentId,paymentDate  } = booking
 
   const html = `
 <!DOCTYPE html>
@@ -169,6 +169,14 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking }) {
 
       <p class="label">Stay Dates</p>
       <table style="margin-bottom:20px">
+
+          <tr>
+            <td style="color:#555">Payment Date</td>
+             <td>${new Date(paymentDate || Date.now()).toLocaleDateString("en-IN", {
+              day: "numeric", month: "long", year: "numeric",
+                 hour: "2-digit", minute: "2-digit"
+             })}</td>
+            </tr>
         <tr>
           <td style="border:none;padding-right:6px">
             <div style="background:#f9f9f9;border-radius:10px;padding:14px;text-align:center">
@@ -206,11 +214,25 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking }) {
 </body>
 </html>`
 
-  return sendEmail({
+ /*  return sendEmail({
     to,
     subject: `✓ Booking Confirmed — ${hotel.name} | SafarSetu`,
     html,
-  })
+  }) */
+
+    return transporter.sendMail({
+  from: `"SafarSetu" <${process.env.EMAIL_USER}>`,
+  to,
+  subject: `✓ Booking Confirmed — ${hotel.name} | SafarSetu`,
+  html,
+  attachments: pdfBuffer ? [
+    {
+      filename: `SafarSetu-Invoice-${booking.bookingId}.pdf`,
+      content: pdfBuffer,
+      contentType: "application/pdf",
+    }
+  ] : [],
+})
 }
 
 module.exports = { sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmation }

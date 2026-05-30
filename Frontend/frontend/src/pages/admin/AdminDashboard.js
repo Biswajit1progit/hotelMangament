@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getToken, getUser } from "../../utils/auth";
 import { toast } from "react-toastify";
+import HotelAnalytics from "./HotelAnalytics"
 
 const API = `${process.env.REACT_APP_API_URL}/api/admin`;
 
@@ -104,6 +105,7 @@ function AdminDashboard() {
     { key: "hotels", label: "🏨 Hotels" },
     { key: "users", label: "👥 Users" },
     { key: "bookings", label: "📋 Bookings" },
+    { key: "analytics", label: "📈 Analytics" },
   ];
 
   if (loading) return (
@@ -304,6 +306,7 @@ function AdminDashboard() {
             ))}
           </div>
         )}
+        {activeTab === "analytics" && <HotelAnalytics />}
       </div>
     </div>
   );
