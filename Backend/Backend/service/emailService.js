@@ -4,39 +4,30 @@
 // 1. sendVerificationEmail  ← after register
 // 2. sendWelcomeEmail       ← after email verified or Google signup
 // 3. sendPaymentConfirmation ← after payment success
+// Using Resend (works on Render/cloud servers, no SMTP issues)
 // ─────────────────────────────────────────────────────────────
 
-const nodemailer = require("nodemailer")
+const { Resend } = require("resend")
 
-/* const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-}) */
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4,          // ← forces IPv4, fixes Render's IPv6 issue
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
-transporter.verify((err) => {
-  if (err) console.error("❌ Email service error:", err.message)
-  else console.log("✓ Email service ready")
-})
+// Verify on startup
+;(async () => {
+  try {
+    if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY is not set")
+    console.log("✓ Email service ready (Resend)")
+  } catch (err) {
+    console.error("❌ Email service error:", err.message)
+  }
+})()
 
-async function sendEmail({ to, subject, html }) {
-  return transporter.sendMail({
-    from: `"SafarSetu" <${process.env.EMAIL_USER}>`,
+async function sendEmail({ to, subject, html, attachments = [] }) {
+  return resend.emails.send({
+    from: "SafarSetu <onboarding@resend.dev>", // change to your domain later e.g. no-reply@safarsetu.com
     to,
     subject,
     html,
+    attachments,
   })
 }
 
@@ -129,8 +120,8 @@ async function sendWelcomeEmail({ to, userName }) {
 // EMAIL 3: Payment confirmation with invoice
 // Called after Razorpay payment verified
 // ─────────────────────────────────────────────────────────────
-async function sendPaymentConfirmation({ to, userName, hotel, booking,pdfBuffer  }) {
-  const { bookingId, checkIn, checkOut, amount, nights = 1, paymentId,paymentDate  } = booking
+async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer }) {
+  const { bookingId, checkIn, checkOut, amount, nights = 1, paymentId, paymentDate } = booking
 
   const html = `
 <!DOCTYPE html>
@@ -148,10 +139,6 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking,pdfBuffer 
   .hotel-card{background:#f9f9f9;border-radius:12px;padding:18px;margin-bottom:20px}
   .hotel-name{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
   .hotel-loc{font-size:13px;color:#888}
-  .dates{display:flex;gap:12px;margin-bottom:20px}
-  .date-box{flex:1;background:#f9f9f9;border-radius:10px;padding:14px;text-align:center}
-  .date-lbl{font-size:10px;color:#aaa;text-transform:uppercase;margin-bottom:4px}
-  .date-val{font-size:14px;font-weight:600;color:#1a1a1a}
   table{width:100%;border-collapse:collapse;margin-bottom:20px}
   td{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#555}
   td:last-child{text-align:right;font-weight:500;color:#1a1a1a}
@@ -179,14 +166,13 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking,pdfBuffer 
 
       <p class="label">Stay Dates</p>
       <table style="margin-bottom:20px">
-
-          <tr>
-            <td style="color:#555">Payment Date</td>
-             <td>${new Date(paymentDate || Date.now()).toLocaleDateString("en-IN", {
-              day: "numeric", month: "long", year: "numeric",
-                 hour: "2-digit", minute: "2-digit"
-             })}</td>
-            </tr>
+        <tr>
+          <td style="color:#555">Payment Date</td>
+          <td>${new Date(paymentDate || Date.now()).toLocaleDateString("en-IN", {
+            day: "numeric", month: "long", year: "numeric",
+            hour: "2-digit", minute: "2-digit"
+          })}</td>
+        </tr>
         <tr>
           <td style="border:none;padding-right:6px">
             <div style="background:#f9f9f9;border-radius:10px;padding:14px;text-align:center">
@@ -217,32 +203,25 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking,pdfBuffer 
       </div>
 
       <p>Show this booking ID at hotel reception.<br>
-      For help, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#1a1a1a">${process.env.EMAIL_USER}</a></p>
+      For help, contact us at <a href="mailto:support@safarsetu.com" style="color:#1a1a1a">support@safarsetu.com</a></p>
     </div>
     <div class="footer">© ${new Date().getFullYear()} SafarSetu. All rights reserved.</div>
   </div>
 </body>
 </html>`
 
- /*  return sendEmail({
+  return sendEmail({
     to,
     subject: `✓ Booking Confirmed — ${hotel.name} | SafarSetu`,
     html,
-  }) */
-
-    return transporter.sendMail({
-  from: `"SafarSetu" <${process.env.EMAIL_USER}>`,
-  to,
-  subject: `✓ Booking Confirmed — ${hotel.name} | SafarSetu`,
-  html,
-  attachments: pdfBuffer ? [
-    {
-      filename: `SafarSetu-Invoice-${booking.bookingId}.pdf`,
-      content: pdfBuffer,
-      contentType: "application/pdf",
-    }
-  ] : [],
-})
+    attachments: pdfBuffer ? [
+      {
+        filename: `SafarSetu-Invoice-${booking.bookingId}.pdf`,
+        content: pdfBuffer.toString("base64"),
+        contentType: "application/pdf",
+      }
+    ] : [],
+  })
 }
 
 module.exports = { sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmation }
