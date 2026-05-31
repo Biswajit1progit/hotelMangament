@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import Register from "../pages/Register"; */
 import { useNavigate } from "react-router-dom";
 import { getUser, logoutUser } from "../utils/auth";
-import { useState,useEffect } from "react";
+import { useState,useEffect,useRef } from "react";
 import ProfileDropdown from "./ProfileDrapdown";
 import NotificationBell from "./bell";
 
@@ -14,6 +14,23 @@ export default  function Navbar(){
     const [show, setShow] = useState(false);
      const [mobileMenu, setMobileMenu] = useState(false);
      const [scrolled, setScrolled] = useState(false);
+     const menuRef = useRef(null);
+
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (menuRef.current && !menuRef.current.contains(e.target)) {
+      setMobileMenu(false);
+    }
+  };
+  if (mobileMenu) {
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);  // ← touch support
+  }
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("touchstart", handleClickOutside);
+  };
+}, [mobileMenu]);
       // 👇 Detect scroll
      useEffect(() => {
     const handleScroll = () => {
@@ -91,6 +108,7 @@ export default  function Navbar(){
             <li><Link to="/flights" className="hover:text-blue-500">Flights</Link></li>
             <li><Link to="/hotels" className="hover:text-blue-500">Hotels</Link></li>
             <li><Link to="/events" className="hover:text-blue-500">Events</Link></li>
+            <li><Link to="/contact" className="hover:text-blue-500">Contact Us</Link></li>
           </ul>
 
           {/* Desktop Right Section */}
@@ -137,16 +155,32 @@ export default  function Navbar(){
           </div>
 
           {/* Mobile Hamburger Button */}
-          <button
-            className="lg:hidden p-2"
-            onClick={() => setMobileMenu(!mobileMenu)}
-          >
-            ☰
-          </button>
+          
+            <div ref={menuRef} className="lg:hidden relative">
+    <button
+      className="p-2"
+      onClick={() => setMobileMenu(!mobileMenu)}
+    >
+      ☰
+    </button>
+
+    {mobileMenu && (
+      <div className="absolute right-0 top-10 bg-white shadow-lg rounded-lg p-4 space-y-3 border w-56 z-50">
+        <Link to="/" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Home</Link>
+        <Link to="/movies" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Movies</Link>
+        <Link to="/flights" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Flights</Link>
+        <Link to="/hotels" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Hotels</Link>
+        <Link to="/events" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Events</Link>
+        <Link to="/wishlist" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Wishlist</Link>
+        <Link to="/profile" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Profile</Link>
+        <Link to="/contact" onClick={() => setMobileMenu(false)} className="block p-2 rounded hover:text-blue-500">Contact Us</Link>
+      </div>
+    )}
+  </div>
         </nav>
 
         {/* Mobile Dropdown Menu */}
-        {mobileMenu && (
+        {/* {mobileMenu && (
           <div className="lg:hidden bg-white shadow-lg rounded-lg mt-2 p-4 space-y-4 border">
 
             <Link to="/" className="block hover:hover:shadow-md p-2 rounded courser-pointer hover:text-blue-500">Home</Link>
@@ -159,7 +193,7 @@ export default  function Navbar(){
             <Link to="/contact" className="block hover:hover:shadow-md p-2 rounded courser-pointer hover:text-blue-500">Contact Us</Link>
 
           </div>
-        )}
+        )} */}
 
         {/* Hero Text */}
         

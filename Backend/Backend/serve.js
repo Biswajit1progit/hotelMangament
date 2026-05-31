@@ -17,6 +17,7 @@ const adminRoutes = require("./routes/adminRoutes");
 /* const uploadRoutes = require("./routes/uploadRoutes"); */
 const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
+const contactRoutes = require("./routes/contactRoutes")
 const app = express();
 
 // Middleware
@@ -48,6 +49,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/owners", ownerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminAnalyticsRoutes)
+app.use("/api/contact", contactRoutes)
 /* app.use("/api/upload", uploadRoutes); */
 // Test route
 app.get("/", (req, res) => {

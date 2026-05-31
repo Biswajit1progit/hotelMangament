@@ -18,7 +18,7 @@ import OwnerRequests from "./pages/owner/OwnerRequests";
 import OwnerBookings from "./pages/owner/OwnerBookings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import HotelDetail from "./pages/admin/HotelDetail"
-
+import ContactPage from "./pages/ContactPage"
 function App() {
   return (
     <BrowserRouter>
@@ -46,6 +46,7 @@ function App() {
        <Route path="/owner/bookings" element={<OwnerBookings />} />
        <Route path="/admin/dashboard" element={<AdminDashboard />} />
        <Route path="/admin/hotel-analytics/:id" element={<HotelDetail />} />
+       <Route path="/contact" element={<ContactPage />} />
       </Routes>
       <ChatBot />
     </BrowserRouter>
