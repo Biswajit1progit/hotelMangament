@@ -7,7 +7,7 @@ import ReviewList from "../component/ReviewList";
 import BookingForm from "../component/BookingForm";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";
-
+import ChatBot from "../component/ChatBot";
 // ── ADD: import skeleton ──────────────────────────────────────
 import { HotelDetailSkeleton } from "../component/Skeleton";
 
@@ -126,6 +126,7 @@ function HotelDetails() {
       </div>
 
       <Footer />
+      <ChatBot />
     </>
   );
 }

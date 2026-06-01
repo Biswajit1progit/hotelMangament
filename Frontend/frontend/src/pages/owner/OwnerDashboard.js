@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getToken, getUser } from "../../utils/auth";
 import ContactForm from "../../component/ContactForm"
+import Footer from "../../component/footer";
 const API = `${process.env.REACT_APP_API_URL}/api/owners`;
 
 // ── Stat card ─────────────────────────────────────────────────
@@ -225,8 +226,12 @@ function OwnerDashboard() {
         </div>
 
       </div>
+       <Footer />
     </div>
+
+   
   );
+
 }
 
 export default OwnerDashboard;

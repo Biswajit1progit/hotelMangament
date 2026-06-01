@@ -8,6 +8,7 @@ import { isLoggedIn } from "../utils/auth";
 import { getHotels } from "../services/hotelservice";
 import { getWishlist } from "../services/authService";
 import Footer from "../component/footer";
+import ChatBot from "../component/ChatBot";
 
 // ── ADD: import skeleton ──────────────────────────────────────
 import { HotelListingSkeleton } from "../component/Skeleton";
@@ -154,6 +155,8 @@ function Hotels() {
 
       {/* Footer — unchanged */}
       <Footer />
+      {/* Chat Bot */}
+      <ChatBot />
     </>
   );
 }

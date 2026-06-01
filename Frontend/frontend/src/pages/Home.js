@@ -3,6 +3,7 @@ import Searchbar from "../component/Searchbar";
 /* import hero from "../../assets/hero-bg.png"; */
 import Movecard from "../component/Movecard";
 import Footer from "../component/footer";
+import ChatBot from "../component/ChatBot";
 function Home() {
   return (
   <>
@@ -69,6 +70,8 @@ function Home() {
 
     {/* Footer */}
     <Footer />
+    {/* Chat Bot */}
+    <ChatBot />
   </>
 );
 }

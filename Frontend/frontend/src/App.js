@@ -12,7 +12,7 @@ import SuccessPage from "./pages/SuccessPage"; // ✅ NEW
 import PaymentPage  from "./pages/PaymentPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import ChatBot from "./component/ChatBot";
+
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import OwnerRequests from "./pages/owner/OwnerRequests";
 import OwnerBookings from "./pages/owner/OwnerBookings";
@@ -52,7 +52,7 @@ function App() {
        <Route path="/flights" element={<UnderMaintenance />} />
        <Route path="/events" element={<UnderMaintenance />} />
       </Routes>
-      <ChatBot />
+     
     </BrowserRouter>
   );
 }

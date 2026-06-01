@@ -108,23 +108,30 @@ function OwnerBookings() {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── Header ── */}
-      <div className="bg-white shadow-sm px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          <button
-            onClick={() => navigate("/owner/dashboard")}
-            className="text-gray-500 hover:text-gray-700 text-sm sm:text-base flex-shrink-0">
-            ← Back
-          </button>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-800 whitespace-nowrap">📋 All Bookings</h1>
-        </div>
-        {/* Search — shrinks on mobile, fixed width on sm+ */}
-        <input
-          placeholder="Search name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border rounded-lg px-3 py-2 text-xs sm:text-sm w-36 sm:w-56 outline-none focus:border-blue-400 flex-shrink-0"
-        />
-      </div>
+     <div className="bg-white shadow-sm px-4 py-4">
+     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => navigate("/owner/dashboard")}
+        className="text-gray-500 hover:text-gray-700 text-sm"
+      >
+        ← Back
+      </button>
+
+      <h1 className="text-lg font-bold text-gray-800">
+        📋 All Bookings
+      </h1>
+    </div>
+
+    <input
+      placeholder="Search name or email..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="w-full sm:w-56 border rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
+    />
+     </div>
+     </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
