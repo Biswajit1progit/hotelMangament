@@ -2,7 +2,7 @@
 import Home from "./pages/Home";
 import Hotels from "./pages/hotel";
 import HotelDetails from "./pages/hoteldetail";   // 👈 IMPORTANT
-import Booking from "./pages/Booking";
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
@@ -30,8 +30,7 @@ function App() {
        { /* 👇 Hotel Detail Page (Dynamic ID) */}
         <Route path="/hotel/:id" element={<HotelDetails />} />
 
-        {/* Booking */}
-        <Route path="/booking/:id" element={<Booking />} />
+      
         {/* Login */}
         <Route path="/login" element={<Login />} />
         {/* Register */}

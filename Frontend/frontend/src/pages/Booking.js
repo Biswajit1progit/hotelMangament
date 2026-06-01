@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+/* import { useParams } from "react-router-dom";
 import { useState } from "react";
 
 function Booking() {
@@ -50,4 +50,4 @@ function Booking() {
   );
 }
 
-export default Booking;
+export default Booking; */

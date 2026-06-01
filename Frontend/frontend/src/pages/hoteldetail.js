@@ -103,13 +103,8 @@ function HotelDetails() {
             ))}
           </div>
 
-          {/* Book Now Button */}
-          <button
-            onClick={() => navigate(`/booking/${hotel?._id}`)}
-            className="bg-green-600 text-white px-6 py-2 mt-4 rounded hover:bg-green-700 transition"
-          >
-            Book Now
-          </button>
+          
+         
 
           {/* Reviews */}
           <div className="mt-10">

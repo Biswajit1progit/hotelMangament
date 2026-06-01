@@ -48,8 +48,8 @@ const Footer = () => {
         {/* Contact + Social */}
         <div>
           <h3 className="text-xl font-semibold mb-3">Contact</h3>
-          <p className="text-gray-400">Email: support@hotelbooking.com</p>
-          <p className="text-gray-400 mb-4">Phone: +91 9876543210</p>
+          <p className="text-gray-400">Email: 2301104066cse@gcekjr.ac.in</p>
+          <p className="text-gray-400 mb-4">Phone: +91 9861734116</p>
 
           <div className="flex gap-4 mt-3">
            <a
