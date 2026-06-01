@@ -1,13 +1,12 @@
 import { useState } from "react";
 import FlightSearch from "./search/FlightSearch";
 import HotelSearch from "./search/HotelSearch";
-import TrainSearch from "./search/TrainSearch";
-import MovieSearch from "./search/MovieSearch";
+
 import axios from "axios";
 
 
 function SearchBar() {
-  const [activeTab, setActiveTab] = useState("flights");
+  const [activeTab, setActiveTab] = useState("hotels");
 
   const renderSearch = () => {
     switch (activeTab) {
@@ -15,12 +14,9 @@ function SearchBar() {
         return <FlightSearch />;
       case "hotels":
         return <HotelSearch />;
-      case "trains":
-        return <TrainSearch />;
-      case "movies":
-        return <MovieSearch />;
+     
       default:
-        return <FlightSearch />;
+        return <HotelSearch />;
     }
   };
   
@@ -76,7 +72,7 @@ return (
         scrollbar-hide
       "
     >
-      <button
+    {/*   <button
         onClick={() => setActiveTab("flights")}
         className="
           px-3
@@ -105,36 +101,63 @@ return (
       >
         Hotels
       </button>
+ */}
+        <button
+  onClick={() => setActiveTab("flights")}
+  className={`
+    px-3 py-2 text-sm sm:text-base whitespace-nowrap transition rounded-lg
+    ${
+      activeTab === "flights"
+        ? "bg-blue-600 text-white shadow-md"
+        : "hover:text-blue-600"
+    }
+  `}
+>
+  Flights
+   </button>
 
-      <button
-        onClick={() => setActiveTab("trains")}
-        className="
-          px-3
-          py-2
-          text-sm
-          sm:text-base
-          whitespace-nowrap
-          hover:text-blue-600
-          transition
-        "
-      >
-        Trains
-      </button>
+   <button
+  onClick={() => setActiveTab("hotels")}
+  className={`
+    px-3 py-2 text-sm sm:text-base whitespace-nowrap transition rounded-lg
+    ${
+      activeTab === "hotels"
+        ? "bg-blue-600 text-white shadow-md"
+        : "hover:text-blue-600"
+    }
+  `}
+>
+  Hotels
+   </button>
+   <button
+    onClick={() => setActiveTab("movies")}
+    className={`
+      px-4 py-2 text-sm sm:text-base whitespace-nowrap
+      rounded-lg transition-all duration-200
+      ${
+        activeTab === "movies"
+          ? "bg-blue-600 text-white shadow-md scale-105"
+          : "hover:bg-gray-100 hover:text-blue-600"
+      }
+    `}
+  >
+    Movies
+  </button>
 
-      <button
-        onClick={() => setActiveTab("movies")}
-        className="
-          px-3
-          py-2
-          text-sm
-          sm:text-base
-          whitespace-nowrap
-          hover:text-blue-600
-          transition
-        "
-      >
-        Movies
-      </button>
+  <button
+    onClick={() => setActiveTab("events")}
+    className={`
+      px-4 py-2 text-sm sm:text-base whitespace-nowrap
+      rounded-lg transition-all duration-200
+      ${
+        activeTab === "events"
+          ? "bg-blue-600 text-white shadow-md scale-105"
+          : "hover:bg-gray-100 hover:text-blue-600"
+      }
+    `}
+  >
+    Events
+  </button>
     </div>
 
     {/* Dynamic Search Section */}

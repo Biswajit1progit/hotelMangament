@@ -1,0 +1,119 @@
+ /* ─────────────────────────────────────────────────────────────
+   src/styles/dark.css
+   Import this once in your index.js or App.js:
+   import "./styles/dark.css";
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Base page background + text ── */
+html.dark-mode body {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── Backgrounds ── */
+html.dark-mode .bg-white          { background-color: #1e293b !important; }
+html.dark-mode .bg-gray-50        { background-color: #0f172a !important; }
+html.dark-mode .bg-gray-100       { background-color: #1e293b !important; }
+html.dark-mode .bg-gray-200       { background-color: #334155 !important; }
+
+/* ── Text ── */
+html.dark-mode .text-gray-800     { color: #f1f5f9 !important; }
+html.dark-mode .text-gray-700     { color: #e2e8f0 !important; }
+html.dark-mode .text-gray-600     { color: #cbd5e1 !important; }
+html.dark-mode .text-gray-500     { color: #94a3b8 !important; }
+html.dark-mode .text-gray-400     { color: #64748b !important; }
+
+/* ── Borders ── */
+html.dark-mode .border            { border-color: #334155 !important; }
+html.dark-mode .border-gray-100   { border-color: #1e293b !important; }
+html.dark-mode .border-gray-200   { border-color: #334155 !important; }
+
+/* ── Shadows ── */
+html.dark-mode .shadow-sm         { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
+html.dark-mode .shadow-lg         { box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
+html.dark-mode .shadow-2xl        { box-shadow: 0 25px 50px rgba(0,0,0,0.6) !important; }
+
+/* ── Inputs, textareas, selects ── */
+html.dark-mode input,
+html.dark-mode textarea,
+html.dark-mode select {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+html.dark-mode input::placeholder,
+html.dark-mode textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* ── Navbar ── */
+html.dark-mode nav {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+html.dark-mode nav a,
+html.dark-mode nav button {
+  color: #e2e8f0 !important;
+}
+html.dark-mode nav .bg-white\/90 {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+}
+
+/* ── Cards / panels ── */
+html.dark-mode .rounded-2xl,
+html.dark-mode .rounded-xl {
+  background-color: #1e293b;
+}
+
+/* ── Hover backgrounds ── */
+html.dark-mode .hover\:bg-gray-50:hover  { background-color: #1e293b !important; }
+html.dark-mode .hover\:bg-gray-100:hover { background-color: #334155 !important; }
+
+/* ── Tabs ── */
+html.dark-mode .border-b { border-color: #334155 !important; }
+
+/* ── Stat cards colored left borders — keep them ── */
+html.dark-mode .border-blue-500   { border-color: #3b82f6 !important; }
+html.dark-mode .border-green-500  { border-color: #22c55e !important; }
+html.dark-mode .border-red-500    { border-color: #ef4444 !important; }
+html.dark-mode .border-yellow-500 { border-color: #eab308 !important; }
+html.dark-mode .border-purple-500 { border-color: #a855f7 !important; }
+html.dark-mode .border-orange-500 { border-color: #f97316 !important; }
+
+/* ── Status badges — keep readable ── */
+html.dark-mode .bg-yellow-100 { background-color: #422006 !important; }
+html.dark-mode .bg-green-100  { background-color: #052e16 !important; }
+html.dark-mode .bg-red-100    { background-color: #3b0764 !important; }
+html.dark-mode .bg-blue-100   { background-color: #172554 !important; }
+html.dark-mode .bg-purple-100 { background-color: #2e1065 !important; }
+html.dark-mode .bg-gray-100   { background-color: #1e293b !important; }
+
+/* ── Colored highlight panels (blue-50, yellow-50 etc) ── */
+html.dark-mode .bg-blue-50    { background-color: #172554 !important; }
+html.dark-mode .bg-yellow-50  { background-color: #422006 !important; }
+html.dark-mode .bg-red-50     { background-color: #1c0a09 !important; }
+html.dark-mode .bg-green-50   { background-color: #052e16 !important; }
+html.dark-mode .bg-gray-50    { background-color: #0f172a !important; }
+
+/* ── Modal overlay ── */
+html.dark-mode .bg-black\/50 { background-color: rgba(0,0,0,0.7) !important; }
+
+/* ── Shimmer skeleton in dark mode ── */
+html.dark-mode .bg-gray-200 {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important;
+  background-size: 400% 100% !important;
+}
+
+/* ── Scrollbar ── */
+html.dark-mode ::-webkit-scrollbar       { width: 6px; }
+html.dark-mode ::-webkit-scrollbar-track { background: #0f172a; }
+html.dark-mode ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+/* ── Hero/banner sections ── */
+html.dark-mode .bg-blue-600 { background-color: #1d4ed8 !important; }
+
+/* ── Transition everything smoothly ── */
+html.dark-mode *,
+html * {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}

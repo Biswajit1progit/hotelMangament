@@ -19,6 +19,7 @@ import OwnerBookings from "./pages/owner/OwnerBookings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import HotelDetail from "./pages/admin/HotelDetail"
 import ContactPage from "./pages/ContactPage"
+import UnderMaintenance from "./pages/UnderMaintenance";
 function App() {
   return (
     <BrowserRouter>
@@ -47,6 +48,9 @@ function App() {
        <Route path="/admin/dashboard" element={<AdminDashboard />} />
        <Route path="/admin/hotel-analytics/:id" element={<HotelDetail />} />
        <Route path="/contact" element={<ContactPage />} />
+       <Route path="/movies" element={<UnderMaintenance />} />
+       <Route path="/flights" element={<UnderMaintenance />} />
+       <Route path="/events" element={<UnderMaintenance />} />
       </Routes>
       <ChatBot />
     </BrowserRouter>

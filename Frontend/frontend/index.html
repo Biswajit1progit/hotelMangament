@@ -4,7 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="./src/index.css" type="text/css" rel="stylesheet" />
-     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+  (function() {
+    try {
+      var dark = localStorage.getItem("safarsetu_dark_mode");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (dark === "true" || (dark === null && prefersDark)) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.classList.add("dark-mode");
+      }
+    } catch(e) {}
+  })();
+</script> 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   </head>
   <body>
     <div id="root"></div>
