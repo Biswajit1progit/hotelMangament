@@ -28,65 +28,7 @@ const razorpay = new Razorpay({
     res.status(500).json({ error: error.message });
   }
 };
-/* const cancelBooking = async (req, res) => {
-  try {
-    const bookingId = req.params.id;
 
-    const payment = await Payment.findOne({ bookingId });
-
-    if (!payment) {
-      return res.status(404).json({ error: "Payment not found" });
-    }
-
-    // Refund payment
-    await razorpay.payments.refund(payment.razorpayPaymentId);
-
-    payment.status = "refunded";
-    await payment.save();
-
-    res.json({ message: "Booking cancelled & refunded successfully" });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}; */
-
-
-// ✅ CHECK AVAILABILITY — checks if rooms are free for given dates
-/* const checkAvailability = async (req, res) => {
-  try {
-    const { hotelId, checkIn, checkOut, rooms } = req.body;
- 
-    if (!hotelId || !checkIn || !checkOut) {
-      return res.status(400).json({ error: "hotelId, checkIn, checkOut required" });
-    }
- 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
- 
-    // Find overlapping bookings for this hotel
-    const overlapping = await Booking.find({
-      hotelId,
-      $or: [
-        {
-          checkIn: { $lt: checkOutDate },
-          checkOut: { $gt: checkInDate },
-        },
-      ],
-    });
- 
-    // Sum up rooms already booked in that period
-    const bookedRooms = overlapping.reduce((sum, b) => sum + (b.rooms || 1), 0);
- 
-    res.json({
-      bookedRooms,
-      isAvailable: true, // you can add hotel.totalRooms check here if you have that field
-      overlappingBookings: overlapping.length,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}; */
 const checkAvailability = async (req, res) => {
   try {
     const { hotelId, checkIn, checkOut, rooms } = req.body;

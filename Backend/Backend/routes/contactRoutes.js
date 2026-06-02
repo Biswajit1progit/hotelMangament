@@ -1,22 +1,18 @@
 // ─────────────────────────────────────────────────────────────
 // backend/routes/contactRoutes.js
 // Add to server.js: app.use("/api/contact", contactRoutes)
+// npm install resend
+// .env: RESEND_API_KEY=re_xxx  COMPANY_EMAIL=you@yourdomain.com
 // ─────────────────────────────────────────────────────────────
 
 const express = require("express")
-const router = express.Router()
-const nodemailer = require("nodemailer")
+const router  = express.Router()
+const { Resend } = require("resend")
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-})
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 // ── POST /api/contact ─────────────────────────────────────────
-// Sends query email to company (EMAIL_USER)
+// Sends query email to company AND auto-reply to user
 router.post("/", async (req, res) => {
   try {
     const { name, email, subject, message, role = "user" } = req.body
@@ -25,10 +21,11 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "All fields are required" })
     }
 
-    // ── Email to company ──────────────────────────────────────
-    await transporter.sendMail({
-      from: `"SafarSetu Contact" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+    // ── 1. Email to company ───────────────────────────────────
+    const companyMail = await resend.emails.send({
+      from: "SafarSetu Contact <onboarding@resend.dev>",  // ← replace with your verified domain later
+      to:   [process.env.EMAIL_USER],                  // company receives it
+      replyTo: email,                                     // clicking reply goes to user
       subject: `[${role.toUpperCase()}] ${subject} — from ${name}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f5f5f5;padding:20px">
@@ -67,10 +64,10 @@ router.post("/", async (req, res) => {
       `,
     })
 
-    // ── Auto-reply to user ────────────────────────────────────
-    await transporter.sendMail({
-      from: `"SafarSetu" <${process.env.EMAIL_USER}>`,
-      to: email,
+    // ── 2. Auto-reply to user ─────────────────────────────────
+    const userMail = await resend.emails.send({
+      from: "SafarSetu <onboarding@resend.dev>",  // ← replace with your verified domain later
+      to:   [email],                               // user receives it
       subject: "We received your query — SafarSetu",
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f5f5f5;padding:20px">
@@ -96,6 +93,10 @@ router.post("/", async (req, res) => {
         </div>
       `,
     })
+
+    // ── Log both results for debugging ────────────────────────
+    console.log("✅ Company mail id:", companyMail?.data?.id)
+    console.log("✅ User mail id:   ", userMail?.data?.id)
 
     return res.json({ success: true, message: "Query sent successfully" })
 

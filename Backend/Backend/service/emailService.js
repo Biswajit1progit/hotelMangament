@@ -9,10 +9,10 @@
 
 const { Resend } = require("resend")
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Verify on startup
-;(async () => {
+(async () => {
   try {
     if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY is not set")
     console.log("✓ Email service ready (Resend)")
