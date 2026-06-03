@@ -4,31 +4,52 @@
 // 1. sendVerificationEmail  ← after register
 // 2. sendWelcomeEmail       ← after email verified or Google signup
 // 3. sendPaymentConfirmation ← after payment success
-// Using Resend (works on Render/cloud servers, no SMTP issues)
+// Using Brevo SMTP (free, works on Render, any email address)
+// .env:
+//   BREVO_USER = your_brevo_login@gmail.com
+//   BREVO_PASS = xsmtpsib-xxxxxxxxxxxxxxxx
+//   EMAIL_USER = biswajitsahookalia@gmail.com
+//   FRONTEND_URL = https://safersetu.netlify.app
+//   BACKEND_URL  = https://your-app.onrender.com
 // ─────────────────────────────────────────────────────────────
 
-const { Resend } = require("resend")
+const nodemailer = require("nodemailer")
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host:   "smtp-relay.brevo.com",
+  port:   587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_PASS,
+  },
+})
 
 // Verify on startup
-(async () => {
+;(async () => {
   try {
-    if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY is not set")
-    console.log("✓ Email service ready (Resend)")
+    await transporter.verify()
+    console.log("✅ Email service ready (Brevo SMTP)")
   } catch (err) {
     console.error("❌ Email service error:", err.message)
   }
 })()
 
 async function sendEmail({ to, subject, html, attachments = [] }) {
-  return resend.emails.send({
-    from: "SafarSetu <onboarding@resend.dev>", // change to your domain later e.g. no-reply@safarsetu.com
-    to,
-    subject,
-    html,
-    attachments,
-  })
+  try {
+    const info = await transporter.sendMail({
+      from:        `"SafarSetu" <${process.env.FROM_EMAIL}>`, // ← shows as sender
+      to:          Array.isArray(to) ? to.join(",") : to,
+      subject,
+      html,
+      attachments,
+    })
+    console.log(`✅ Email sent → ${to} | id: ${info.messageId}`)
+    return info
+  } catch (err) {
+    console.error("❌ sendEmail failed:", err.message)
+    throw err
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -71,11 +92,7 @@ async function sendVerificationEmail({ to, userName, token }) {
 </body>
 </html>`
 
-  return sendEmail({
-    to,
-    subject: "Verify your SafarSetu account",
-    html,
-  })
+  return sendEmail({ to, subject: "Verify your SafarSetu account", html })
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -203,7 +220,7 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer
       </div>
 
       <p>Show this booking ID at hotel reception.<br>
-      For help, contact us at <a href="mailto:support@safarsetu.com" style="color:#1a1a1a">support@safarsetu.com</a></p>
+      For help, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#1a1a1a">${process.env.EMAIL_USER}</a></p>
     </div>
     <div class="footer">© ${new Date().getFullYear()} SafarSetu. All rights reserved.</div>
   </div>
@@ -216,8 +233,8 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer
     html,
     attachments: pdfBuffer ? [
       {
-        filename: `SafarSetu-Invoice-${booking.bookingId}.pdf`,
-        content: pdfBuffer.toString("base64"),
+        filename:    `SafarSetu-Invoice-${booking.bookingId}.pdf`,
+        content:     pdfBuffer,
         contentType: "application/pdf",
       }
     ] : [],
