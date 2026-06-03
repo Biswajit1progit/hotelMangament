@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@getbrevo/brevo": "^5.0.4",
     "@google/generative-ai": "^0.24.1",
     "@pinecone-database/pinecone": "^7.2.0",
     "bcrypt": "^6.0.0",
