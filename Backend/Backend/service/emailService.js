@@ -1,51 +1,42 @@
 // ─────────────────────────────────────────────────────────────
 // backend/services/emailService.js
-// All emails for SafarSetu:
-// 1. sendVerificationEmail  ← after register
-// 2. sendWelcomeEmail       ← after email verified or Google signup
-// 3. sendPaymentConfirmation ← after payment success
-// Using Brevo SMTP (free, works on Render, any email address)
 // .env:
-//   BREVO_USER = your_brevo_login@gmail.com
-//   BREVO_PASS = xsmtpsib-xxxxxxxxxxxxxxxx
-//   EMAIL_USER = biswajitsahookalia@gmail.com
-//   FRONTEND_URL = https://safersetu.netlify.app
-//   BACKEND_URL  = https://your-app.onrender.com
+//   BREVO_API_KEY = xkeysib-xxxxxxxxxxxx
+//   FROM_EMAIL    = biswajitsahookalia@gmail.com
+//   EMAIL_USER    = biswajitsahookalia@gmail.com
+//   FRONTEND_URL  = https://safersetu.netlify.app
+//   BACKEND_URL   = https://hotelmangament.onrender.com
 // ─────────────────────────────────────────────────────────────
 
-const nodemailer = require("nodemailer")
+const { BrevoClient } = require("@getbrevo/brevo")
 
-const transporter = nodemailer.createTransport({
-  host:   "smtp-relay.brevo.com",
-  port:   465,
-  secure: true,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
-  },
-})
+const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY })
 
-// Verify on startup
-;(async () => {
-  try {
-    await transporter.verify()
-    console.log("✅ Email service ready (Brevo SMTP)")
-  } catch (err) {
-    console.error("❌ Email service error:", err.message)
-  }
-})()
+const sender = {
+  name:  "SafarSetu",
+  email: process.env.FROM_EMAIL,
+}
 
+// ── Core send function ────────────────────────────────────────
 async function sendEmail({ to, subject, html, attachments = [] }) {
   try {
-    const info = await transporter.sendMail({
-      from:        `"SafarSetu" <${process.env.FROM_EMAIL}>`, // ← shows as sender
-      to:          Array.isArray(to) ? to.join(",") : to,
+    const payload = {
+      sender,
+      to: [{ email: Array.isArray(to) ? to[0] : to }],
       subject,
-      html,
-      attachments,
-    })
-    console.log(`✅ Email sent → ${to} | id: ${info.messageId}`)
-    return info
+      htmlContent: html,
+    }
+
+    if (attachments.length > 0) {
+      payload.attachment = attachments.map((a) => ({
+        name:    a.filename,
+        content: a.content.toString("base64"),
+      }))
+    }
+
+    const result = await brevo.transactionalEmails.sendTransacEmail(payload)
+    console.log(`✅ Email sent → ${to}`)
+    return result
   } catch (err) {
     console.error("❌ sendEmail failed:", err.message)
     throw err
@@ -53,8 +44,7 @@ async function sendEmail({ to, subject, html, attachments = [] }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// EMAIL 1: Verification email — sent after register
-// User clicks link to activate account
+// EMAIL 1: Verification email
 // ─────────────────────────────────────────────────────────────
 async function sendVerificationEmail({ to, userName, token }) {
   const verifyLink = `${process.env.BACKEND_URL || "http://localhost:5000"}/api/auth/verify/${token}`
@@ -83,7 +73,7 @@ async function sendVerificationEmail({ to, userName, token }) {
     <div class="body">
       <div class="emoji">✉️</div>
       <h2>Verify your email, ${userName}</h2>
-      <p>Thanks for registering! Click the button below to verify your email address and activate your account.</p>
+      <p>Thanks for registering! Click the button below to verify your email and activate your account.</p>
       <a href="${verifyLink}" class="btn">Verify Email</a>
       <p class="note">This link expires in 24 hours.<br>If you didn't create an account, ignore this email.</p>
     </div>
@@ -96,7 +86,7 @@ async function sendVerificationEmail({ to, userName, token }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// EMAIL 2: Welcome email — after verification or Google signup
+// EMAIL 2: Welcome email
 // ─────────────────────────────────────────────────────────────
 async function sendWelcomeEmail({ to, userName }) {
   const html = `
@@ -134,8 +124,7 @@ async function sendWelcomeEmail({ to, userName }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// EMAIL 3: Payment confirmation with invoice
-// Called after Razorpay payment verified
+// EMAIL 3: Payment confirmation
 // ─────────────────────────────────────────────────────────────
 async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer }) {
   const { bookingId, checkIn, checkOut, amount, nights = 1, paymentId, paymentDate } = booking
@@ -174,51 +163,37 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer
     <div class="success">✓ Booking Confirmed</div>
     <div class="body">
       <p style="font-size:15px;color:#333;margin-bottom:20px">Hi ${userName}, your booking is confirmed!</p>
-
       <p class="label">Hotel</p>
       <div class="hotel-card">
         <div class="hotel-name">${hotel.name}</div>
         <div class="hotel-loc">${hotel.location || hotel.city || ""}</div>
       </div>
-
-      <p class="label">Stay Dates</p>
-      <table style="margin-bottom:20px">
+      <p class="label">Stay Details</p>
+      <table>
         <tr>
-          <td style="color:#555">Payment Date</td>
-          <td>${new Date(paymentDate || Date.now()).toLocaleDateString("en-IN", {
-            day: "numeric", month: "long", year: "numeric",
-            hour: "2-digit", minute: "2-digit"
-          })}</td>
+          <td>Payment Date</td>
+          <td>${new Date(paymentDate || Date.now()).toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" })}</td>
         </tr>
         <tr>
-          <td style="border:none;padding-right:6px">
-            <div style="background:#f9f9f9;border-radius:10px;padding:14px;text-align:center">
-              <div style="font-size:10px;color:#aaa;text-transform:uppercase;margin-bottom:4px">Check-in</div>
-              <div style="font-size:14px;font-weight:600;color:#1a1a1a">${new Date(checkIn).toDateString()}</div>
-            </div>
-          </td>
-          <td style="border:none;padding-left:6px">
-            <div style="background:#f9f9f9;border-radius:10px;padding:14px;text-align:center">
-              <div style="font-size:10px;color:#aaa;text-transform:uppercase;margin-bottom:4px">Check-out</div>
-              <div style="font-size:14px;font-weight:600;color:#1a1a1a">${new Date(checkOut).toDateString()}</div>
-            </div>
-          </td>
+          <td>Check-in</td>
+          <td>${new Date(checkIn).toDateString()}</td>
+        </tr>
+        <tr>
+          <td>Check-out</td>
+          <td>${new Date(checkOut).toDateString()}</td>
         </tr>
       </table>
-
       <p class="label">Invoice</p>
       <table>
         <tr><td>₹${hotel.price} × ${nights} night${nights > 1 ? "s" : ""}</td><td>₹${hotel.price * nights}</td></tr>
         <tr><td>Taxes & fees (18% GST)</td><td>₹${Math.round(hotel.price * nights * 0.18)}</td></tr>
         <tr class="total"><td>Total Paid</td><td>₹${amount}</td></tr>
       </table>
-
       <p class="label">Booking ID</p>
       <div class="booking-id">
         🎫 ${bookingId}<br>
         <span style="font-size:11px;color:#aaa">Payment ID: ${paymentId}</span>
       </div>
-
       <p>Show this booking ID at hotel reception.<br>
       For help, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#1a1a1a">${process.env.EMAIL_USER}</a></p>
     </div>
@@ -231,13 +206,11 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer
     to,
     subject: `✓ Booking Confirmed — ${hotel.name} | SafarSetu`,
     html,
-    attachments: pdfBuffer ? [
-      {
-        filename:    `SafarSetu-Invoice-${booking.bookingId}.pdf`,
-        content:     pdfBuffer,
-        contentType: "application/pdf",
-      }
-    ] : [],
+    attachments: pdfBuffer ? [{
+      filename:    `SafarSetu-Invoice-${bookingId}.pdf`,
+      content:     pdfBuffer,
+      contentType: "application/pdf",
+    }] : [],
   })
 }
 
