@@ -1,101 +1,189 @@
 // ─────────────────────────────────────────────────────────────
 // frontend/src/pages/admin/HotelDetail.jsx
-// Single hotel full analytics — bookings, reviews, pie chart
+// Single hotel analytics — dark mode aware
 // Route: /admin/hotel-analytics/:id
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line,
+} from "recharts"
 import axios from "axios"
 import { getToken } from "../../utils/auth"
 import { toast } from "react-toastify"
 
-const API = `${process.env.REACT_APP_API_URL}/api/admin`
-const COLORS = ["#22c55e", "#ef4444", "#f59e0b"]
+const API    = `${process.env.REACT_APP_API_URL}/api/admin`
+const COLORS = ["#10b981", "#f43f5e", "#f59e0b"]
 
-const STATUS_STYLES = {
-  success:  "bg-green-100 text-green-700",
-  refunded: "bg-red-100 text-red-600",
-  pending:  "bg-yellow-100 text-yellow-700",
+// ── Dark palette helpers ──────────────────────────────────────
+const dp = (dark) => ({
+  bg:         dark ? "#0f1117" : "#f8f9fc",
+  surface:    dark ? "#1a1d27" : "#ffffff",
+  surface2:   dark ? "#22263a" : "#f9fafb",
+  border:     dark ? "#2e3347" : "#e5e7eb",
+  border2:    dark ? "#1a1d27" : "#f3f4f6",
+  text1:      dark ? "#f0f2f8" : "#111827",
+  text2:      dark ? "#8b90a7" : "#6b7280",
+  text3:      dark ? "#555c78" : "#9ca3af",
+  gridStroke: dark ? "#2e3347" : "#f3f4f6",
+  tickFill:   dark ? "#555c78" : "#9ca3af",
+  tooltip:    {
+    borderRadius: 12,
+    border: dark ? "1px solid #2e3347" : "none",
+    boxShadow: dark ? "none" : "0 4px 20px rgba(0,0,0,0.08)",
+    fontSize: 12,
+    background: dark ? "#1a1d27" : "#fff",
+    color: dark ? "#f0f2f8" : "#111827",
+  },
+})
+
+const STATUS_STYLES_DARK = {
+  success:  "bg-emerald-900/40 text-emerald-300",
+  refunded: "bg-rose-900/40 text-rose-300",
+  pending:  "bg-amber-900/40 text-amber-300",
+}
+
+const STATUS_STYLES_LIGHT = {
+  success:  "bg-emerald-100 text-emerald-700",
+  refunded: "bg-rose-100 text-rose-600",
+  pending:  "bg-amber-100 text-amber-700",
+}
+
+// ── Dark mode hook ────────────────────────────────────────────
+function useDarkMode() {
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem("admin-dark") === "true"; } catch { return false; }
+  });
+  const toggle = () => setDark((d) => {
+    const next = !d;
+    try { localStorage.setItem("admin-dark", String(next)); } catch {}
+    return next;
+  });
+  return [dark, toggle];
 }
 
 // ── Shimmer ───────────────────────────────────────────────────
-function HotelDetailShimmer() {
+function HotelDetailShimmer({ dark }) {
+  const p = dp(dark)
+  const pulse = { background: dark ? "#22263a" : "#e5e7eb" }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* Header */}
-      <div className="bg-white shadow-sm px-4 sm:px-6 py-4 flex items-center gap-3 animate-pulse">
-        <div className="h-8 w-14 bg-gray-200 rounded-lg flex-shrink-0" />
-        <div className="flex-1 min-w-0 flex flex-col gap-2">
-          <div className="h-5 bg-gray-200 rounded w-48 max-w-full" />
-          <div className="h-3 bg-gray-200 rounded w-32 max-w-full" />
+    <div style={{ minHeight: "100vh", background: p.bg }}>
+      <div style={{ background: p.surface, borderBottom: `1px solid ${p.border}`, padding: "16px 24px", display: "flex", alignItems: "center", gap: 12 }} className="animate-pulse">
+        <div style={{ ...pulse, height: 32, width: 56, borderRadius: 8, flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ ...pulse, height: 20, width: 192, borderRadius: 6 }} />
+          <div style={{ ...pulse, height: 12, width: 128, borderRadius: 6 }} />
         </div>
-        {/* Delete button — hidden on mobile to match real header */}
-        <div className="h-9 w-24 sm:w-28 bg-gray-200 rounded-lg flex-shrink-0" />
+        <div style={{ ...pulse, height: 36, width: 96, borderRadius: 10, flexShrink: 0 }} />
       </div>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-
-        {/* Stats + Pie — stack on mobile, side by side on lg */}
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-
-          {/* Stat cards — 2 cols always */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 animate-pulse">
+      <div style={{ maxWidth: 1152, margin: "0 auto", padding: "24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }} className="animate-pulse">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border-l-4 border-gray-200 flex flex-col gap-2">
-                <div className="h-3 bg-gray-200 rounded w-3/4" />
-                <div className="h-5 sm:h-6 bg-gray-200 rounded w-1/2" />
-              </div>
+              <div key={i} style={{ ...pulse, borderRadius: 16, height: 80 }} />
             ))}
           </div>
-
-          {/* Pie placeholder */}
-          <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-5 animate-pulse flex flex-col gap-3 sm:gap-4">
-            <div className="h-4 bg-gray-200 rounded w-2/5" />
-            <div className="flex items-center justify-center py-3 sm:py-4">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 bg-gray-200 rounded-full" />
-            </div>
-            <div className="flex justify-center gap-3 sm:gap-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-3 bg-gray-200 rounded w-14 sm:w-16" />
-              ))}
-            </div>
-          </div>
+          <div style={{ ...pulse, borderRadius: 16, height: 280 }} />
         </div>
-
-        {/* Tabs + rows */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
-          <div className="border-b flex px-2">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="h-10 sm:h-11 bg-gray-200 rounded mx-2 my-2 w-28 sm:w-40" />
-            ))}
-          </div>
-          <div className="p-3 sm:p-5 flex flex-col gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="border border-gray-100 rounded-xl p-3 sm:p-4">
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex-1 min-w-0 flex flex-col gap-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="h-4 bg-gray-200 rounded w-28" />
-                      <div className="h-5 bg-gray-200 rounded-full w-16" />
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 rounded w-full sm:w-4/5" />
-                    <div className="h-3 bg-gray-200 rounded w-2/5" />
-                  </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <div className="h-5 bg-gray-200 rounded w-20" />
-                    <div className="h-3 bg-gray-200 rounded w-16" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }} className="animate-pulse">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} style={{ ...pulse, borderRadius: 16, height: 220 }} />
+          ))}
         </div>
-
+        <div style={{ ...pulse, borderRadius: 16, height: 300 }} className="animate-pulse" />
       </div>
+    </div>
+  )
+}
+
+// ── Accept/Cancel Bar Chart ───────────────────────────────────
+function AcceptCancelBarChart({ bookings, stats, dark }) {
+  const p = dp(dark)
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  const now    = new Date()
+
+  const last6 = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
+    return { name: months[d.getMonth()], Confirmed: 0, Cancelled: 0, Pending: 0 }
+  })
+
+  bookings.forEach(b => {
+    const d = new Date(b.checkIn)
+    const mName = months[d.getMonth()]
+    const slot  = last6.find(s => s.name === mName)
+    if (!slot) return
+    if (b.paymentStatus === "success")  slot.Confirmed += 1
+    if (b.paymentStatus === "refunded") slot.Cancelled  += 1
+    if (b.paymentStatus === "pending")  slot.Pending    += 1
+  })
+
+  return (
+    <div style={{ background: p.surface, borderRadius: 16, border: `1px solid ${p.border}`, padding: "20px" }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: p.text3, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>Monthly</p>
+      <h3 style={{ fontWeight: 700, color: p.text1, fontSize: 14, marginBottom: 16 }}>Accept vs Cancel — Last 6 Months</h3>
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={last6} margin={{ top: 4, right: 4, left: -8, bottom: 0 }} barCategoryGap="28%">
+          <CartesianGrid strokeDasharray="3 3" stroke={p.gridStroke} />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: p.tickFill }} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: p.tickFill }} />
+          <Tooltip contentStyle={p.tooltip} />
+          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: p.text2 }} />
+          <Bar dataKey="Confirmed" fill="#10b981" radius={[4,4,0,0]} />
+          <Bar dataKey="Cancelled" fill="#f43f5e" radius={[4,4,0,0]} />
+          <Bar dataKey="Pending"   fill="#f59e0b" radius={[4,4,0,0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// ── Booking Ratio Line Chart ──────────────────────────────────
+function RatioLineChart({ bookings, dark }) {
+  const p = dp(dark)
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  const now    = new Date()
+
+  const last6 = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
+    return { name: months[d.getMonth()], total: 0, confirmed: 0, cancelled: 0 }
+  })
+
+  bookings.forEach(b => {
+    const d    = new Date(b.checkIn)
+    const slot = last6.find(s => s.name === months[d.getMonth()])
+    if (!slot) return
+    slot.total += 1
+    if (b.paymentStatus === "success")  slot.confirmed += 1
+    if (b.paymentStatus === "refunded") slot.cancelled  += 1
+  })
+
+  const data = last6.map(s => ({
+    name:       s.name,
+    "Accept %": s.total ? Math.round((s.confirmed / s.total) * 100) : 0,
+    "Cancel %": s.total ? Math.round((s.cancelled / s.total) * 100) : 0,
+  }))
+
+  return (
+    <div style={{ background: p.surface, borderRadius: 16, border: `1px solid ${p.border}`, padding: "20px" }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: p.text3, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>Rate</p>
+      <h3 style={{ fontWeight: 700, color: p.text1, fontSize: 14, marginBottom: 16 }}>Accept vs Cancel % Trend</h3>
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={data} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={p.gridStroke} />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: p.tickFill }} />
+          <YAxis unit="%" tick={{ fontSize: 10, fill: p.tickFill }} domain={[0, 100]} />
+          <Tooltip formatter={v => [`${v}%`]} contentStyle={p.tooltip} />
+          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: p.text2 }} />
+          <Line type="monotone" dataKey="Accept %" stroke="#10b981" strokeWidth={2.5}
+            dot={{ r: 4, fill: "#10b981", strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          <Line type="monotone" dataKey="Cancel %" stroke="#f43f5e" strokeWidth={2.5}
+            dot={{ r: 4, fill: "#f43f5e", strokeWidth: 0 }} activeDot={{ r: 6 }} />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }
@@ -104,12 +192,14 @@ function HotelDetailShimmer() {
 export default function HotelDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [data, setData]               = useState(null)
-  const [loading, setLoading]         = useState(true)
-  const [activeTab, setActiveTab]     = useState("bookings")
+  const [data, setData]                 = useState(null)
+  const [loading, setLoading]           = useState(true)
+  const [activeTab, setActiveTab]       = useState("bookings")
   const [selectedUser, setSelectedUser] = useState(null)
   const [userBookings, setUserBookings] = useState(null)
+  const [dark, toggleDark]             = useDarkMode()
   const headers = { Authorization: `Bearer ${getToken()}` }
+  const p = dp(dark)
 
   useEffect(() => { fetchData() }, [id])
 
@@ -158,7 +248,7 @@ export default function HotelDetail() {
     }
   }
 
-  if (loading) return <HotelDetailShimmer />
+  if (loading) return <HotelDetailShimmer dark={dark} />
   if (!data)   return null
 
   const { hotel, stats, bookings, reviews } = data
@@ -169,91 +259,139 @@ export default function HotelDetail() {
     { name: "Pending",   value: stats.pending   },
   ].filter(d => d.value > 0)
 
+  const statCards = [
+    { label: "Total Bookings", value: stats.totalBookings,                          accent: "#3b82f6", bg: dark ? "#0d1a2e" : "#eff6ff"  },
+    { label: "Confirmed",      value: stats.confirmed,                               accent: "#10b981", bg: dark ? "#0d2e23" : "#ecfdf5"  },
+    { label: "Cancelled",      value: stats.cancelled,                               accent: "#f43f5e", bg: dark ? "#2e1020" : "#fff1f2"  },
+    { label: "Pending",        value: stats.pending,                                 accent: "#f59e0b", bg: dark ? "#2a1f08" : "#fffbeb"  },
+    { label: "Revenue",        value: `₹${stats.revenue.toLocaleString("en-IN")}`,  accent: "#8b5cf6", bg: dark ? "#1e1230" : "#f5f3ff"  },
+    { label: "Avg Rating",     value: `⭐ ${stats.avgRating}`,                       accent: "#f97316", bg: dark ? "#2a1800" : "#fff7ed"  },
+  ]
+
+  const statusStyle = (s) => dark
+    ? (STATUS_STYLES_DARK[s] || "bg-gray-700 text-gray-300")
+    : (STATUS_STYLES_LIGHT[s] || "bg-gray-100 text-gray-600")
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: "100vh", background: p.bg }}>
 
       {/* ── Header ── */}
-      <div className="bg-white shadow-sm px-4 sm:px-6 py-4 flex items-center gap-3 sm:gap-4">
+      <div style={{ background: p.surface, borderBottom: `1px solid ${p.border}`, padding: "16px 24px", display: "flex", alignItems: "center", gap: 16 }}>
         <button
           onClick={() => navigate("/admin/dashboard")}
-          className="text-gray-500 hover:text-gray-800 transition text-base sm:text-lg flex-shrink-0">
+          style={{ color: p.text3, background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           ← Back
         </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-base sm:text-xl font-bold text-gray-800 truncate">{hotel.name}</h1>
-          <p className="text-xs sm:text-sm text-gray-500 truncate">{hotel.location} · {hotel.type}</p>
+
+        {hotel.image ? (
+          <img src={hotel.image} alt={hotel.name} style={{ width: 36, height: 36, borderRadius: 12, objectFit: "cover", flexShrink: 0, display: "none" }} className="sm:block" />
+        ) : (
+          <div style={{ width: 36, height: 36, borderRadius: 12, background: p.surface2, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }} className="hidden sm:flex">
+            <span style={{ fontSize: 16 }}>🏨</span>
+          </div>
+        )}
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h1 style={{ fontSize: 16, fontWeight: 800, color: p.text1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{hotel.name}</h1>
+            <span style={{ background: dark ? "#1e3a5f" : "#eff6ff", color: "#3b82f6", fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 9999 }} className="hidden sm:inline-flex">
+              {hotel.type}
+            </span>
+          </div>
+          <p style={{ fontSize: 12, color: p.text3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📍 {hotel.location}</p>
         </div>
+
+        {/* Dark toggle */}
+        <button
+          onClick={toggleDark}
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          style={{
+            width: 36, height: 36, borderRadius: 10, border: "none", cursor: "pointer",
+            background: dark ? "#22263a" : "#f3f4f6",
+            color: dark ? "#fde68a" : "#6b7280",
+            fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {dark ? "☀️" : "🌙"}
+        </button>
+
         <button
           onClick={deleteHotel}
-          className="bg-red-500 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-red-600 transition flex-shrink-0">
+          style={{ background: "#f43f5e", color: "#fff", padding: "8px 12px", borderRadius: 12, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
           🗑️ <span className="hidden sm:inline">Delete Hotel</span>
         </button>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div style={{ maxWidth: 1152, margin: "0 auto", padding: "24px" }}>
 
-        {/* ── Stats + Pie — stack on mobile, 2 cols on lg ── */}
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-
+        {/* ── Stats + Pie ── */}
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-5 mb-5">
           {/* Stat cards */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {[
-              { label: "Total Bookings", value: stats.totalBookings,                          color: "border-blue-500"   },
-              { label: "Confirmed",      value: stats.confirmed,                               color: "border-green-500"  },
-              { label: "Cancelled",      value: stats.cancelled,                               color: "border-red-500"    },
-              { label: "Pending",        value: stats.pending,                                 color: "border-yellow-500" },
-              { label: "Revenue",        value: `₹${stats.revenue.toLocaleString("en-IN")}`,  color: "border-purple-500" },
-              { label: "Avg Rating",     value: `⭐ ${stats.avgRating}`,                       color: "border-orange-500" },
-            ].map((s, i) => (
-              <div key={i} className={`bg-white rounded-2xl p-3 sm:p-4 shadow-sm border-l-4 ${s.color}`}>
-                <p className="text-gray-500 text-xs truncate">{s.label}</p>
-                <p className="text-lg sm:text-xl font-bold mt-1 truncate">{s.value}</p>
+          <div className="grid grid-cols-2 gap-3">
+            {statCards.map((s, i) => (
+              <div key={i} style={{ background: s.bg, borderRadius: 16, padding: "12px 16px", borderTop: `1px solid ${p.border}`, borderRight: `1px solid ${p.border}`, borderBottom: `1px solid ${p.border}`, borderLeft: `3px solid ${s.accent}` }}>
+                <p style={{ color: p.text3, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>{s.label}</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: p.text1, marginTop: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.value}</p>
               </div>
             ))}
           </div>
 
           {/* Pie chart */}
-          <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-5">
-            <h3 className="font-bold text-gray-800 text-sm sm:text-base mb-3 sm:mb-4">
-              Booking Distribution
-            </h3>
+          <div style={{ background: p.surface, borderRadius: 16, border: `1px solid ${p.border}`, padding: "20px" }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: p.text3, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>Overview</p>
+            <h3 style={{ fontWeight: 700, color: p.text1, fontSize: 14, marginBottom: 12 }}>Booking Distribution</h3>
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%" cy="50%"
-                    outerRadius={70} innerRadius={35}
-                    dataKey="value"
+                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={75} innerRadius={38} dataKey="value"
                     label={({ name, value }) => `${name}: ${value}`}
-                  >
+                    labelLine={{ stroke: dark ? "#555c78" : "#d1d5db" }}
+                    strokeWidth={0}>
                     {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={p.tooltip} />
+                  <Legend iconType="circle" iconSize={9} wrapperStyle={{ fontSize: 11, color: p.text2 }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-40 sm:h-48 text-gray-400">
-                <p className="text-sm">No booking data yet</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 176 }}>
+                <div style={{ textAlign: "center", color: p.text3 }}>
+                  <p style={{ fontSize: 40, marginBottom: 8 }}>📊</p>
+                  <p style={{ fontSize: 14 }}>No booking data yet</p>
+                </div>
               </div>
             )}
           </div>
         </div>
 
+        {/* ── Accept/Cancel Charts ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+          <AcceptCancelBarChart bookings={bookings} stats={stats} dark={dark} />
+          <RatioLineChart bookings={bookings} dark={dark} />
+        </div>
+
         {/* ── Tabs ── */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="border-b flex overflow-x-auto">
+        <div style={{ background: p.surface, borderRadius: 16, border: `1px solid ${p.border}`, overflow: "hidden" }}>
+          <div style={{ borderBottom: `1px solid ${p.border}`, display: "flex", overflowX: "auto" }}>
             {[
               { key: "bookings", label: `📋 Bookings (${stats.totalBookings})` },
               { key: "reviews",  label: `⭐ Reviews (${stats.reviewCount})`    },
             ].map(t => (
               <button key={t.key} onClick={() => setActiveTab(t.key)}
-                className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition ${
-                  activeTab === t.key
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}>
+                style={{
+                  padding: "14px 24px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  borderBottom: `2px solid ${activeTab === t.key ? "#3b82f6" : "transparent"}`,
+                  color: activeTab === t.key ? "#3b82f6" : p.text3,
+                  background: activeTab === t.key ? (dark ? "#1a2744" : "#eff6ff") : "transparent",
+                  border: "none",
+                  borderBottom: `2px solid ${activeTab === t.key ? "#3b82f6" : "transparent"}`,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}>
                 {t.label}
               </button>
             ))}
@@ -261,47 +399,40 @@ export default function HotelDetail() {
 
           {/* ── Bookings tab ── */}
           {activeTab === "bookings" && (
-            <div className="p-3 sm:p-5">
+            <div style={{ padding: "20px" }}>
               {bookings.length === 0 ? (
-                <div className="text-center py-10 sm:py-12 text-gray-400">
-                  <p className="text-4xl mb-3">📋</p>
-                  <p className="text-sm">No bookings yet</p>
+                <div style={{ textAlign: "center", padding: "48px 0", color: p.text3 }}>
+                  <p style={{ fontSize: 40, marginBottom: 12 }}>📋</p>
+                  <p style={{ fontSize: 14 }}>No bookings yet</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {bookings.map(b => (
-                    <div key={b._id}
-                      className="border border-gray-100 rounded-xl p-3 sm:p-4 hover:bg-gray-50 transition">
-                      {/* Stack on mobile, side by side on sm+ */}
+                    <div key={b._id} style={{ border: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px", transition: "background 0.15s" }}
+                      onMouseEnter={e => e.currentTarget.style.background = p.surface2}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
-                        <div className="flex-1 min-w-0">
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="flex flex-wrap items-center gap-2 mb-1">
                             <button
                               onClick={() => b.userId && viewUserBookings(b.userId, b.userName)}
-                              className="font-bold text-blue-600 hover:underline text-sm">
+                              style={{ fontWeight: 700, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0 }}>
                               👤 {b.userName}
                             </button>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${STATUS_STYLES[b.paymentStatus] || "bg-gray-100 text-gray-600"}`}>
+                            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${statusStyle(b.paymentStatus)}`}>
                               {b.paymentStatus}
                             </span>
                           </div>
-                          <p className="text-gray-500 text-xs sm:text-sm break-words">
-                            {b.userEmail} · 📞 {b.phone}
-                          </p>
-                          <p className="text-gray-400 text-xs mt-1 break-words">
+                          <p style={{ color: p.text3, fontSize: 12, wordBreak: "break-word" }}>{b.userEmail} · 📞 {b.phone}</p>
+                          <p style={{ color: p.text3, fontSize: 12, marginTop: 4, wordBreak: "break-word" }}>
                             📅 {new Date(b.checkIn).toLocaleDateString("en-IN")} → {new Date(b.checkOut).toLocaleDateString("en-IN")}
                             · {b.nights} nights · {b.rooms} rooms · {b.guests} guests
                           </p>
-                          <p className="text-gray-400 text-xs">Order: {b.orderNumber}</p>
+                          <p style={{ color: p.text3, fontSize: 11, marginTop: 2, opacity: 0.6 }}>Order: {b.orderNumber}</p>
                         </div>
-                        {/* Price — left aligned on mobile, right on sm+ */}
-                        <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-1 flex-shrink-0">
-                          <p className="font-bold text-green-600 text-sm sm:text-base">
-                            ₹{b.totalPrice?.toLocaleString("en-IN")}
-                          </p>
-                          <p className="text-gray-400 text-xs">
-                            {new Date(b.createdAt).toLocaleDateString("en-IN")}
-                          </p>
+                        <div style={{ flexShrink: 0, textAlign: "right" }}>
+                          <p style={{ fontWeight: 800, color: "#10b981", fontSize: 15 }}>₹{b.totalPrice?.toLocaleString("en-IN")}</p>
+                          <p style={{ color: p.text3, fontSize: 12 }}>{new Date(b.createdAt).toLocaleDateString("en-IN")}</p>
                         </div>
                       </div>
                     </div>
@@ -313,33 +444,31 @@ export default function HotelDetail() {
 
           {/* ── Reviews tab ── */}
           {activeTab === "reviews" && (
-            <div className="p-3 sm:p-5">
+            <div style={{ padding: "20px" }}>
               {reviews.length === 0 ? (
-                <div className="text-center py-10 sm:py-12 text-gray-400">
-                  <p className="text-4xl mb-3">⭐</p>
-                  <p className="text-sm">No reviews yet</p>
+                <div style={{ textAlign: "center", padding: "48px 0", color: p.text3 }}>
+                  <p style={{ fontSize: 40, marginBottom: 12 }}>⭐</p>
+                  <p style={{ fontSize: 14 }}>No reviews yet</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {reviews.map(r => (
-                    <div key={r._id} className="border border-gray-100 rounded-xl p-3 sm:p-4">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <div key={r._id} style={{ border: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px" }}>
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <button
                           onClick={() => r.userId && viewUserBookings(r.userId, r.userName)}
-                          className="font-medium text-blue-600 hover:underline text-sm">
+                          style={{ fontWeight: 600, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0 }}>
                           👤 {r.userName}
                         </button>
                         <div className="flex">
                           {[1,2,3,4,5].map(s => (
-                            <span key={s} className={s <= r.rating ? "text-yellow-400" : "text-gray-200"}>★</span>
+                            <span key={s} style={{ fontSize: 14, color: s <= r.rating ? "#f59e0b" : dark ? "#374151" : "#e5e7eb" }}>★</span>
                           ))}
                         </div>
                       </div>
-                      {r.userEmail && (
-                        <p className="text-gray-400 text-xs mb-1">{r.userEmail}</p>
-                      )}
-                      <p className="text-gray-600 text-xs sm:text-sm break-words">{r.text}</p>
-                      <p className="text-gray-400 text-xs mt-1">
+                      {r.userEmail && <p style={{ color: p.text3, fontSize: 12, marginBottom: 4 }}>{r.userEmail}</p>}
+                      <p style={{ color: p.text2, fontSize: 13, wordBreak: "break-word" }}>{r.text}</p>
+                      <p style={{ color: p.text3, fontSize: 11, marginTop: 6, opacity: 0.7 }}>
                         {new Date(r.createdAt).toLocaleDateString("en-IN")}
                       </p>
                     </div>
@@ -353,75 +482,63 @@ export default function HotelDetail() {
 
       {/* ── User detail modal ── */}
       {selectedUser && userBookings && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          {/* Slides up from bottom on mobile, centered on sm+ */}
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50, backdropFilter: "blur(4px)" }}
+          className="sm:items-center">
+          <div style={{ background: p.surface, borderRadius: "16px 16px 0 0", width: "100%", maxWidth: 512, maxHeight: "90vh", overflowY: "auto", border: `1px solid ${p.border}` }}
+            className="sm:rounded-2xl">
+            <div style={{ padding: "24px" }}>
 
               {/* Modal header */}
-              <div className="flex items-start justify-between mb-4 sm:mb-5">
-                <div className="min-w-0 flex-1 mr-3">
-                  <h3 className="font-bold text-gray-800 text-base sm:text-lg truncate">
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+                <div style={{ minWidth: 0, flex: 1, marginRight: 12 }}>
+                  <h3 style={{ fontWeight: 800, color: p.text1, fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     👤 {selectedUser.name}
                   </h3>
-                  <p className="text-gray-500 text-xs sm:text-sm truncate">{userBookings.user?.email}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${
-                    userBookings.user?.role === "admin"      ? "bg-red-100 text-red-600" :
-                    userBookings.user?.role === "hotelOwner" ? "bg-purple-100 text-purple-600" :
-                    "bg-gray-100 text-gray-600"
-                  }`}>{userBookings.user?.role}</span>
+                  <p style={{ color: p.text3, fontSize: 13, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userBookings.user?.email}</p>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 9999, marginTop: 6, display: "inline-block",
+                    background: userBookings.user?.role === "admin" ? (dark ? "#2e1020" : "#fee2e2") : userBookings.user?.role === "hotelOwner" ? (dark ? "#1e1240" : "#f3e8ff") : (dark ? "#22263a" : "#f3f4f6"),
+                    color: userBookings.user?.role === "admin" ? "#f43f5e" : userBookings.user?.role === "hotelOwner" ? "#8b5cf6" : p.text2,
+                  }}>{userBookings.user?.role}</span>
                 </div>
                 <button
                   onClick={() => { setSelectedUser(null); setUserBookings(null) }}
-                  className="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0 leading-none">
+                  style={{ color: p.text3, background: "none", border: "none", cursor: "pointer", fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
                   ×
                 </button>
               </div>
 
-              {/* User stat cards */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
-                <div className="bg-blue-50 rounded-xl p-2 sm:p-3 text-center">
-                  <p className="text-xs text-gray-500">Total</p>
-                  <p className="font-bold text-blue-600 text-sm sm:text-base">
-                    {userBookings.bookings.length}
-                  </p>
-                </div>
-                <div className="bg-green-50 rounded-xl p-2 sm:p-3 text-center">
-                  <p className="text-xs text-gray-500">Confirmed</p>
-                  <p className="font-bold text-green-600 text-sm sm:text-base">
-                    {userBookings.bookings.filter(b => b.paymentStatus === "success").length}
-                  </p>
-                </div>
-                <div className="bg-red-50 rounded-xl p-2 sm:p-3 text-center">
-                  <p className="text-xs text-gray-500">Cancelled</p>
-                  <p className="font-bold text-red-500 text-sm sm:text-base">
-                    {userBookings.bookings.filter(b => b.paymentStatus === "refunded").length}
-                  </p>
-                </div>
+              {/* Stat chips */}
+              <div className="grid grid-cols-3 gap-2 mb-5">
+                {[
+                  { label: "Total",     value: userBookings.bookings.length, color: "#3b82f6", bg: dark ? "#0d1a2e" : "#eff6ff" },
+                  { label: "Confirmed", value: userBookings.bookings.filter(b => b.paymentStatus === "success").length, color: "#10b981", bg: dark ? "#0d2e23" : "#ecfdf5" },
+                  { label: "Cancelled", value: userBookings.bookings.filter(b => b.paymentStatus === "refunded").length, color: "#f43f5e", bg: dark ? "#2e1020" : "#fff1f2" },
+                ].map((chip, i) => (
+                  <div key={i} style={{ background: chip.bg, borderRadius: 12, padding: "12px 8px", textAlign: "center" }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, color: p.text3, textTransform: "uppercase", letterSpacing: "0.08em" }}>{chip.label}</p>
+                    <p style={{ fontWeight: 800, color: chip.color, fontSize: 20, marginTop: 4 }}>{chip.value}</p>
+                  </div>
+                ))}
               </div>
 
               {/* Bookings list */}
-              <div className="space-y-2 mb-4 sm:mb-5">
-                <p className="font-medium text-gray-700 text-sm mb-2">All Bookings</p>
+              <p style={{ fontWeight: 700, color: p.text1, fontSize: 14, marginBottom: 10 }}>All Bookings</p>
+              <div className="space-y-2 mb-5">
                 {userBookings.bookings.length === 0 ? (
-                  <p className="text-gray-400 text-sm text-center py-4">No bookings found</p>
+                  <p style={{ color: p.text3, fontSize: 14, textAlign: "center", padding: "16px 0" }}>No bookings found</p>
                 ) : userBookings.bookings.map(b => (
-                  <div key={b._id} className="bg-gray-50 rounded-xl p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-xs sm:text-sm text-gray-800 truncate">
-                          {b.hotelName}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {new Date(b.checkIn).toLocaleDateString("en-IN")} →{" "}
-                          {new Date(b.checkOut).toLocaleDateString("en-IN")} · {b.nights} nights
+                  <div key={b._id} style={{ background: p.surface2, borderRadius: 12, padding: 12 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontWeight: 600, fontSize: 13, color: p.text1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.hotelName}</p>
+                        <p style={{ fontSize: 12, color: p.text3, marginTop: 2 }}>
+                          {new Date(b.checkIn).toLocaleDateString("en-IN")} → {new Date(b.checkOut).toLocaleDateString("en-IN")} · {b.nights} nights
                         </p>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-bold text-xs sm:text-sm text-green-600">
-                          ₹{b.totalPrice?.toLocaleString("en-IN")}
-                        </p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[b.paymentStatus] || "bg-gray-100 text-gray-600"}`}>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <p style={{ fontWeight: 800, fontSize: 13, color: "#10b981" }}>₹{b.totalPrice?.toLocaleString("en-IN")}</p>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${statusStyle(b.paymentStatus)}`}>
                           {b.paymentStatus}
                         </span>
                       </div>
@@ -430,11 +547,10 @@ export default function HotelDetail() {
                 ))}
               </div>
 
-              {/* Delete user */}
               {userBookings.user?.role !== "admin" && (
                 <button
                   onClick={() => deleteUser(selectedUser.id, selectedUser.name)}
-                  className="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-xl text-sm font-medium hover:bg-red-600 transition">
+                  style={{ width: "100%", background: "#f43f5e", color: "#fff", padding: "12px", borderRadius: 12, fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer" }}>
                   🗑️ Delete User Account
                 </button>
               )}
