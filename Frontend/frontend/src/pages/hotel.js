@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Hotelnav from "../component/filters/Hotelnav";
 import FilterSidebar from "../component/filters/Hotelfilters.";
 import HotelCard from "../component/HotelCard";
@@ -9,8 +9,6 @@ import { getHotels } from "../services/hotelservice";
 import { getWishlist } from "../services/authService";
 import Footer from "../component/footer";
 import ChatBot from "../component/ChatBot";
-
-// ── ADD: import skeleton ──────────────────────────────────────
 import { HotelListingSkeleton } from "../component/Skeleton";
 
 function Hotels() {
@@ -25,9 +23,8 @@ function Hotels() {
     amenities: [],
   });
   const [visibleCount, setVisibleCount] = useState(6);
-
-  // ── ADD: loading state ────────────────────────────────────
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const loadMoreHotels = () => {
     setVisibleCount((prev) => prev + 6);
@@ -38,14 +35,12 @@ function Hotels() {
   }, [location.search]);
 
   const fetchAllHotels = async () => {
-    // ── ADD: set loading true before fetch ────────────────
     setLoading(true);
     try {
       const params = new URLSearchParams(location.search);
       const filters = { district: params.get("district") };
       const data = await searchHotels(filters);
       setHotels(data);
-
       if (isLoggedIn()) {
         const wishData = await getWishlist();
         setWishlist(wishData.map((h) => String(h._id)));
@@ -53,13 +48,11 @@ function Hotels() {
     } catch (err) {
       console.error(err);
     } finally {
-      // ── ADD: set loading false after fetch ────────────
       setLoading(false);
     }
   };
 
   const applyFilters = async () => {
-    // ── ADD: show skeleton while filtering ───────────────
     setLoading(true);
     try {
       const params = new URLSearchParams(location.search);
@@ -90,6 +83,18 @@ function Hotels() {
     setWishlist(ids);
   };
 
+  // Client-side search — name / district / state
+  const filteredHotels = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return hotels;
+    return hotels.filter(
+      (h) =>
+        h.name?.toLowerCase().includes(q) ||
+        h.district?.toLowerCase().includes(q) ||
+        h.state?.toLowerCase().includes(q)
+    );
+  }, [searchQuery, hotels]);
+
   return (
     <>
       {/* Navbar — unchanged */}
@@ -113,14 +118,50 @@ function Hotels() {
           {/* Hotels Section */}
           <div className="w-full lg:w-3/4 mt-4">
 
-            {/* ── ONLY CHANGE: show skeleton while loading ── */}
+            {/* Search bar — normal flow, above hotel grid */}
+            <div className="mb-4">
+              <div className="relative w-full sm:w-2/3 md:w-1/2">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                  🔍
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setVisibleCount(6);
+                  }}
+                  placeholder="Search by hotel name, district or state..."
+                  className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition placeholder-gray-400"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => { setSearchQuery(""); setVisibleCount(6); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold transition"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Result count — only when searching */}
+              {searchQuery.trim() && !loading && (
+                <p className="text-xs text-gray-400 mt-1.5 ml-1">
+                  {filteredHotels.length === 0
+                    ? `No hotels match "${searchQuery.trim()}"`
+                    : `${filteredHotels.length} hotel${filteredHotels.length > 1 ? "s" : ""} found for "${searchQuery.trim()}"`}
+                </p>
+              )}
+            </div>
+
+            {/* Skeleton or hotel grid */}
             {loading ? (
               <HotelListingSkeleton count={6} />
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {hotels.length > 0 ? (
-                    hotels.slice(0, visibleCount).map((hotel) => (
+                  {filteredHotels.length > 0 ? (
+                    filteredHotels.slice(0, visibleCount).map((hotel) => (
                       <HotelCard
                         key={hotel._id}
                         hotel={hotel}
@@ -136,7 +177,7 @@ function Hotels() {
                 </div>
 
                 {/* Load More Button — unchanged */}
-                {visibleCount < hotels.length && (
+                {visibleCount < filteredHotels.length && (
                   <div className="flex justify-center mt-8">
                     <button
                       onClick={loadMoreHotels}

@@ -1,4 +1,5 @@
- import { useState, useRef, useEffect } from "react";
+
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { sendChatMessage } from "../services/chatService";
 
@@ -69,6 +70,10 @@ const ChatBot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // ✅ Stable session ID per component mount
+  const sessionId = useRef(crypto.randomUUID());
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -82,13 +87,6 @@ const ChatBot = () => {
     if (open) setTimeout(() => inputRef.current?.focus(), 300);
   }, [open]);
 
-  // Build history for context
-  const buildHistory = () =>
-    messages.map((m) => ({
-      role: m.role === "bot" ? "assistant" : "user",
-      content: m.text,
-    }));
-
   const sendMessage = async (text) => {
     const userText = text || input.trim();
     if (!userText || loading) return;
@@ -101,7 +99,8 @@ const ChatBot = () => {
     setLoading(true);
 
     try {
-      const data = await sendChatMessage(userText, buildHistory());
+      // ✅ Pass sessionId — backend handles conversation memory
+      const data = await sendChatMessage(userText, sessionId.current);
 
       setMessages((prev) => [
         ...prev,
@@ -132,7 +131,18 @@ const ChatBot = () => {
     }
   };
 
-  const handleClear = () => {
+  // ✅ Also resets server-side session memory
+  const handleClear = async () => {
+    try {
+      await fetch(`${process.env.REACT_APP_API_URL}/api/chat/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: sessionId.current }),
+      });
+    } catch (err) {
+      console.warn("Could not reset session:", err.message);
+    }
+
     setMessages([
       {
         role: "bot",
@@ -306,7 +316,7 @@ const ChatBot = () => {
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-gray-300 text-center mt-1.5">Powered by Gemini AI</p>
+            <p className="text-xs text-gray-300 text-center mt-1.5">Powered by Groq AI</p>
           </div>
         </div>
       )}

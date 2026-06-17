@@ -8,6 +8,7 @@ import BookingForm from "../component/BookingForm";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";
 import ChatBot from "../component/ChatBot";
+import HotelMap from "../component/HotelMap";
 // ── ADD: import skeleton ──────────────────────────────────────
 import { HotelDetailSkeleton } from "../component/Skeleton";
 
@@ -102,7 +103,10 @@ function HotelDetails() {
               <span key={i} className="bg-gray-200 px-2 py-1 rounded text-sm">{a}</span>
             ))}
           </div>
-
+       <div className="mt-6">
+           <h3 className="text-lg font-bold text-gray-800 mb-3">📍 Location</h3>
+            <HotelMap location={hotel.location} name={hotel.name} />
+        </div>
           
          
 

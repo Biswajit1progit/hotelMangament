@@ -8,8 +8,13 @@ import axios from "axios";
 import { getToken } from "../../utils/auth";
 import { toast } from "react-toastify";
 import { uploadImagesToCloudinary } from "../../services/uploadService";
+import HotelMap from "../../component/HotelMap"; // ✅ adjust path if needed
 
 const API = `${process.env.REACT_APP_API_URL}/api/owners`;
+
+// ── Capitalization helpers ────────────────────────────────────
+const capFirst = (val) => val ? val.charAt(0).toUpperCase() + val.slice(1) : "";
+const capWord  = (val) => val ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : "";
 
 const getRequestTypes = (hasHotel) => {
   if (!hasHotel) return [
@@ -33,8 +38,6 @@ const STATUS_COLORS = {
 function OwnerRequestsShimmer() {
   return (
     <div className="min-h-screen bg-gray-50">
-
-      {/* Header */}
       <div className="bg-white shadow-sm px-4 sm:px-6 py-4 flex items-center justify-between gap-3 animate-pulse">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="h-8 w-14 bg-gray-200 rounded-lg" />
@@ -42,7 +45,6 @@ function OwnerRequestsShimmer() {
         </div>
         <div className="h-9 w-28 sm:w-32 bg-gray-200 rounded-lg" />
       </div>
-
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="bg-white rounded-2xl shadow-sm p-4 sm:p-5 animate-pulse">
@@ -50,7 +52,6 @@ function OwnerRequestsShimmer() {
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="h-4 sm:h-5 bg-gray-200 rounded w-2/5 sm:w-1/3" />
                 <div className="h-3 bg-gray-200 rounded w-3/4 sm:w-3/5" />
-                {/* Image thumbnails row */}
                 <div className="flex gap-2 mt-1">
                   {[...Array(3)].map((_, j) => (
                     <div key={j} className="w-12 h-9 sm:w-14 sm:h-10 bg-gray-200 rounded-lg" />
@@ -69,21 +70,21 @@ function OwnerRequestsShimmer() {
 
 // ── Main component ────────────────────────────────────────────
 function OwnerRequests() {
-  const [requests, setRequests]           = useState([]);
-  const [showForm, setShowForm]           = useState(false);
-  const [reason, setReason]               = useState("");
-  const [details, setDetails]             = useState({});
-  const [loading, setLoading]             = useState(false);
-  const [pageLoading, setPageLoading]     = useState(true);
-  const [myHotel, setMyHotel]             = useState(null);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previewUrls, setPreviewUrls]     = useState([]);
-  const [uploading, setUploading]         = useState(false);
-  const [uploadedImages, setUploadedImages]   = useState([]);
-  const [uploadProgress, setUploadProgress]   = useState({});
-  const [type, setType]                   = useState("add_hotel");
-  const fileInputRef                      = useRef(null);
-  const navigate                          = useNavigate();
+  const [requests, setRequests]             = useState([]);
+  const [showForm, setShowForm]             = useState(false);
+  const [reason, setReason]                 = useState("");
+  const [details, setDetails]               = useState({});
+  const [loading, setLoading]               = useState(false);
+  const [pageLoading, setPageLoading]       = useState(true);
+  const [myHotel, setMyHotel]               = useState(null);
+  const [selectedFiles, setSelectedFiles]   = useState([]);
+  const [previewUrls, setPreviewUrls]       = useState([]);
+  const [uploading, setUploading]           = useState(false);
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState({});
+  const [type, setType]                     = useState("add_hotel");
+  const fileInputRef                        = useRef(null);
+  const navigate                            = useNavigate();
 
   useEffect(() => { init(); }, []);
 
@@ -116,10 +117,9 @@ function OwnerRequests() {
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 5) { toast.error("Maximum 5 images allowed"); return; }
-    setSelectedFiles(files);
-    setPreviewUrls(files.map((f) => URL.createObjectURL(f)));
-    setUploadedImages([]);
+    if (selectedFiles.length + files.length > 5) { toast.error("Maximum 5 images allowed"); return; }
+    setSelectedFiles((prev) => [...prev, ...files]);
+    setPreviewUrls((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))]);
     setUploadProgress({});
   };
 
@@ -130,7 +130,7 @@ function OwnerRequests() {
       const urls = await uploadImagesToCloudinary(selectedFiles, (index, percent) => {
         setUploadProgress((prev) => ({ ...prev, [index]: percent }));
       });
-      setUploadedImages(urls);
+      setUploadedImages((prev) => [...prev, ...urls]);
       toast.success(`${urls.length} image(s) uploaded to Cloudinary ✅`);
     } catch {
       toast.error("Image upload failed. Please try again.");
@@ -140,8 +140,36 @@ function OwnerRequests() {
   const removeImage = (index) => {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
     setPreviewUrls(previewUrls.filter((_, i) => i !== index));
-    setUploadedImages([]);
+    setUploadedImages(uploadedImages.filter((_, i) => i !== index));
     setUploadProgress({});
+  };
+
+  // ✅ Lat/Lng handlers
+  const handleLatLng = (field, value) => {
+    setDetails((prev) => ({
+      ...prev,
+      location: { ...prev.location, [field]: value },
+    }));
+  };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setDetails((prev) => ({
+          ...prev,
+          location: {
+            lat: pos.coords.latitude.toFixed(6),
+            lng: pos.coords.longitude.toFixed(6),
+          },
+        }));
+        toast.success("Location detected ✅");
+      },
+      () => toast.error("Could not get location. Please enter manually.")
+    );
   };
 
   const resetForm = () => {
@@ -171,6 +199,13 @@ function OwnerRequests() {
 
   const REQUEST_TYPES = getRequestTypes(!!myHotel);
   const hasPendingAddRequest = requests.some(r => r.type === "add_hotel" && r.status === "pending");
+
+  // ✅ Check if valid coords exist for map preview
+  const hasValidCoords =
+    details.location?.lat &&
+    details.location?.lng &&
+    !isNaN(Number(details.location.lat)) &&
+    !isNaN(Number(details.location.lng));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -236,40 +271,146 @@ function OwnerRequests() {
             {/* ── Add hotel fields ── */}
             {type === "add_hotel" && (
               <div className="space-y-4 mb-4">
-                {/* 2-col on sm+, 1-col on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    { field: "name",          placeholder: "Hotel Name",                  full: true  },
-                    { field: "district",      placeholder: "District"                                 },
-                    { field: "state",         placeholder: "State"                                    },
-                    { field: "address",       placeholder: "Full Address",                full: true  },
-                    { field: "type",          placeholder: "Type (luxury/budget/resort)"              },
-                    { field: "pricePerNight", placeholder: "Price Per Night (₹)"                      },
-                    { field: "rooms",         placeholder: "Total Rooms"                              },
-                  ].map(({ field, placeholder, full }) => (
-                    <div key={field} className={full ? "sm:col-span-2" : ""}>
-                      <label className="text-xs font-medium text-gray-500 capitalize">
-                        {field.replace(/([A-Z])/g, " $1")}
-                      </label>
-                      <input
-                        placeholder={placeholder}
-                        onChange={(e) => setDetails({ ...details, [field]: e.target.value })}
-                        className="w-full border rounded-lg p-2 text-sm mt-1" />
-                    </div>
-                  ))}
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-500">Name</label>
+                    <input
+                      placeholder="Hotel Name"
+                      value={details.name || ""}
+                      onChange={(e) => setDetails({ ...details, name: capFirst(e.target.value) })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">District</label>
+                    <input
+                      placeholder="District"
+                      value={details.district || ""}
+                      onChange={(e) => setDetails({ ...details, district: capFirst(e.target.value) })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">State</label>
+                    <input
+                      placeholder="State"
+                      value={details.state || ""}
+                      onChange={(e) => setDetails({ ...details, state: capFirst(e.target.value) })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-500">Address</label>
+                    <input
+                      placeholder="Full Address"
+                      value={details.address || ""}
+                      onChange={(e) => setDetails({ ...details, address: capFirst(e.target.value) })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Type</label>
+                    <input
+                      placeholder="Type (luxury/budget/resort)"
+                      value={details.type || ""}
+                      onChange={(e) => setDetails({ ...details, type: capWord(e.target.value) })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Price Per Night</label>
+                    <input
+                      placeholder="Price Per Night (₹)"
+                      value={details.pricePerNight || ""}
+                      onChange={(e) => setDetails({ ...details, pricePerNight: e.target.value })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-500">Rooms</label>
+                    <input
+                      placeholder="Total Rooms"
+                      value={details.rooms || ""}
+                      onChange={(e) => setDetails({ ...details, rooms: e.target.value })}
+                      className="w-full border rounded-lg p-2 text-sm mt-1" />
+                  </div>
+
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500">Amenities (comma separated)</label>
                     <input
                       placeholder="wifi, pool, parking, breakfast, gym"
-                      onChange={(e) => setDetails({ ...details, amenities: e.target.value.split(",").map((a) => a.trim()) })}
+                      onChange={(e) =>
+                        setDetails({
+                          ...details,
+                          amenities: e.target.value
+                            .split(",")
+                            .map((a) => { const t = a.trim(); return t ? capWord(t) : ""; })
+                            .filter(Boolean),
+                        })
+                      }
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
+
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500">Description</label>
                     <textarea rows={3} placeholder="Describe your hotel..."
-                      onChange={(e) => setDetails({ ...details, description: e.target.value })}
+                      value={details.description || ""}
+                      onChange={(e) => setDetails({ ...details, description: capFirst(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1 resize-none" />
                   </div>
+
+                  {/* ✅ Latitude & Longitude */}
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-medium text-gray-500 block mb-2">
+                      📍 Hotel Location (Latitude & Longitude)
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Latitude</label>
+                        <input
+                          type="number"
+                          step="any"
+                          placeholder="e.g. 20.2961"
+                          value={details.location?.lat || ""}
+                          onChange={(e) => handleLatLng("lat", e.target.value)}
+                          className="w-full border rounded-lg p-2 text-sm" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">Longitude</label>
+                        <input
+                          type="number"
+                          step="any"
+                          placeholder="e.g. 85.8245"
+                          value={details.location?.lng || ""}
+                          onChange={(e) => handleLatLng("lng", e.target.value)}
+                          className="w-full border rounded-lg p-2 text-sm" />
+                      </div>
+                    </div>
+
+                    {/* GPS button */}
+                    <button
+                      type="button"
+                      onClick={handleGetCurrentLocation}
+                      className="mt-2 flex items-center gap-2 text-sm text-blue-600 font-medium border border-blue-200 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition">
+                      📍 Use my current location
+                    </button>
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      Tip: Open Google Maps → right-click on hotel → copy coordinates
+                    </p>
+
+                    {/* ✅ Live map preview */}
+                    {hasValidCoords && (
+                      <div className="mt-3">
+                        <p className="text-xs text-gray-500 mb-1.5">📌 Preview — confirm the pin is correct</p>
+                        <HotelMap
+                          location={{ lat: Number(details.location.lat), lng: Number(details.location.lng) }}
+                          name={details.name || "Hotel location"}
+                        />
+                      </div>
+                    )}
+                  </div>
+
                 </div>
 
                 {/* Image upload */}
@@ -289,7 +430,6 @@ function OwnerRequests() {
 
                   {previewUrls.length > 0 ? (
                     <div className="space-y-3">
-                      {/* 3-col grid for previews */}
                       <div className="grid grid-cols-3 gap-2">
                         {previewUrls.map((url, i) => (
                           <div key={i} className="relative group">
@@ -355,14 +495,37 @@ function OwnerRequests() {
                     </p>
                   </div>
                 )}
-                {["pricePerNight", "description", "amenities"].map((field) => (
-                  <div key={field}>
-                    <label className="text-xs font-medium text-gray-500 capitalize">{field}</label>
-                    <input placeholder={`New ${field}`}
-                      onChange={(e) => setDetails({ ...details, [field]: e.target.value })}
-                      className="w-full border rounded-lg p-2 text-sm mt-1" />
-                  </div>
-                ))}
+                <div>
+                  <label className="text-xs font-medium text-gray-500">Price Per Night</label>
+                  <input
+                    placeholder="New pricePerNight"
+                    value={details.pricePerNight || ""}
+                    onChange={(e) => setDetails({ ...details, pricePerNight: e.target.value })}
+                    className="w-full border rounded-lg p-2 text-sm mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">Description</label>
+                  <input
+                    placeholder="New description"
+                    value={details.description || ""}
+                    onChange={(e) => setDetails({ ...details, description: capFirst(e.target.value) })}
+                    className="w-full border rounded-lg p-2 text-sm mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">Amenities</label>
+                  <input
+                    placeholder="New amenities"
+                    onChange={(e) =>
+                      setDetails({
+                        ...details,
+                        amenities: e.target.value
+                          .split(",")
+                          .map((a) => { const t = a.trim(); return t ? capWord(t) : ""; })
+                          .filter(Boolean),
+                      })
+                    }
+                    className="w-full border rounded-lg p-2 text-sm mt-1" />
+                </div>
               </div>
             )}
 
@@ -409,11 +572,11 @@ function OwnerRequests() {
                 Reason / Notes <span className="text-red-400">*</span>
               </label>
               <textarea rows={3} placeholder="Explain your request..." value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                onChange={(e) => setReason(capFirst(e.target.value))}
                 className="w-full border rounded-lg p-2 text-sm mt-1 resize-none" />
             </div>
 
-            {/* ── Form actions — full width on mobile ── */}
+            {/* ── Form actions ── */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={handleSubmit}
@@ -447,7 +610,6 @@ function OwnerRequests() {
                   </p>
                   <p className="text-gray-500 text-xs sm:text-sm mt-1 break-words">{r.reason}</p>
 
-                  {/* Hotel images preview */}
                   {r.type === "add_hotel" && r.details?.images?.length > 0 && (
                     <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">
                       {r.details.images.slice(0, 3).map((img, i) => (
@@ -467,13 +629,11 @@ function OwnerRequests() {
                   </p>
                 </div>
 
-                {/* Status badge */}
                 <span className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${STATUS_COLORS[r.status]}`}>
                   {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                 </span>
               </div>
 
-              {/* Admin note */}
               {r.adminNote && (
                 <div className="mt-3 bg-blue-50 rounded-xl p-3">
                   <p className="text-xs font-medium text-blue-600">Admin Note:</p>
