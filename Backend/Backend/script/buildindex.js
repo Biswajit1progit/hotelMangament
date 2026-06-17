@@ -29,12 +29,10 @@ async function buildIndex() {
     process.exit(1)
   }
 
-  // Test embedding first
   console.log("🧪 Testing Gemini embedding...")
   const test = await getEmbedding("test hotel")
   console.log(`✓ Embedding works — dimension: ${test.length}`)
 
-  // Pinecone setup
   console.log("📌 Connecting to Pinecone...")
   const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY })
 
@@ -63,18 +61,23 @@ async function buildIndex() {
 
   const index = pinecone.index(INDEX_NAME)
 
-  // ── Embed ALL hotels first, then upload ──────────────────────
   console.log(`⚡ Embedding ${hotels.length} hotels...`)
   const allVectors = []
 
   for (let i = 0; i < hotels.length; i++) {
     const h = hotels[i]
 
+    // ✅ Now includes district + state for accurate location search
     const text = [
       `Hotel Name: ${h.name || "N/A"}`,
-      `Location: ${h.location || h.city || h.address || "N/A"}`,
-      `Price: ₹${h.price || h.pricePerNight || "N/A"} per night`,
-      `Rating: ${h.rating || "N/A"} stars`,
+      `District: ${h.district || "N/A"}`,
+      `State: ${h.state || "N/A"}`,
+      `Location: ${h.district || ""}, ${h.state || ""}`,
+      `Address: ${h.address || "N/A"}`,
+      `Price: ₹${h.pricePerNight || h.price || "N/A"} per night`,
+      `Rating: ${h.averageRating || h.rating || "N/A"} stars`,
+      `Type: ${h.type || "N/A"}`,
+      `Rooms: ${h.rooms || "N/A"}`,
       `Amenities: ${Array.isArray(h.amenities) ? h.amenities.join(", ") : h.amenities || "N/A"}`,
       `Description: ${h.description || "N/A"}`,
     ].join(" | ")
@@ -85,29 +88,34 @@ async function buildIndex() {
       id: h._id.toString(),
       values,
       metadata: {
-  text,
-  name: h.name || "",
-  price: Number(h.price || h.pricePerNight || 0),
-  rating: Number(h.rating || 0),
-  amenities: Array.isArray(h.amenities) ? h.amenities.join(",") : "",
-  location: typeof h.location === "object" ? (h.location?.city || h.location?.name || JSON.stringify(h.location)) : (h.location || h.city || h.address || "N/A")
-},
+        text,
+        name: h.name || "",
+        district: h.district || "",           // ✅ added
+        state: h.state || "",                  // ✅ added
+        price: Number(h.pricePerNight || h.price || 0),
+        rating: Number(h.averageRating || h.rating || 0),
+        type: h.type || "",                    // ✅ added
+        amenities: Array.isArray(h.amenities) ? h.amenities.join(",") : (h.amenities || ""),
+        location: h.district && h.state
+          ? `${h.district}, ${h.state}`
+          : typeof h.location === "object"
+            ? JSON.stringify(h.location)
+            : (h.location || h.city || h.address || "N/A"),
+      },
     })
 
-    console.log(`   Embedded ${i + 1}/${hotels.length}`)
+    console.log(`   Embedded ${i + 1}/${hotels.length}: ${h.name} — ${h.district}, ${h.state}`)
 
-    // Small delay to avoid rate limit
     await new Promise((r) => setTimeout(r, 200))
   }
 
-  // ── Upload to Pinecone in batches of 50 ──────────────────────
   console.log(`☁️  Uploading ${allVectors.length} vectors to Pinecone...`)
   const BATCH_SIZE = 50
 
   for (let i = 0; i < allVectors.length; i += BATCH_SIZE) {
     const batch = allVectors.slice(i, i + BATCH_SIZE)
     if (batch.length > 0) {
-     await index.upsert({ records: batch })
+      await index.upsert({ records: batch })
       console.log(`   Uploaded ${Math.min(i + BATCH_SIZE, allVectors.length)}/${allVectors.length}`)
     }
   }
