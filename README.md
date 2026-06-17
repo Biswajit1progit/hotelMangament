@@ -1,6 +1,3 @@
-
-
-
 <div align="center">
 
 <h1>🧭 SafarSetu</h1>
@@ -22,7 +19,7 @@
 
 <p>
   <strong>Government College of Engineering, Keonjhar</strong><br/>
-  B.Tech — Computer Science &amp; Engineering &nbsp;|&nbsp; 3rd Year, 6th Semester &nbsp;|&nbsp; Academic Year 2025–26
+  B.Tech — Computer Science &amp; Engineering &nbsp;|&nbsp; 3rd Year, 7th Semester &nbsp;|&nbsp; Academic Year 2025–26
 </p>
 
 <p>
@@ -42,21 +39,21 @@
 ### 🏠 Homepage — Hero Search
 > Search hotels by district and travel dates. Dark mode toggle available in the navbar.
 
-![Homepage](./screenshots/homepage.png)
+![Homepage](./screenshots/image.png)
 
 ---
 
 ### 🏨 Hotel Listings — Search & Filter
 > Filter hotels by price range, rating, and amenities (WiFi, Pool, Parking). Each card shows hotel type badge, star rating, and price per night.
 
-![Hotel Listings](./screenshots/hotel-listings.png)
+![Hotel Listings](./screenshots/saferhotellist.png)
 
 ---
 
 ### 📋 Hotel Detail & Booking Form
 > View hotel details with image gallery. Fill in guest details — name, email, phone, check-in/check-out dates, and room count — all in one page.
 
-![Hotel Detail](./screenshots/hotel-detail.png)
+![Hotel Detail](./screenshots/saferhoteldetails.png)
 
 ---
 
@@ -65,32 +62,41 @@
 
 **Step 1 — Select Payment Method**
 
-![Payment Selection](./screenshots/payment-select.png)
+![Payment Selection](./screenshots/saferpayment.png)
 
 **Step 2 — Razorpay Checkout**
 
-![Razorpay Modal](./screenshots/razorpay-modal.png)
+![Razorpay Modal](./screenshots/saferrazerpay.png)
 
 ---
 
-### 🧾 Booking Invoice (Auto-Generated PDF)
-> After successful payment, users receive a branded GST invoice with order number, transaction ID, and itemized breakdown. Downloadable as PDF.
+### 🧾 Booking Confirmation
+> After successful payment, users receive a booking confirmation page with order details.
 
-![Invoice](./screenshots/invoice.png)
+![Confirmation](./screenshots/conformation page.png)
 
 ---
 
 ### 👤 User Profile — My Bookings
 > View all past and current bookings with booking ID, order number, amount, and status. Cancel bookings or view receipts directly.
 
-![Profile Bookings](./screenshots/profile-bookings.png)
+![Profile Bookings](./screenshots/myprofile.png)
+
+---
+
+### 🔐 Login & Register
+> Secure login and registration pages with Google OAuth support.
+
+![Login](./screenshots/saferlogin.png)
+
+![Register](./screenshots/saferresister.png)
 
 ---
 
 ### ❤️ Wishlist
 > Save hotels to wishlist for later. Remove individual hotels or clear all at once.
 
-![Wishlist](./screenshots/wishlist.png)
+![Wishlist](./screenshots/whishlist.png)
 
 ---
 
@@ -467,8 +473,7 @@ Protected Routes check JWT via middleware
 - **RAG Pipeline Architecture** — Hotel knowledge base chunked and embedded via Gemini, stored in Pinecone, retrieved at query time and passed as context to Groq (Llama) — keeping LLM responses grounded in real hotel data rather than hallucinated answers.
 
 ---
- 
- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  SafarSetu — RAG Chatbot Upgrade (Pinecone version)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -625,6 +630,7 @@ Error: Index not found
 → Re-run: node scripts/buildIndex.js
 
 
+
 ## 🔒 Security
 
 | Concern | How It's Handled |
@@ -654,7 +660,7 @@ Error: Index not found
 
 ## 👨‍💻 Author
 
-**Biswajit Sahoo**
+**Biswajit Sahu**
 B.Tech Computer Science & Engineering · Government College of Engineering, Keonjhar · 6th Semester
 
 [![GitHub](https://img.shields.io/badge/GitHub-Biswajit1progit-black?style=flat&logo=github)](https://github.com/Biswajit1progit)
@@ -672,3 +678,5 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
   <i>Built with ☕, debugging sessions, and a lot of Stack Overflow</i>
 </div>
 
+
+ 
