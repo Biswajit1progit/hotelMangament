@@ -22,7 +22,7 @@
 
 <p>
   <strong>Government College of Engineering, Keonjhar</strong><br/>
-  B.Tech — Computer Science &amp; Engineering &nbsp;|&nbsp; 3rd Year, 7th Semester &nbsp;|&nbsp; Academic Year 2025–26
+  B.Tech — Computer Science &amp; Engineering &nbsp;|&nbsp; 3rd Year, 6th Semester &nbsp;|&nbsp; Academic Year 2025–26
 </p>
 
 <p>
