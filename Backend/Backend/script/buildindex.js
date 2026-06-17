@@ -2,7 +2,7 @@ require("dotenv").config()
 const mongoose = require("mongoose")
 const { Pinecone } = require("@pinecone-database/pinecone")
 const { GoogleGenerativeAI } = require("@google/generative-ai")
-const Hotel = require("../models/Hotel")
+const Hotel = require("../models/hotel")
 
 const INDEX_NAME = process.env.PINECONE_INDEX || "hotels"
 const DIMENSION = 3072
@@ -10,9 +10,27 @@ const DIMENSION = 3072
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 const embeddingModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" })
 
-async function getEmbedding(text) {
-  const result = await embeddingModel.embedContent(text)
-  return result.embedding.values
+// ✅ Retry with exponential backoff — handles 503 Gemini outages
+async function getEmbedding(text, retries = 5, delayMs = 3000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const result = await embeddingModel.embedContent(text)
+      return result.embedding.values
+    } catch (err) {
+      const is503 = err.message?.includes("503") || err.message?.includes("unavailable")
+      const isLast = attempt === retries
+
+      if (isLast) throw err
+
+      if (is503) {
+        console.warn(`   ⚠️  Gemini 503 on attempt ${attempt}/${retries} — retrying in ${delayMs / 1000}s...`)
+        await new Promise((r) => setTimeout(r, delayMs))
+        delayMs *= 2 // exponential backoff: 3s → 6s → 12s → 24s
+      } else {
+        throw err // non-503 errors fail immediately
+      }
+    }
+  }
 }
 
 async function buildIndex() {
@@ -63,11 +81,11 @@ async function buildIndex() {
 
   console.log(`⚡ Embedding ${hotels.length} hotels...`)
   const allVectors = []
+  let failed = []
 
   for (let i = 0; i < hotels.length; i++) {
     const h = hotels[i]
 
-    // ✅ Now includes district + state for accurate location search
     const text = [
       `Hotel Name: ${h.name || "N/A"}`,
       `District: ${h.district || "N/A"}`,
@@ -82,34 +100,41 @@ async function buildIndex() {
       `Description: ${h.description || "N/A"}`,
     ].join(" | ")
 
-    const values = await getEmbedding(text)
+    try {
+      const values = await getEmbedding(text)
 
-    allVectors.push({
-      id: h._id.toString(),
-      values,
-      metadata: {
-        text,
-        name: h.name || "",
-        district: h.district || "",           // ✅ added
-        state: h.state || "",                  // ✅ added
-        price: Number(h.pricePerNight || h.price || 0),
-        rating: Number(h.averageRating || h.rating || 0),
-        type: h.type || "",                    // ✅ added
-        amenities: Array.isArray(h.amenities) ? h.amenities.join(",") : (h.amenities || ""),
-        location: h.district && h.state
-          ? `${h.district}, ${h.state}`
-          : typeof h.location === "object"
-            ? JSON.stringify(h.location)
-            : (h.location || h.city || h.address || "N/A"),
-      },
-    })
+      allVectors.push({
+        id: h._id.toString(),
+        values,
+        metadata: {
+          text,
+          name: h.name || "",
+          district: h.district || "",
+          state: h.state || "",
+          price: Number(h.pricePerNight || h.price || 0),
+          rating: Number(h.averageRating || h.rating || 0),
+          type: h.type || "",
+          amenities: Array.isArray(h.amenities) ? h.amenities.join(",") : (h.amenities || ""),
+          location: h.district && h.state
+            ? `${h.district}, ${h.state}`
+            : typeof h.location === "object"
+              ? JSON.stringify(h.location)
+              : (h.location || h.city || h.address || "N/A"),
+        },
+      })
 
-    console.log(`   Embedded ${i + 1}/${hotels.length}: ${h.name} — ${h.district}, ${h.state}`)
+      console.log(`   ✓ ${i + 1}/${hotels.length}: ${h.name} — ${h.district}, ${h.state}`)
+    } catch (err) {
+      console.error(`   ❌ Failed: ${h.name} — ${err.message}`)
+      failed.push({ id: h._id.toString(), name: h.name })
+    }
 
-    await new Promise((r) => setTimeout(r, 200))
+    // Small delay to avoid rate limit
+    await new Promise((r) => setTimeout(r, 300))
   }
 
-  console.log(`☁️  Uploading ${allVectors.length} vectors to Pinecone...`)
+  // ── Upload to Pinecone in batches of 50 ──────────────────────
+  console.log(`\n☁️  Uploading ${allVectors.length} vectors to Pinecone...`)
   const BATCH_SIZE = 50
 
   for (let i = 0; i < allVectors.length; i += BATCH_SIZE) {
@@ -122,7 +147,12 @@ async function buildIndex() {
 
   console.log("")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-  console.log(`✓ ${hotels.length} hotels uploaded to Pinecone`)
+  console.log(`✓ ${allVectors.length} hotels uploaded to Pinecone`)
+  if (failed.length > 0) {
+    console.log(`⚠️  ${failed.length} hotels failed to embed:`)
+    failed.forEach((f) => console.log(`   - ${f.name} (${f.id})`))
+    console.log("   Re-run the script to retry failed hotels")
+  }
   console.log("🎉 Done! Run: npm run dev")
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
