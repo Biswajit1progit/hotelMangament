@@ -129,33 +129,37 @@ const BookingForm = ({ hotel }) => {
   };
 
   return (
-    <div className="bg-white p-4 sm:p-5 md:p-6 rounded-xl shadow-md w-full max-w-full sm:max-w-lg lg:max-w-md mx-auto">
+    // ── Full-width container — removed the old `max-w-md mx-auto` cap that
+    // was forcing this form into a narrow centered card regardless of how
+    // wide its parent section was. Now it fills the space it's given. ────
+    <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-md w-full">
       <h2 className="text-lg sm:text-xl font-bold mb-4">Guest Details:</h2>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-        {/* Name */}
-        <div>
-          <label className="text-sm font-medium">Full Name *</label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            className="w-full border p-2 sm:p-3 rounded mt-1 bg-gray-100 text-sm sm:text-base"
-            readOnly
-          />
-        </div>
+        {/* Name + Email — paired now that there's horizontal room to spare */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium">Full Name *</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              className="w-full border p-2 sm:p-3 rounded mt-1 bg-gray-100 text-sm sm:text-base"
+              readOnly
+            />
+          </div>
 
-        {/* Email */}
-        <div>
-          <label className="text-sm font-medium">Email *</label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            className="w-full border p-2 sm:p-3 rounded mt-1 bg-gray-100 text-sm sm:text-base"
-            readOnly
-          />
+          <div>
+            <label className="text-sm font-medium">Email *</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              className="w-full border p-2 sm:p-3 rounded mt-1 bg-gray-100 text-sm sm:text-base"
+              readOnly
+            />
+          </div>
         </div>
 
         {/* Phone */}
@@ -221,45 +225,46 @@ const BookingForm = ({ hotel }) => {
           </div>
         )}
 
-        {/* Rooms */}
-        <div>
-          <label className="text-sm font-medium">Rooms</label>
-          <input
-            type="number"
-            name="rooms"
-            min="1"
-            value={form.rooms}
-            className="w-full border p-2 sm:p-3 rounded mt-1 text-sm sm:text-base"
-            onChange={(e) => {
-              const rooms = Number(e.target.value);
-              setForm((prev) => ({
-                ...prev,
-                rooms,
-                guests: prev.guests > rooms * 3 ? rooms * 3 : prev.guests,
-              }));
-            }}
-          />
-        </div>
+        {/* Rooms + Guests */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-sm font-medium">Rooms</label>
+            <input
+              type="number"
+              name="rooms"
+              min="1"
+              value={form.rooms}
+              className="w-full border p-2 sm:p-3 rounded mt-1 text-sm sm:text-base"
+              onChange={(e) => {
+                const rooms = Number(e.target.value);
+                setForm((prev) => ({
+                  ...prev,
+                  rooms,
+                  guests: prev.guests > rooms * 3 ? rooms * 3 : prev.guests,
+                }));
+              }}
+            />
+          </div>
 
-        {/* Guests */}
-        <div>
-          <label className="text-sm font-medium">Guests (Max {form.rooms * 3})</label>
-          <input
-            type="number"
-            name="guests"
-            min="1"
-            max={form.rooms * 3}
-            value={form.guests}
-            className="w-full border p-2 sm:p-3 rounded mt-1 text-sm sm:text-base"
-            onChange={(e) => {
-              let guests = Number(e.target.value);
-              if (guests > form.rooms * 3) {
-                alert(`Max ${form.rooms * 3} guests allowed`);
-                guests = form.rooms * 3;
-              }
-              setForm({ ...form, guests });
-            }}
-          />
+          <div>
+            <label className="text-sm font-medium">Guests (Max {form.rooms * 3})</label>
+            <input
+              type="number"
+              name="guests"
+              min="1"
+              max={form.rooms * 3}
+              value={form.guests}
+              className="w-full border p-2 sm:p-3 rounded mt-1 text-sm sm:text-base"
+              onChange={(e) => {
+                let guests = Number(e.target.value);
+                if (guests > form.rooms * 3) {
+                  alert(`Max ${form.rooms * 3} guests allowed`);
+                  guests = form.rooms * 3;
+                }
+                setForm({ ...form, guests });
+              }}
+            />
+          </div>
         </div>
 
         {/* Special Requests */}

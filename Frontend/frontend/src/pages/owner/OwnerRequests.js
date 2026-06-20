@@ -8,11 +8,10 @@ import axios from "axios";
 import { getToken } from "../../utils/auth";
 import { toast } from "react-toastify";
 import { uploadImagesToCloudinary } from "../../services/uploadService";
-import HotelMap from "../../component/HotelMap"; // ✅ adjust path if needed
+import HotelMap from "../../component/HotelMap";
 
 const API = `${process.env.REACT_APP_API_URL}/api/owners`;
 
-// ── Capitalization helpers ────────────────────────────────────
 const capFirst = (val) => val ? val.charAt(0).toUpperCase() + val.slice(1) : "";
 const capWord  = (val) => val ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : "";
 
@@ -21,10 +20,10 @@ const getRequestTypes = (hasHotel) => {
     { value: "add_hotel", label: "➕ Add New Hotel", desc: "Request to list a new hotel on the platform" },
   ];
   return [
-    { value: "update_hotel",     label: "✏️ Update Hotel Details", desc: "Request changes to price, amenities, description" },
-    { value: "delete_hotel",     label: "🗑️ Remove Hotel",         desc: "Request to remove your hotel listing"             },
-    { value: "cancel_booking",   label: "❌ Cancel a Booking",     desc: "Request to cancel a guest's booking"              },
-    { value: "room_availability",label: "🛏️ Change Room Count",    desc: "Request to update available rooms"                },
+    { value: "update_hotel",      label: "✏️ Update Hotel Details", desc: "Request changes to price, amenities, description" },
+    { value: "delete_hotel",      label: "🗑️ Remove Hotel",         desc: "Request to remove your hotel listing"             },
+    { value: "cancel_booking",    label: "❌ Cancel a Booking",     desc: "Request to cancel a guest's booking"              },
+    { value: "room_availability", label: "🛏️ Change Room Count",    desc: "Request to update available rooms"                },
   ];
 };
 
@@ -34,7 +33,6 @@ const STATUS_COLORS = {
   rejected: "bg-red-100 text-red-600",
 };
 
-// ── Shimmer ───────────────────────────────────────────────────
 function OwnerRequestsShimmer() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -68,9 +66,9 @@ function OwnerRequestsShimmer() {
   );
 }
 
-// ── Main component ────────────────────────────────────────────
 function OwnerRequests() {
   const [requests, setRequests]             = useState([]);
+  const [bookings, setBookings]             = useState([]);
   const [showForm, setShowForm]             = useState(false);
   const [reason, setReason]                 = useState("");
   const [details, setDetails]               = useState({});
@@ -89,7 +87,7 @@ function OwnerRequests() {
   useEffect(() => { init(); }, []);
 
   const init = async () => {
-    await Promise.all([fetchRequests(), fetchMyHotel()]);
+    await Promise.all([fetchRequests(), fetchMyHotel(), fetchBookings()]);
     setPageLoading(false);
   };
 
@@ -113,6 +111,15 @@ function OwnerRequests() {
       setMyHotel(null);
       setType("add_hotel");
     }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const res = await axios.get(`${API}/bookings`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setBookings(res.data);
+    } catch (err) { console.error(err); }
   };
 
   const handleFileSelect = (e) => {
@@ -144,7 +151,6 @@ function OwnerRequests() {
     setUploadProgress({});
   };
 
-  // ✅ Lat/Lng handlers
   const handleLatLng = (field, value) => {
     setDetails((prev) => ({
       ...prev,
@@ -179,6 +185,8 @@ function OwnerRequests() {
 
   const handleSubmit = async () => {
     if (!reason) return toast.error("Please provide a reason");
+    if (type === "cancel_booking" && !details.bookingId)
+      return toast.error("Please select a booking to cancel");
     if (type === "add_hotel") {
       if (!details.name || !details.district || !details.state) return toast.error("Name, district, state required");
       if (uploadedImages.length === 0) return toast.error("Please upload at least one image");
@@ -186,9 +194,13 @@ function OwnerRequests() {
     try {
       setLoading(true);
       const finalDetails = { ...details, ...(type === "add_hotel" && { images: uploadedImages }) };
-      const hotelId = ["delete_hotel", "update_hotel", "room_availability"].includes(type) ? myHotel?._id : undefined;
-      await axios.post(`${API}/request`, { type, details: finalDetails, reason, hotelId },
-        { headers: { Authorization: `Bearer ${getToken()}` } });
+      const hotelId   = ["delete_hotel", "update_hotel", "room_availability"].includes(type) ? myHotel?._id : undefined;
+      const bookingId = type === "cancel_booking" ? details.bookingId : undefined;
+      await axios.post(
+        `${API}/request`,
+        { type, details: finalDetails, reason, hotelId, bookingId },
+        { headers: { Authorization: `Bearer ${getToken()}` } }
+      );
       toast.success("Request submitted to admin ✅");
       resetForm(); fetchRequests();
     } catch { toast.error("Failed to submit request"); }
@@ -200,7 +212,6 @@ function OwnerRequests() {
   const REQUEST_TYPES = getRequestTypes(!!myHotel);
   const hasPendingAddRequest = requests.some(r => r.type === "add_hotel" && r.status === "pending");
 
-  // ✅ Check if valid coords exist for map preview
   const hasValidCoords =
     details.location?.lat &&
     details.location?.lng &&
@@ -235,7 +246,6 @@ function OwnerRequests() {
           <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-5 sm:mb-6">
             <h2 className="font-bold text-gray-800 mb-4 text-sm sm:text-base">Submit New Request</h2>
 
-            {/* Hotel info banner */}
             {myHotel ? (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 mb-4">
                 <p className="text-xs sm:text-sm font-bold text-blue-800">🏨 Your Hotel: {myHotel.name}</p>
@@ -255,7 +265,6 @@ function OwnerRequests() {
               </div>
             )}
 
-            {/* Request type selector */}
             <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">Request Type:</p>
             <div className="grid grid-cols-1 gap-2 mb-5">
               {REQUEST_TYPES.map((r) => (
@@ -272,74 +281,51 @@ function OwnerRequests() {
             {type === "add_hotel" && (
               <div className="space-y-4 mb-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500">Name</label>
-                    <input
-                      placeholder="Hotel Name"
-                      value={details.name || ""}
+                    <input placeholder="Hotel Name" value={details.name || ""}
                       onChange={(e) => setDetails({ ...details, name: capFirst(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div>
                     <label className="text-xs font-medium text-gray-500">District</label>
-                    <input
-                      placeholder="District"
-                      value={details.district || ""}
+                    <input placeholder="District" value={details.district || ""}
                       onChange={(e) => setDetails({ ...details, district: capFirst(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div>
                     <label className="text-xs font-medium text-gray-500">State</label>
-                    <input
-                      placeholder="State"
-                      value={details.state || ""}
+                    <input placeholder="State" value={details.state || ""}
                       onChange={(e) => setDetails({ ...details, state: capFirst(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500">Address</label>
-                    <input
-                      placeholder="Full Address"
-                      value={details.address || ""}
+                    <input placeholder="Full Address" value={details.address || ""}
                       onChange={(e) => setDetails({ ...details, address: capFirst(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div>
                     <label className="text-xs font-medium text-gray-500">Type</label>
-                    <input
-                      placeholder="Type (luxury/budget/resort)"
-                      value={details.type || ""}
+                    <input placeholder="Type (luxury/budget/resort)" value={details.type || ""}
                       onChange={(e) => setDetails({ ...details, type: capWord(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div>
                     <label className="text-xs font-medium text-gray-500">Price Per Night</label>
-                    <input
-                      placeholder="Price Per Night (₹)"
-                      value={details.pricePerNight || ""}
+                    <input placeholder="Price Per Night (₹)" value={details.pricePerNight || ""}
                       onChange={(e) => setDetails({ ...details, pricePerNight: e.target.value })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div>
                     <label className="text-xs font-medium text-gray-500">Rooms</label>
-                    <input
-                      placeholder="Total Rooms"
-                      value={details.rooms || ""}
+                    <input placeholder="Total Rooms" value={details.rooms || ""}
                       onChange={(e) => setDetails({ ...details, rooms: e.target.value })}
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500">Amenities (comma separated)</label>
-                    <input
-                      placeholder="wifi, pool, parking, breakfast, gym"
+                    <input placeholder="wifi, pool, parking, breakfast, gym"
                       onChange={(e) =>
                         setDetails({
                           ...details,
@@ -351,7 +337,6 @@ function OwnerRequests() {
                       }
                       className="w-full border rounded-lg p-2 text-sm mt-1" />
                   </div>
-
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500">Description</label>
                     <textarea rows={3} placeholder="Describe your hotel..."
@@ -359,8 +344,6 @@ function OwnerRequests() {
                       onChange={(e) => setDetails({ ...details, description: capFirst(e.target.value) })}
                       className="w-full border rounded-lg p-2 text-sm mt-1 resize-none" />
                   </div>
-
-                  {/* ✅ Latitude & Longitude */}
                   <div className="sm:col-span-2">
                     <label className="text-xs font-medium text-gray-500 block mb-2">
                       📍 Hotel Location (Latitude & Longitude)
@@ -368,38 +351,26 @@ function OwnerRequests() {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-gray-400 mb-1 block">Latitude</label>
-                        <input
-                          type="number"
-                          step="any"
-                          placeholder="e.g. 20.2961"
+                        <input type="number" step="any" placeholder="e.g. 20.2961"
                           value={details.location?.lat || ""}
                           onChange={(e) => handleLatLng("lat", e.target.value)}
                           className="w-full border rounded-lg p-2 text-sm" />
                       </div>
                       <div>
                         <label className="text-xs text-gray-400 mb-1 block">Longitude</label>
-                        <input
-                          type="number"
-                          step="any"
-                          placeholder="e.g. 85.8245"
+                        <input type="number" step="any" placeholder="e.g. 85.8245"
                           value={details.location?.lng || ""}
                           onChange={(e) => handleLatLng("lng", e.target.value)}
                           className="w-full border rounded-lg p-2 text-sm" />
                       </div>
                     </div>
-
-                    {/* GPS button */}
-                    <button
-                      type="button"
-                      onClick={handleGetCurrentLocation}
+                    <button type="button" onClick={handleGetCurrentLocation}
                       className="mt-2 flex items-center gap-2 text-sm text-blue-600 font-medium border border-blue-200 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition">
                       📍 Use my current location
                     </button>
                     <p className="text-xs text-gray-400 mt-1.5">
                       Tip: Open Google Maps → right-click on hotel → copy coordinates
                     </p>
-
-                    {/* ✅ Live map preview */}
                     {hasValidCoords && (
                       <div className="mt-3">
                         <p className="text-xs text-gray-500 mb-1.5">📌 Preview — confirm the pin is correct</p>
@@ -410,7 +381,6 @@ function OwnerRequests() {
                       </div>
                     )}
                   </div>
-
                 </div>
 
                 {/* Image upload */}
@@ -427,7 +397,6 @@ function OwnerRequests() {
                   <input ref={fileInputRef} type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
                     multiple className="hidden" onChange={handleFileSelect} />
-
                   {previewUrls.length > 0 ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-3 gap-2">
@@ -497,24 +466,19 @@ function OwnerRequests() {
                 )}
                 <div>
                   <label className="text-xs font-medium text-gray-500">Price Per Night</label>
-                  <input
-                    placeholder="New pricePerNight"
-                    value={details.pricePerNight || ""}
+                  <input placeholder="New pricePerNight" value={details.pricePerNight || ""}
                     onChange={(e) => setDetails({ ...details, pricePerNight: e.target.value })}
                     className="w-full border rounded-lg p-2 text-sm mt-1" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">Description</label>
-                  <input
-                    placeholder="New description"
-                    value={details.description || ""}
+                  <input placeholder="New description" value={details.description || ""}
                     onChange={(e) => setDetails({ ...details, description: capFirst(e.target.value) })}
                     className="w-full border rounded-lg p-2 text-sm mt-1" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500">Amenities</label>
-                  <input
-                    placeholder="New amenities"
+                  <input placeholder="New amenities"
                     onChange={(e) =>
                       setDetails({
                         ...details,
@@ -556,13 +520,71 @@ function OwnerRequests() {
               </div>
             )}
 
-            {/* ── Cancel booking field ── */}
+            {/* ── Cancel booking — booking selector ── */}
             {type === "cancel_booking" && (
               <div className="mb-4">
-                <label className="text-xs font-medium text-gray-500">Booking ID to Cancel</label>
-                <input placeholder="Paste booking ID"
-                  onChange={(e) => setDetails({ bookingId: e.target.value })}
-                  className="w-full border rounded-lg p-2 text-sm mt-1" />
+                <label className="text-xs font-medium text-gray-500 block mb-2">
+                  Select Booking to Cancel
+                </label>
+                {bookings.length === 0 ? (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs text-gray-400 text-center">
+                    No bookings found for your hotel
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {bookings.map((b) => {
+                      const isSelected = details.bookingId === b._id;
+                      const now = new Date();
+                      const checkIn  = new Date(b.checkIn);
+                      const checkOut = new Date(b.checkOut);
+                      const statusLabel =
+                        now < checkIn                      ? "Upcoming" :
+                        now >= checkIn && now <= checkOut  ? "Active"   : "Completed";
+                      const statusColor =
+                        statusLabel === "Upcoming" ? "text-blue-600 bg-blue-50"   :
+                        statusLabel === "Active"   ? "text-green-600 bg-green-50" :
+                                                     "text-gray-500 bg-gray-100";
+                      return (
+                        <button
+                          key={b._id}
+                          type="button"
+                          onClick={() => setDetails({ bookingId: b._id })}
+                          className={`w-full text-left p-3 rounded-xl border-2 transition ${
+                            isSelected
+                              ? "border-red-400 bg-red-50"
+                              : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gray-800 text-xs sm:text-sm truncate">{b.name}</p>
+                              <p className="text-gray-400 text-xs truncate">{b.email}</p>
+                              <p className="text-gray-500 text-xs mt-0.5">
+                                📅 {new Date(b.checkIn).toLocaleDateString("en-IN")} → {new Date(b.checkOut).toLocaleDateString("en-IN")}
+                                &nbsp;·&nbsp; 🛏️ {b.rooms} room{b.rooms > 1 ? "s" : ""}
+                                &nbsp;·&nbsp; 💰 ₹{b.totalPrice?.toLocaleString()}
+                              </p>
+                              <p className="text-gray-300 text-xs font-mono mt-0.5 truncate">#{b._id}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColor}`}>
+                                {statusLabel}
+                              </span>
+                              {isSelected && (
+                                <span className="text-xs font-semibold text-red-500">✓ Selected</span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {details.bookingId && (
+                  <p className="text-xs text-red-400 mt-1.5 font-mono">
+                    Selected ID: {details.bookingId}
+                  </p>
+                )}
               </div>
             )}
 
@@ -609,6 +631,12 @@ function OwnerRequests() {
                     {REQUEST_TYPES.find((t) => t.value === r.type)?.label || r.type}
                   </p>
                   <p className="text-gray-500 text-xs sm:text-sm mt-1 break-words">{r.reason}</p>
+
+                  {r.type === "cancel_booking" && r.bookingId && (
+                    <p className="text-gray-400 text-xs font-mono mt-1">
+                      Booking: #{r.bookingId}
+                    </p>
+                  )}
 
                   {r.type === "add_hotel" && r.details?.images?.length > 0 && (
                     <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">

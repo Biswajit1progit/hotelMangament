@@ -110,16 +110,11 @@ const STYLES = `
     .owner-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
   }
 
-  /* Header: wrap to two rows on mobile */
+  /* Header: wrap brand + buttons to two rows on mobile */
   @media (max-width: 600px) {
     .owner-header { flex-wrap: wrap; gap: 10px !important; padding: 12px 16px !important; }
-    .owner-header-actions { width: 100%; justify-content: flex-end; }
-  }
-
-  /* Hide nav button text labels on small screens, show icon only */
-  @media (max-width: 480px) {
-    .nav-btn-label { display: none; }
-    .owner-dash .nav-btn { padding: 8px 10px !important; }
+    .owner-header-actions { width: 100%; justify-content: space-between !important; }
+    .owner-header-actions .nav-btn { flex: 1; justify-content: center !important; }
   }
 
   /* Banner: stack vertically on mobile */
@@ -263,7 +258,6 @@ function BookingRow({ b, dark }) {
       onMouseEnter={e => e.currentTarget.style.background = p.surface3}
       onMouseLeave={e => e.currentTarget.style.background = p.surface2}
     >
-      {/* Inner wrapper — flex row on desktop, handled via class on mobile */}
       <div
         className="booking-row-inner"
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
@@ -370,7 +364,7 @@ function OwnerDashboard() {
         {/* Actions */}
         <div
           className="owner-header-actions"
-          style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}
+          style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap" }}
         >
           <button
             className="nav-btn"
@@ -411,11 +405,9 @@ function OwnerDashboard() {
           <button
             className="nav-btn"
             onClick={handleLogout}
-            style={{ background: p.red, color: "#fff", padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer" }}
+            style={{ background: p.red, color: "#fff", padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
           >
-            <span className="nav-btn-label">Logout</span>
-            {/* Icon-only fallback visible at ≤480px */}
-            <span style={{ display: "none" }} className="nav-btn-icon">🚪</span>
+            🚪 Logout
           </button>
         </div>
       </div>

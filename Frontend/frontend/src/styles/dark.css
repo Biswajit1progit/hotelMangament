@@ -1,7 +1,5 @@
- /* ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────
    src/styles/dark.css
-   Import this once in your index.js or App.js:
-   import "./styles/dark.css";
    ───────────────────────────────────────────────────────────── */
 
 /* ── Base page background + text ── */
@@ -17,6 +15,7 @@ html.dark-mode .bg-gray-100       { background-color: #1e293b !important; }
 html.dark-mode .bg-gray-200       { background-color: #334155 !important; }
 
 /* ── Text ── */
+html.dark-mode .text-gray-900     { color: #f1f5f9 !important; } /* ✅ was missing — titles invisible */
 html.dark-mode .text-gray-800     { color: #f1f5f9 !important; }
 html.dark-mode .text-gray-700     { color: #e2e8f0 !important; }
 html.dark-mode .text-gray-600     { color: #cbd5e1 !important; }
@@ -27,6 +26,7 @@ html.dark-mode .text-gray-400     { color: #64748b !important; }
 html.dark-mode .border            { border-color: #334155 !important; }
 html.dark-mode .border-gray-100   { border-color: #1e293b !important; }
 html.dark-mode .border-gray-200   { border-color: #334155 !important; }
+html.dark-mode .border-gray-300   { border-color: #475569 !important; }
 
 /* ── Shadows ── */
 html.dark-mode .shadow-sm         { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
@@ -59,15 +59,22 @@ html.dark-mode nav .bg-white\/90 {
   background-color: rgba(30, 41, 59, 0.9) !important;
 }
 
-/* ── Cards / panels ── */
-html.dark-mode .rounded-2xl,
-html.dark-mode .rounded-xl {
-  background-color: #1e293b;
+/* ── ✅ REMOVED the blanket rounded-2xl / rounded-xl rule ──
+   It was making every card, button, image, modal dark.
+   Instead we target specific semantic bg classes below.     ── */
+
+/* ── Cards — only actual card backgrounds ── */
+html.dark-mode .bg-white.rounded-2xl,
+html.dark-mode .bg-white.rounded-xl,
+html.dark-mode .bg-gray-50.rounded-2xl,
+html.dark-mode .bg-gray-50.rounded-xl {
+  background-color: #1e293b !important;
 }
 
 /* ── Hover backgrounds ── */
 html.dark-mode .hover\:bg-gray-50:hover  { background-color: #1e293b !important; }
 html.dark-mode .hover\:bg-gray-100:hover { background-color: #334155 !important; }
+html.dark-mode .hover\:bg-blue-50:hover  { background-color: #172554 !important; }
 
 /* ── Tabs ── */
 html.dark-mode .border-b { border-color: #334155 !important; }
@@ -86,20 +93,18 @@ html.dark-mode .bg-green-100  { background-color: #052e16 !important; }
 html.dark-mode .bg-red-100    { background-color: #3b0764 !important; }
 html.dark-mode .bg-blue-100   { background-color: #172554 !important; }
 html.dark-mode .bg-purple-100 { background-color: #2e1065 !important; }
-html.dark-mode .bg-gray-100   { background-color: #1e293b !important; }
 
-/* ── Colored highlight panels (blue-50, yellow-50 etc) ── */
+/* ── Colored highlight panels ── */
 html.dark-mode .bg-blue-50    { background-color: #172554 !important; }
 html.dark-mode .bg-yellow-50  { background-color: #422006 !important; }
 html.dark-mode .bg-red-50     { background-color: #1c0a09 !important; }
 html.dark-mode .bg-green-50   { background-color: #052e16 !important; }
-html.dark-mode .bg-gray-50    { background-color: #0f172a !important; }
 
 /* ── Modal overlay ── */
 html.dark-mode .bg-black\/50 { background-color: rgba(0,0,0,0.7) !important; }
 
 /* ── Shimmer skeleton in dark mode ── */
-html.dark-mode .bg-gray-200 {
+html.dark-mode .animate-pulse .bg-gray-200 {
   background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important;
   background-size: 400% 100% !important;
 }
@@ -111,6 +116,23 @@ html.dark-mode ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3
 
 /* ── Hero/banner sections ── */
 html.dark-mode .bg-blue-600 { background-color: #1d4ed8 !important; }
+
+/* ── White text on colored backgrounds — keep white ── */
+html.dark-mode .bg-blue-600 .text-white,
+html.dark-mode .bg-blue-700 .text-white { color: #ffffff !important; }
+
+/* ── Tables ── */
+html.dark-mode table       { background-color: #1e293b !important; }
+html.dark-mode thead       { background-color: #0f172a !important; }
+html.dark-mode th          { color: #94a3b8 !important; border-color: #334155 !important; }
+html.dark-mode td          { color: #e2e8f0 !important; border-color: #334155 !important; }
+html.dark-mode tr:hover    { background-color: #334155 !important; }
+
+/* ── Dropdown menus ── */
+html.dark-mode .absolute.bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
 
 /* ── Transition everything smoothly ── */
 html.dark-mode *,

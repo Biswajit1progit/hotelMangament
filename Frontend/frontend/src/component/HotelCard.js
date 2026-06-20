@@ -26,17 +26,7 @@ function HotelCard({ hotel, wishlist=[], setWishlist, onRemove }) {
          });
     }
   };
-//Wishlist
-  /* const handleWishlist = async () => {
-    if (!isLoggedIn()) {
-      navigate("/login");
-      return;
-    }
 
-    await toggleWishlist(hotel._id);
-    setLiked(!liked);
-  };
- */
 // ✅ CHECK FROM BACKEND DATA
   const liked = Array.isArray(wishlist) && 
                wishlist.map(String).includes(String(hotel._id));

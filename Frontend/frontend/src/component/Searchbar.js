@@ -1,172 +1,124 @@
 import { useState } from "react";
-import FlightSearch from "./search/FlightSearch";
-import HotelSearch from "./search/HotelSearch";
+import { useNavigate } from "react-router-dom";
 
-import axios from "axios";
+// ── All logic identical to original — only UI updated ─────────
+function HotelSearch() {
+  const [form, setForm] = useState({ district: "", checkIn: "", checkOut: "" });
+  const [loading, setLoading] = useState(false);
+  const [dateError, setDateError] = useState("");
+  const navigate = useNavigate();
 
+  const today = new Date().toISOString().split("T")[0];
 
-function SearchBar() {
-  const [activeTab, setActiveTab] = useState("hotels");
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updated = { ...form, [name]: value };
+    setForm(updated);
 
-  const renderSearch = () => {
-    switch (activeTab) {
-      case "flights":
-        return <FlightSearch />;
-      case "hotels":
-        return <HotelSearch />;
-     
-      default:
-        return <HotelSearch />;
+    if (name === "checkOut" || name === "checkIn") {
+      const inDate = new Date(updated.checkIn);
+      const outDate = new Date(updated.checkOut);
+      if (updated.checkIn && updated.checkOut && outDate <= inDate) {
+        setDateError("Check-out must be after check-in");
+      } else {
+        setDateError("");
+      }
     }
   };
-  
 
- /*  return (
-    <div className="bg-white rounded-xl shadow-xl w-[80%] p-6 ">
+  const handleSearch = async () => {
+    if (!form.district.trim()) { alert("Please enter a district"); return; }
+    if (dateError) { alert(dateError); return; }
 
-      {/* Tabs */
-    /*   <div className="flex gap-6 border-b pb-3 mb-4">
-        <button onClick={() => setActiveTab("flights")}>Flights</button>
-        <button onClick={() => setActiveTab("hotels")}>Hotels</button>
-        <button onClick={() => setActiveTab("trains")}>Trains</button>
-        <button onClick={() => setActiveTab("movies")}>Movies</button>
-      </div> */
+    setLoading(true);
+    const params = new URLSearchParams();
+    params.set("district", form.district);
+    if (form.checkIn) params.set("checkIn", form.checkIn);
+    if (form.checkOut) params.set("checkOut", form.checkOut);
+    navigate(`/hotels?${params.toString()}`);
+    setLoading(false);
+  };
 
-      {/* Dynamic Search */}
-      /* {renderSearch()}
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 w-full">
 
-    </div> */
-  /* );
-}*/
+      {/* District */}
+      <div className="flex-1 min-w-0">
+        <label className="block text-xs text-gray-400 font-medium mb-1 px-1">District</label>
+        <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 transition bg-white">
+          <span className="text-gray-400 text-sm shrink-0">📍</span>
+          <input
+            name="district"
+            value={form.district}
+            onChange={handleChange}
+            placeholder="e.g. Goa, Jaipur, Manali"
+            className="outline-none font-semibold w-full text-sm text-gray-800 placeholder-gray-300 bg-transparent"
+          />
+        </div>
+      </div>
 
-return (
-  <div
-    className="
-      bg-white
-      rounded-xl
-      shadow-xl
-      w-full
-      sm:w-[95%]
-      md:w-[90%]
-      lg:w-[80%]
-      mx-auto
-      p-4
-      sm:p-5
-      md:p-6
-    "
-  >
-    {/* Tabs */}
-    <div
-      className="
-        flex
-        flex-wrap
-        justify-center
-        sm:justify-start
-        gap-2
-        sm:gap-4
-        md:gap-6
-        border-b
-        pb-3
-        mb-4
-        overflow-x-auto
-        scrollbar-hide
-      "
-    >
-    {/*   <button
-        onClick={() => setActiveTab("flights")}
-        className="
-          px-3
-          py-2
-          text-sm
-          sm:text-base
-          whitespace-nowrap
-          hover:text-blue-600
-          transition
-        "
-      >
-        Flights
-      </button>
+      {/* Check In */}
+      <div className="flex-1 min-w-0">
+        <label className="block text-xs text-gray-400 font-medium mb-1 px-1">Check In</label>
+        <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-100 transition bg-white">
+          <span className="text-gray-400 text-sm shrink-0">📅</span>
+          <input
+            type="date"
+            name="checkIn"
+            value={form.checkIn}
+            min={today}
+            onChange={handleChange}
+            className="outline-none font-semibold w-full text-sm text-gray-800 bg-transparent"
+          />
+        </div>
+      </div>
 
-      <button
-        onClick={() => setActiveTab("hotels")}
-        className="
-          px-3
-          py-2
-          text-sm
-          sm:text-base
-          whitespace-nowrap
-          hover:text-blue-600
-          transition
-        "
-      >
-        Hotels
-      </button>
- */}
+      {/* Check Out */}
+      <div className="flex-1 min-w-0">
+        <label className="block text-xs text-gray-400 font-medium mb-1 px-1">Check Out</label>
+        <div className={`flex items-center gap-2 border rounded-xl px-3 py-2.5 focus-within:ring-1 transition bg-white ${
+          dateError
+            ? "border-red-400 focus-within:border-red-400 focus-within:ring-red-100"
+            : "border-gray-200 focus-within:border-blue-400 focus-within:ring-blue-100"
+        }`}>
+          <span className="text-gray-400 text-sm shrink-0">📅</span>
+          <input
+            type="date"
+            name="checkOut"
+            value={form.checkOut}
+            min={form.checkIn || today}
+            onChange={handleChange}
+            className="outline-none font-semibold w-full text-sm text-gray-800 bg-transparent"
+          />
+        </div>
+        {dateError && (
+          <p className="text-red-500 text-xs mt-1 px-1">{dateError}</p>
+        )}
+      </div>
+
+      {/* Search Button */}
+      <div className="flex flex-col justify-end">
+        <label className="block text-xs text-transparent mb-1 px-1 select-none">Search</label>
         <button
-  onClick={() => setActiveTab("flights")}
-  className={`
-    px-3 py-2 text-sm sm:text-base whitespace-nowrap transition rounded-lg
-    ${
-      activeTab === "flights"
-        ? "bg-blue-600 text-white shadow-md"
-        : "hover:text-blue-600"
-    }
-  `}
->
-  Flights
-   </button>
-
-   <button
-  onClick={() => setActiveTab("hotels")}
-  className={`
-    px-3 py-2 text-sm sm:text-base whitespace-nowrap transition rounded-lg
-    ${
-      activeTab === "hotels"
-        ? "bg-blue-600 text-white shadow-md"
-        : "hover:text-blue-600"
-    }
-  `}
->
-  Hotels
-   </button>
-   <button
-    onClick={() => setActiveTab("movies")}
-    className={`
-      px-4 py-2 text-sm sm:text-base whitespace-nowrap
-      rounded-lg transition-all duration-200
-      ${
-        activeTab === "movies"
-          ? "bg-blue-600 text-white shadow-md scale-105"
-          : "hover:bg-gray-100 hover:text-blue-600"
-      }
-    `}
-  >
-    Movies
-  </button>
-
-  <button
-    onClick={() => setActiveTab("events")}
-    className={`
-      px-4 py-2 text-sm sm:text-base whitespace-nowrap
-      rounded-lg transition-all duration-200
-      ${
-        activeTab === "events"
-          ? "bg-blue-600 text-white shadow-md scale-105"
-          : "hover:bg-gray-100 hover:text-blue-600"
-      }
-    `}
-  >
-    Events
-  </button>
+          type="button"
+          onClick={handleSearch}
+          disabled={loading}
+          className="w-full sm:w-auto px-8 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-200 disabled:opacity-60 active:scale-95"
+          style={{ background: "linear-gradient(135deg, #2563eb, #0ea5e9)" }}
+        >
+          {loading ? (
+            <span className="flex items-center gap-2 justify-center">
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Searching...
+            </span>
+          ) : "Search"}
+        </button>
+      </div>
     </div>
-
-    {/* Dynamic Search Section */}
-    <div className="w-full overflow-hidden">
-      {renderSearch()}
-    </div>
-  </div>
-);
+  );
 }
 
-export default SearchBar; 
-
+export default HotelSearch;

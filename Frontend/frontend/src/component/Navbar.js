@@ -12,7 +12,7 @@ export default function Navbar() {
   const [show, setShow]             = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
-  const [dark, setDark]             = useState(isDarkMode()); // ← dark state
+  const [dark, setDark]             = useState(isDarkMode());
   const menuRef = useRef(null);
   const user = getUser();
 
@@ -57,6 +57,15 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  // ── Link color depends on scroll position ─────────────────
+  const linkClass = `hover:text-blue-400 transition-colors duration-200 ${
+    scrolled ? "text-gray-700" : "text-white"
+  }`;
+
+  const iconClass = `p-2 rounded-full transition ${
+    scrolled ? "hover:bg-gray-100 text-gray-700" : "hover:bg-white/10 text-white"
+  }`;
+
   return (
     <>
       <div className="pt-3 mt-3 px-2 sm:px-4">
@@ -65,10 +74,12 @@ export default function Navbar() {
         <nav className={`
           px-4 sm:px-6 py-4
           flex items-center justify-between
-          border rounded-lg
+          border rounded-xl
           sticky top-2 z-50
           transition-all duration-300
-          ${scrolled ? "bg-white/90 backdrop-blur-md shadow-lg" : "bg-white-100"}
+          ${scrolled
+            ? "bg-white/95 backdrop-blur-md shadow-lg border-gray-200"
+            : "bg-white/10 backdrop-blur-sm border-white/20"}
         `}>
 
           {/* Logo */}
@@ -86,35 +97,36 @@ export default function Navbar() {
               </g>
               <text x="50" y="31"
                 fontFamily="Poppins, Arial, sans-serif"
-                fontSize="20" fontWeight="600" fill="#091fed">
+                fontSize="20" fontWeight="600"
+                fill={scrolled ? "#091fed" : "#ffffff"}>
                 SafarSetu
               </text>
             </svg>
           </div>
 
           {/* Desktop Nav links */}
-          <ul className="hidden lg:flex gap-8 text-gray-700 font-bold">
-            <li><Link to="/"        className="hover:text-blue-500">Home</Link></li>
-            <li><Link to="/movies"  className="hover:text-blue-500">Movies</Link></li>
-            <li><Link to="/flights" className="hover:text-blue-500">Flights</Link></li>
-            <li><Link to="/hotels"  className="hover:text-blue-500">Hotels</Link></li>
-            <li><Link to="/events"  className="hover:text-blue-500">Events</Link></li>
-            <li><Link to="/contact" className="hover:text-blue-500">Contact Us</Link></li>
+          <ul className={`hidden lg:flex gap-8 font-bold`}>
+            <li><Link to="/"        className={linkClass}>Home</Link></li>
+            <li><Link to="/movies"  className={linkClass}>Movies</Link></li>
+            <li><Link to="/flights" className={linkClass}>Flights</Link></li>
+            <li><Link to="/hotels"  className={linkClass}>Hotels</Link></li>
+            <li><Link to="/events"  className={linkClass}>Events</Link></li>
+            <li><Link to="/contact" className={linkClass}>Contact Us</Link></li>
           </ul>
 
           {/* Desktop right section */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3 relative">
             <DarkModeToggle />
-            <button className="p-2 hover:bg-gray-100 rounded-full">🔍</button>
+            <button className={iconClass}>🔍</button>
             <NotificationBell />
             <button
               onClick={() => setShow(!show)}
-              className="hover:bg-gray-100 rounded-full p-2">
+              className={iconClass}>
               👤
             </button>
             <div className={`
               absolute right-0 top-14 z-50
-              origin-top-right transform transition-all duration-500 ease-out
+              origin-top-right transform transition-all duration-300 ease-out
               ${show
                 ? "opacity-100 scale-100 translate-y-0"
                 : "opacity-0 scale-95 -translate-y-3 pointer-events-none"}
@@ -125,13 +137,13 @@ export default function Navbar() {
 
           {/* Mobile — dark toggle + hamburger */}
           <div ref={menuRef} className="lg:hidden relative flex items-center gap-1">
-
-            {/* Dark mode toggle — icon only on mobile, sits beside hamburger */}
             <DarkModeToggle className="w-9 h-9" />
 
             {/* Hamburger */}
             <button
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+              className={`p-2 rounded-lg transition font-bold text-lg ${
+                scrolled ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"
+              }`}
               onClick={() => setMobileMenu(!mobileMenu)}
               aria-label="Toggle menu"
             >
@@ -142,7 +154,6 @@ export default function Navbar() {
             {mobileMenu && (
               <div className="absolute right-0 top-12 bg-white shadow-xl rounded-2xl p-3 border w-60 z-50 space-y-1">
 
-                {/* Nav links */}
                 {[
                   { to: "/",        label: "🏠 Home"       },
                   { to: "/movies",  label: "🎬 Movies"     },
@@ -160,10 +171,9 @@ export default function Navbar() {
                   </Link>
                 ))}
 
-                {/* Divider */}
                 <div className="border-t border-gray-100 my-1" />
 
-                {/* Dark mode row inside dropdown */}
+                {/* Dark mode row */}
                 <div className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-50 transition">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm flex-shrink-0">{dark ? "🌙" : "☀️"}</span>
@@ -174,7 +184,14 @@ export default function Navbar() {
                   <DarkModeToggle className="flex-shrink-0 w-8 h-8" />
                 </div>
 
-                {/* Divider */}
+                <div className="border-t border-gray-100 my-1" />
+
+                {/* Notifications row */}
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-50 transition">
+                  <span className="text-sm font-medium text-gray-700">🔔 Notifications</span>
+                  <NotificationBell />
+                </div>
+
                 <div className="border-t border-gray-100 my-1" />
 
                 {/* Logout */}
@@ -183,7 +200,6 @@ export default function Navbar() {
                   className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition">
                   🚪 Logout
                 </button>
-
               </div>
             )}
           </div>
