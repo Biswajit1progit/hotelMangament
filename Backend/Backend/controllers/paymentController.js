@@ -15,6 +15,11 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+// ── Refund window — kept as a single named constant so the frontend and
+// backend can reference the exact same number (2 hours = 7,200,000 ms).
+// If this ever needs to change, it only needs to change here. ──────────
+const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+
 // Create order
 exports.createOrder = async (req, res) => {
   try {
@@ -158,6 +163,32 @@ exports.cancelBookingRefund = async (req, res) => {
     const payment = await Payment.findById(paymentId);
     if (!payment) {
       return res.status(404).json({ success: false, message: "Payment not found" });
+    }
+
+    // ── Block re-refunding an already-refunded payment (existing check,
+    // kept as-is) ──────────────────────────────────────────────────────
+    if (payment.status === "refunded") {
+      return res.status(400).json({
+        success: false,
+        message: "This booking has already been refunded",
+      });
+    }
+
+    // ── 2-hour refund window — THE ACTUAL SECURITY BOUNDARY.
+    // The frontend disabling the Cancel button is just UX; this check is
+    // what actually prevents a refund after the window closes, even if
+    // someone calls this endpoint directly (devtools, Postman, etc.)
+    // bypassing the disabled button entirely. ──────────────────────────
+    const paidAt = new Date(payment.createdAt).getTime();
+    const now = Date.now();
+    const elapsed = now - paidAt;
+
+    if (elapsed > REFUND_WINDOW_MS) {
+      return res.status(400).json({
+        success: false,
+        message: "Refund window has expired. Prepaid bookings are non-refundable after 2 hours of payment.",
+        code: "REFUND_WINDOW_EXPIRED",
+      });
     }
 
     payment.status = "refunded";

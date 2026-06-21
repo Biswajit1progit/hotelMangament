@@ -9,6 +9,19 @@ import MyBookings from "../component/MyBooking";
 import PaymentDetails from "../component/PaymentDetails";
 import ImageGallery from "../component/ImageGallery";
 
+// ── Must match REFUND_WINDOW_MS in backend paymentController.js exactly.
+// This is UX only — it lets us disable the button and show a countdown
+// without an extra round-trip. The actual enforcement lives server-side;
+// this number being wrong only affects how the button *looks*, never
+// whether a refund is actually allowed. ────────────────────────────────
+const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+const isRefundWindowOpen = (createdAt) => {
+  if (!createdAt) return true; // unknown timestamp — let backend be the judge
+  const paidAt = new Date(createdAt).getTime();
+  return Date.now() - paidAt <= REFUND_WINDOW_MS;
+};
+
 // ── Small helper component: fetches and shows a hotel's image for a
 // booking card. Falls back to a styled placeholder if the booking has
 // no hotelId yet (i.e. backend hasn't been updated to include it), or
@@ -56,8 +69,8 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
 
   // Placeholder — shown while loading and on any failure
   return (
-    <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-100 via-violet-100 to-blue-50 flex items-center justify-center">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-300">
+    <div className="thumbnail-placeholder w-full h-full rounded-xl bg-gradient-to-br from-blue-100 via-violet-100 to-blue-50 flex items-center justify-center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="thumbnail-icon text-blue-300">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -85,16 +98,37 @@ const Profile = () => {
           item._id === paymentId ? { ...item, status: "refunded" } : item
         )
       );
+    } else {
+      // ✅ Surface the backend's actual reason — most importantly the
+      // 2-hour refund window message, so a user whose disabled button
+      // somehow got bypassed (or whose page was open past the window)
+      // still gets a clear explanation instead of nothing happening.
+      alert(res.message || "Refund failed ❌");
     }
   };
-  /*  Fetch Bookings AFTER user loads */
-  useEffect(() => {
-    if (!user) return; // ✅ IMPORTANT
 
+  const fetchBookings = () => {
+    if (!user) return;
     fetch(`${process.env.REACT_APP_API_URL}/api/payment/user/${user.email}`)
       .then((res) => res.json())
       .then(setBookings);
+  };
+
+  /*  Fetch Bookings AFTER user loads */
+  useEffect(() => {
+    if (!user) return; // ✅ IMPORTANT
+    fetchBookings();
   }, [user]); // ✅ DEPENDENCY FIX
+
+  // ✅ Re-fetch bookings whenever the user comes back to this tab —
+  // fixes the bug where a booking completed in another tab/flow (e.g.
+  // Payment → success → back to Profile) doesn't show up until a full
+  // page reload, since the original fetch only ran once on user load.
+  useEffect(() => {
+    const handleFocus = () => fetchBookings();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [user]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -111,19 +145,20 @@ const Profile = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen p-3 sm:p-6">
+    <div className="profile-page relative min-h-screen p-3 sm:p-6">
 
       {/* ── Ambient backdrop — soft gradient + blurred glow blobs, fixed
           behind everything, isolated stacking context. ───────────────── */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-slate-50 to-violet-50" />
-      <div className="fixed top-10 right-10 w-80 h-80 -z-10 bg-blue-200/30 rounded-full blur-3xl" />
-      <div className="fixed bottom-20 left-10 w-80 h-80 -z-10 bg-violet-200/30 rounded-full blur-3xl" />
+      <div className="ambient-backdrop fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-slate-50 to-violet-50" />
+      <div className="ambient-blob-1 fixed top-10 right-10 w-80 h-80 -z-10 bg-blue-200/30 rounded-full blur-3xl" />
+      <div className="ambient-blob-2 fixed bottom-20 left-10 w-80 h-80 -z-10 bg-violet-200/30 rounded-full blur-3xl" />
 
       <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
 
       {user && (
         <div
           className="
+            profile-card
             mt-4 relative flex items-center pr-12 sm:pr-4 p-4 rounded-2xl
             bg-white/70 backdrop-blur-xl backdrop-saturate-150
             border border-white/60 shadow-lg shadow-blue-100/50
@@ -193,6 +228,7 @@ const Profile = () => {
             <div
               key={b._id}
               className="
+                booking-card
                 group relative rounded-2xl overflow-hidden
                 bg-white/70 backdrop-blur-xl backdrop-saturate-150
                 border border-white/60 shadow-lg shadow-blue-100/40
@@ -224,10 +260,10 @@ const Profile = () => {
                       className={`
                         inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
                         ${b.status === "success"
-                          ? "bg-emerald-50 text-emerald-700"
+                          ? "bg-green-100 text-green-700"
                           : b.status === "refunded"
                           ? "bg-gray-100 text-gray-600"
-                          : "bg-amber-50 text-amber-700"}
+                          : "bg-yellow-100 text-yellow-700"}
                       `}
                     >
                       {b.status}
@@ -247,22 +283,48 @@ const Profile = () => {
                       View Receipt
                     </button>
 
-                    <button
-                      onClick={() => {
-                        handleCancelBooking(b._id);
-                      }}
-                      disabled={b.status === "refunded"}
-                      className="
-                        bg-gradient-to-r from-red-500 to-rose-600 text-white
-                        px-3 py-1.5 rounded-lg text-sm font-medium
-                        shadow-sm transition-all duration-300
-                        hover:shadow-md hover:scale-[1.03] active:scale-[0.97]
-                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none
-                      "
-                    >
-                      {b.status === "refunded" ? "Refunded" : "Cancel Booking"}
-                    </button>
+                    {(() => {
+                      const refunded = b.status === "refunded";
+                      const windowOpen = isRefundWindowOpen(b.createdAt);
+                      const disabled = refunded || !windowOpen;
+
+                      let label = "Cancel Booking";
+                      if (refunded) label = "Refunded";
+                      else if (!windowOpen) label = "Refund Window Expired";
+
+                      return (
+                        <button
+                          onClick={() => handleCancelBooking(b._id)}
+                          disabled={disabled}
+                          title={
+                            !refunded && !windowOpen
+                              ? "Prepaid bookings are non-refundable after 2 hours of payment."
+                              : undefined
+                          }
+                          className="
+                            bg-gradient-to-r from-red-500 to-rose-600 text-white
+                            px-3 py-1.5 rounded-lg text-sm font-medium
+                            shadow-sm transition-all duration-300
+                            hover:shadow-md hover:scale-[1.03] active:scale-[0.97]
+                            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none
+                          "
+                        >
+                          {label}
+                        </button>
+                      );
+                    })()}
                   </div>
+
+                  {/* ✅ Visible inline notice once the refund window has
+                      closed — not just a disabled button with no
+                      explanation. Only shown for non-refunded bookings
+                      past the window, so it doesn't clutter every card. */}
+                  {b.status !== "refunded" && !isRefundWindowOpen(b.createdAt) && (
+                    <p className="mt-2 text-xs text-amber-600 flex items-center gap-1">
+                      <span>⏰</span>
+                      Refund window has passed. This prepaid booking is no longer refundable.
+                    </p>
+                  )}
                 </div>
 
                 {/* ── Hotel image — right. Falls back to a styled

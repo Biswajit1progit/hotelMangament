@@ -103,6 +103,18 @@ const BookingForm = ({ hotel }) => {
       return;
     }
 
+    // ✅ Defensive check — don't rely solely on the button being disabled.
+    // Same principle as the refund-window fix: a disabled button is UX,
+    // not enforcement. If this handler somehow fires while availability
+    // is still unknown or unconfirmed (e.g. a fast double-click, or a
+    // race in React's state batching), block here too rather than
+    // submitting blind. The real authority is still the backend's
+    // re-check in createBooking — this is just an additional layer.
+    if (availability?.isAvailable !== true) {
+      alert("Please wait for availability to be confirmed before booking.");
+      return;
+    }
+
     const bookingData = {
       ...form,
       hotelId: hotel._id,
@@ -115,6 +127,20 @@ const BookingForm = ({ hotel }) => {
       const res = await createBooking(bookingData);
       /* const bookingId = res.data?._id || res._id; */
       const bookingId = res.data?._id || res._id || res.data?.id;
+
+      // ✅ Handle the backend's 409 ROOMS_UNAVAILABLE response — the real
+      // server-side re-check (see bookingController.js createBooking) can
+      // still reject this even if the frontend thought it was fine, e.g.
+      // if someone else booked the last room a moment earlier. Without
+      // this check, the old code would just show the confusing
+      // "Booking saved but ID missing ❌" message for what is actually
+      // an expected, legitimate "someone beat you to it" scenario.
+      if (res.code === "ROOMS_UNAVAILABLE" || res.error) {
+        alert(res.error || "Sorry, those rooms were just booked by someone else. Please try different dates.");
+        setAvailability(null); // force a fresh re-check before allowing another attempt
+        return;
+      }
+
       if (!bookingId) {
         alert("Booking saved but ID missing ❌");
         return;
@@ -314,17 +340,38 @@ const BookingForm = ({ hotel }) => {
         </div>
 
         {/* Submit */}
-        <button
-          type="submit"
-          disabled={nights <= 0 || availability?.isAvailable === false}
-          className={`py-3 rounded-lg font-medium transition text-sm sm:text-base w-full ${
-            nights <= 0 || availability?.isAvailable === false
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
-        >
-          Proceed to Payment
-        </button>
+        {(() => {
+          // ✅ FIX — previously this only disabled when availability was
+          // explicitly known to be false. The moment dates changed,
+          // availability reset to null (see handleDateChange), and
+          // `null?.isAvailable === false` evaluates to false — meaning
+          // the button was clickable during the entire debounce + network
+          // round-trip window, before the new check even came back.
+          // A user could submit during that gap using stale/unknown
+          // availability. Now the button also disables whenever
+          // availability hasn't been confirmed yet (checking, unknown,
+          // or errored), not only when we know for certain it's full.
+          const availabilityConfirmedOk = availability?.isAvailable === true;
+          const blocked =
+            nights <= 0 ||
+            checkingAvail ||
+            !!availError ||
+            !availabilityConfirmedOk;
+
+          return (
+            <button
+              type="submit"
+              disabled={blocked}
+              className={`py-3 rounded-lg font-medium transition text-sm sm:text-base w-full ${
+                blocked
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              {checkingAvail ? "Checking availability..." : "Proceed to Payment"}
+            </button>
+          );
+        })()}
       </form>
     </div>
   );

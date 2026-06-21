@@ -1,9 +1,10 @@
+ import { motion } from "framer-motion";
  import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toggleWishlist } from "../services/authService";
 import { isLoggedIn } from "../utils/auth";
 
-function HotelCard({ hotel, wishlist=[], setWishlist, onRemove }) {
+function HotelCard({ hotel, wishlist=[], setWishlist, onRemove,index = 0 }) {
       const navigate = useNavigate();
  /*  const [liked, setLiked] = useState(false); */
        const handleClick = () => {
@@ -57,98 +58,138 @@ function HotelCard({ hotel, wishlist=[], setWishlist, onRemove }) {
   // ✅ if local image
   return `${process.env.REACT_APP_API_URL}${img}`;
 };
- return (
-  <div
-   className="
-  cursor-pointer
-  shadow-lg
-  rounded-lg
-  p-3
-  bg-gray-100
-  hover:shadow-xl
-  transition
-  duration-300
-  w-full
-  min-h-[400px]
-  flex
-  flex-col
-  justify-between
-"
+return (
+  <motion.div
+    layout
+    initial={{ opacity: 0, y: 30 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.8 }}
+    transition={{
+      duration: 0.4,
+      delay: index * 0.08,
+    }}
+    className="
+      group
+      flex
+      flex-col
+      rounded-3xl
+      overflow-hidden
+      bg-white/70
+      backdrop-blur-xl
+      border border-white/30
+      shadow-lg
+      hover:shadow-2xl
+      hover:-translate-y-1
+      transition-all
+      duration-300
+      h-full
+    "
   >
     {/* Image Section */}
-    <div className="relative h-48 overflow-hidden rounded-lg">
+    <div className="relative overflow-hidden">
       <img
         src={getImageSrc(hotel.images?.[0])}
         alt={hotel.name}
-        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+        className="
+          h-56
+          w-full
+          object-cover
+          transition-transform
+          duration-500
+          group-hover:scale-110
+        "
       />
 
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+
       {/* Price Badge */}
-      <p className="absolute top-2 left-2 bg-gray-800 text-white font-bold py-1 px-2 rounded-xl text-xs sm:text-sm">
-        ₹{hotel.pricePerNight}/per night
+      <p className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white font-bold py-1 px-3 rounded-full text-sm">
+        ₹{hotel.pricePerNight}/night
       </p>
 
       {/* Hotel Type Badge */}
-      <p className="absolute bottom-2 right-2 bg-gray-800 text-white font-bold py-1 px-2 rounded-xl text-xs sm:text-sm">
-        {hotel.type} type
+      <p className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white font-bold py-1 px-3 rounded-full text-sm">
+        {hotel.type}
       </p>
     </div>
 
     {/* Hotel Info */}
-    <div className="mt-3 flex-grow">
-      <h2 className="font-bold text-lg truncate">{hotel.name}</h2>
-      <p className="text-gray-700">{hotel.district}</p>
+    <div className="p-4 flex flex-col flex-grow">
+      <h2 className="font-bold text-xl truncate">
+        {hotel.name}
+      </h2>
 
-      <div className="mt-2">
-        <p className="font-medium text-sm sm:text-base">
-          <span>Price: </span>₹{hotel.pricePerNight}
+      <p className="text-gray-600 mt-1">
+        📍 {hotel.district}
+      </p>
+
+      <div className="mt-3">
+        <p className="font-semibold text-lg">
+          ₹{hotel.pricePerNight}
         </p>
       </div>
 
-      {/* Rating */}
-      <div className="flex items-center gap-2 mt-2 flex-wrap">
+      <div className="flex items-center gap-2 mt-2">
         <span className="text-yellow-500 font-semibold">
           ⭐ {hotel.averageRating?.toFixed(1) || "0.0"}
         </span>
+
         <span className="text-gray-500 text-sm">
           ({hotel.totalReviews || 0} reviews)
         </span>
       </div>
-    </div>
 
-    {/* Buttons Section - Fixed Position */}
-    <div className="mt-2 flex justify-between items-center gap-2">
-
-        {/* ✅ If onRemove is passed (Wishlist page) → show Remove button */}
-        {/* ✅ Otherwise → show normal Wishlist toggle button */}
+      {/* Buttons */}
+      <div className="mt-auto pt-4 flex justify-between gap-2">
         {onRemove ? (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={() => onRemove(hotel._id)}
-            className="px-3 py-2 rounded text-sm sm:text-base whitespace-nowrap bg-red-500 text-white hover:bg-red-600 transition"
+            className="
+              px-3 py-2
+              rounded-xl
+              bg-red-500
+              text-white
+              hover:bg-red-600
+              transition
+            "
           >
             🗑️ Remove
-          </button>
+          </motion.button>
         ) : (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
             onClick={handleWishlist}
-            className={`px-3 py-2 rounded text-sm sm:text-base whitespace-nowrap ${
-              liked ? "bg-red-500 text-white" : "bg-gray-200 text-black"
+            className={`px-3 py-2 rounded-xl transition ${
+              liked
+                ? "bg-red-500 text-white"
+                : "bg-gray-200 text-black"
             }`}
           >
             {liked ? "❤️ Added" : "🤍 Wishlist"}
-          </button>
+          </motion.button>
         )}
 
-        {/* View Details Button */}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
           onClick={handleClick}
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition text-sm sm:text-base whitespace-nowrap"
+          className="
+            px-4 py-2
+            rounded-xl
+            bg-gradient-to-r
+            from-violet-600
+            to-blue-600
+            text-white
+            font-medium
+          "
         >
           View Details
-        </button>
+        </motion.button>
       </div>
-  </div>
+    </div>
+  </motion.div>
 );
-
  }
 export default HotelCard;

@@ -3,9 +3,55 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ── Base page background + text ── */
-html.dark-mode body {
+html.dark-mode,
+html.dark-mode body,
+html.dark-mode #root,
+html.dark-mode main,
+html.dark-mode .min-h-screen {
   background-color: #0f172a !important;
   color: #e2e8f0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ADDITIONS to src/styles/dark.css
+   Append these rules to your existing dark.css file.
+   These cover patterns introduced by Profile.jsx that aren't
+   already caught by your existing selectors:
+   - decorative ambient glow blobs (colored, not just bg-white)
+   - the booking-card class (so it's covered explicitly even
+     though [class*="bg-white/"] already catches it — this is
+     just a clearer, more specific hook for this component)
+   - the thumbnail placeholder gradient (blue/violet, not the
+     emerald gradient your existing rule targets)
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Ambient decorative glow blobs (Profile, HotelDetails, Payment pages) ──
+   Your existing rule already drops these to opacity 0.15, this just also
+   recolors them so they read as a dark-mode-appropriate glow rather than
+   a faded light-mode blue/violet smear. */
+html.dark-mode .ambient-blob-1 {
+  background-color: rgba(59, 130, 246, 0.5) !important; /* blue-500, dimmed by existing opacity:0.15 rule */
+}
+html.dark-mode .ambient-blob-2 {
+  background-color: rgba(139, 92, 246, 0.5) !important; /* violet-500 */
+}
+
+/* ── Booking card thumbnail placeholder ──
+   Default gradient is light blue/violet — needs a dark equivalent since
+   it isn't a flat bg-white and isn't caught by existing rules. */
+html.dark-mode .thumbnail-placeholder {
+  background-image: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15)) !important;
+}
+html.dark-mode .thumbnail-icon {
+  color: rgba(147, 197, 253, 0.6) !important; /* blue-300/60 */
+}
+
+/* ── Hide ambient light-mode fixed backgrounds ── */
+html.dark-mode div.fixed.inset-0.-z-10 {
+  background: #0f172a !important;
+}
+html.dark-mode div.fixed.-z-10.rounded-full {
+  opacity: 0.15 !important; /* Lowers opacity of decorative blur circles for dark mode */
 }
 
 /* ── Backgrounds ── */
@@ -15,12 +61,35 @@ html.dark-mode .bg-gray-100       { background-color: #1e293b !important; }
 html.dark-mode .bg-gray-200       { background-color: #334155 !important; }
 
 /* ── Text ── */
-html.dark-mode .text-gray-900     { color: #f1f5f9 !important; } /* ✅ was missing — titles invisible */
+html.dark-mode .text-black        { color: #f1f5f9 !important; } 
+html.dark-mode .text-gray-900     { color: #f1f5f9 !important; } 
 html.dark-mode .text-gray-800     { color: #f1f5f9 !important; }
 html.dark-mode .text-gray-700     { color: #e2e8f0 !important; }
 html.dark-mode .text-gray-600     { color: #cbd5e1 !important; }
 html.dark-mode .text-gray-500     { color: #94a3b8 !important; }
 html.dark-mode .text-gray-400     { color: #64748b !important; }
+
+/* ── Global Typography Fallbacks ── */
+html.dark-mode p,
+html.dark-mode span,
+html.dark-mode li,
+html.dark-mode label,
+html.dark-mode strong,
+html.dark-mode h1,
+html.dark-mode h2,
+html.dark-mode h3,
+html.dark-mode h4,
+html.dark-mode h5,
+html.dark-mode h6 {
+  color: #e2e8f0;
+}
+
+/* ── Rich Text Editor / Inline Style Override ── */
+html.dark-mode .prose *,
+html.dark-mode .content * {
+  color: #e2e8f0 !important;
+  background-color: transparent !important;
+}
 
 /* ── Borders ── */
 html.dark-mode .border            { border-color: #334155 !important; }
@@ -30,6 +99,7 @@ html.dark-mode .border-gray-300   { border-color: #475569 !important; }
 
 /* ── Shadows ── */
 html.dark-mode .shadow-sm         { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
+html.dark-mode .shadow-md         { box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important; }
 html.dark-mode .shadow-lg         { box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
 html.dark-mode .shadow-2xl        { box-shadow: 0 25px 50px rgba(0,0,0,0.6) !important; }
 
@@ -59,16 +129,20 @@ html.dark-mode nav .bg-white\/90 {
   background-color: rgba(30, 41, 59, 0.9) !important;
 }
 
-/* ── ✅ REMOVED the blanket rounded-2xl / rounded-xl rule ──
-   It was making every card, button, image, modal dark.
-   Instead we target specific semantic bg classes below.     ── */
-
-/* ── Cards — only actual card backgrounds ── */
-html.dark-mode .bg-white.rounded-2xl,
-html.dark-mode .bg-white.rounded-xl,
-html.dark-mode .bg-gray-50.rounded-2xl,
-html.dark-mode .bg-gray-50.rounded-xl {
+/* ── Cards Fix (Including Opacity Utilities) ── */
+/* ✅ UPDATED: Captures .bg-white/70, .bg-white/80 styles seamlessly */
+html.dark-mode .bg-white,
+html.dark-mode [class*="bg-white/"],
+html.dark-mode [class*="bg-white\\/"] {
   background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* ── Rating Badge Theme Fix ── */
+/* ✅ FIXED: Corrects the emerald-50 gradient blend that washed out the text */
+html.dark-mode [class*="from-emerald-50"] {
+  background-image: linear-gradient(to right, #064e3b, #022c22) !important;
+  color: #34d399 !important;
 }
 
 /* ── Hover backgrounds ── */
@@ -79,7 +153,7 @@ html.dark-mode .hover\:bg-blue-50:hover  { background-color: #172554 !important;
 /* ── Tabs ── */
 html.dark-mode .border-b { border-color: #334155 !important; }
 
-/* ── Stat cards colored left borders — keep them ── */
+/* ── Stat cards colored left borders ── */
 html.dark-mode .border-blue-500   { border-color: #3b82f6 !important; }
 html.dark-mode .border-green-500  { border-color: #22c55e !important; }
 html.dark-mode .border-red-500    { border-color: #ef4444 !important; }
@@ -87,7 +161,7 @@ html.dark-mode .border-yellow-500 { border-color: #eab308 !important; }
 html.dark-mode .border-purple-500 { border-color: #a855f7 !important; }
 html.dark-mode .border-orange-500 { border-color: #f97316 !important; }
 
-/* ── Status badges — keep readable ── */
+/* ── Status badges ── */
 html.dark-mode .bg-yellow-100 { background-color: #422006 !important; }
 html.dark-mode .bg-green-100  { background-color: #052e16 !important; }
 html.dark-mode .bg-red-100    { background-color: #3b0764 !important; }
@@ -117,7 +191,7 @@ html.dark-mode ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3
 /* ── Hero/banner sections ── */
 html.dark-mode .bg-blue-600 { background-color: #1d4ed8 !important; }
 
-/* ── White text on colored backgrounds — keep white ── */
+/* ── White text on colored backgrounds ── */
 html.dark-mode .bg-blue-600 .text-white,
 html.dark-mode .bg-blue-700 .text-white { color: #ffffff !important; }
 
