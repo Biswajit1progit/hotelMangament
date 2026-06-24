@@ -6,6 +6,11 @@ const paymentSchema = new mongoose.Schema({
     ref: "Booking",
     required: true,
   },
+   userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false, // false so old payments without it don't break
+  },
   amount: {
     type: Number,
     required: true,

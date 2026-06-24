@@ -1,14 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const { createBooking,checkAvailability  } = require("../controllers/bookingController");
-const Booking = require("../models/Booking"); // ✅ FIX
+const { createBooking, checkAvailability, getUserBookings } = require("../controllers/bookingController");
+const Booking = require("../models/Booking");
+const { verifyToken } = require("../middleware/authMiddleware");
 
-router.post("/", createBooking);
+// ✅ FIXED — added verifyToken. Without it req.user is undefined and
+// createBooking crashes with 500 when it tries to read req.user._id.
+router.post("/", verifyToken, createBooking);
 
-// ✅ NEW: POST check availability for a hotel + date range
 router.post("/check-availability", checkAvailability);
-/* router.post("/cancel/:id", cancelBooking); */
-// ✅ GET booking by ID
+
+// ✅ FIXED — moved ABOVE /:id. Express matches routes top to bottom, so
+// if /:id comes first, GET /user/me is matched as /:id with id="me",
+// which hits Booking.findById("me"), fails, and getUserBookings never runs.
+// Specific routes must always be declared before parameterised ones.
+router.get("/user/me", verifyToken, getUserBookings);
+
+// ✅ GET booking by ID — kept below /user/me so it doesn't swallow it
 router.get("/:id", async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -23,10 +31,6 @@ router.get("/:id", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
-});
-router.get("/user/:email", async (req, res) => {
-  const bookings = await Booking.find({ email: req.params.email });
-  res.json(bookings);
 });
 
 module.exports = router;

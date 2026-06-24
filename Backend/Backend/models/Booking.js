@@ -6,6 +6,11 @@ const bookingSchema = new mongoose.Schema({
     ref: "Hotel",
     required: true,
   },
+  userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  required: false, // false so old bookings don't break
+},
   name: {
     type: String,
     required: true,

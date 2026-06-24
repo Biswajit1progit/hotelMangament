@@ -1,50 +1,43 @@
- // ─────────────────────────────────────────────────────────────
-// backend/routes/adminAnalyticsRoutes.js
-// Add to server.js: app.use("/api/admin", adminAnalyticsRoutes)
-// (already registered since we use same /api/admin prefix)
-// ─────────────────────────────────────────────────────────────
-
 const express = require("express")
 const router = express.Router()
 const mongoose = require("mongoose")
 const Hotel = require("../models/hotel")
 const Booking = require("../models/Booking")
 const Payment = require("../models/Payment")
-const Review = require("../models/Revie") // adjust if your file is named differently
+const Review = require("../models/Revie")
 const User = require("../models/User")
-const { verifyToken, isAdmin } = require("../middleware/authMiddleware")
+const { verifyAdmin } = require("../middleware/authMiddleware") // ✅ FIXED — was importing
+                                                                // `isAdmin` which doesn't
+                                                                // exist. Changed to
+                                                                // `verifyAdmin` which does.
 
 // ── GET /api/admin/analytics/hotels ──────────────────────────
-// All hotels with booking stats + pie chart data
-router.get("/analytics/hotels", verifyToken, async (req, res) => {
+// ✅ FIXED — was verifyToken (any logged-in user could access).
+// Now verifyAdmin — admin role required.
+router.get("/analytics/hotels", verifyAdmin, async (req, res) => {
   try {
     const hotels = await Hotel.find({})
 
     const hotelsWithStats = await Promise.all(
       hotels.map(async (hotel) => {
-        // Total bookings for this hotel
         const totalBookings = await Booking.countDocuments({ hotelId: hotel._id })
 
-        // Cancelled = payments with status "refunded" for this hotel
         const cancelledPayments = await Payment.countDocuments({
           hotelName: hotel.name,
           status: "refunded",
         })
 
-        // Confirmed = payments with status "success"
         const confirmedPayments = await Payment.countDocuments({
           hotelName: hotel.name,
           status: "success",
         })
 
-        // Total revenue
         const revenueData = await Payment.aggregate([
           { $match: { hotelName: hotel.name, status: "success" } },
           { $group: { _id: null, total: { $sum: "$amount" } } },
         ])
         const revenue = revenueData[0]?.total || 0
 
-        // Average rating
         const reviews = await Review.find({ hotelId: hotel._id })
         const avgRating = reviews.length
           ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
@@ -75,23 +68,17 @@ router.get("/analytics/hotels", verifyToken, async (req, res) => {
 })
 
 // ── GET /api/admin/analytics/hotel/:id ───────────────────────
-// Single hotel full breakdown — bookings, payments, reviews, users
-router.get("/analytics/hotel/:id", verifyToken, async (req, res) => {
+// ✅ FIXED — was verifyToken, now verifyAdmin
+router.get("/analytics/hotel/:id", verifyAdmin, async (req, res) => {
   try {
     const hotelId = req.params.id
     const hotel = await Hotel.findById(hotelId)
     if (!hotel) return res.status(404).json({ error: "Hotel not found" })
 
-    // All bookings for this hotel
     const bookings = await Booking.find({ hotelId }).sort({ createdAt: -1 })
-
-    // All payments for this hotel
     const payments = await Payment.find({ hotelName: hotel.name }).sort({ createdAt: -1 })
-
-    // All reviews for this hotel
     const reviews = await Review.find({ hotelId }).populate("userId", "name email").sort({ createdAt: -1 })
 
-    // Merge booking + payment data
     const bookingDetails = await Promise.all(
       bookings.map(async (b) => {
         const payment = await Payment.findOne({ bookingId: b._id })
@@ -116,12 +103,9 @@ router.get("/analytics/hotel/:id", verifyToken, async (req, res) => {
       })
     )
 
-    // Stats for pie chart
     const confirmed = bookingDetails.filter(b => b.paymentStatus === "success").length
     const cancelled = bookingDetails.filter(b => b.paymentStatus === "refunded").length
     const pending = bookingDetails.filter(b => b.paymentStatus === "pending").length
-
-    // Revenue
     const revenue = payments
       .filter(p => p.status === "success")
       .reduce((sum, p) => sum + p.amount, 0)
@@ -164,8 +148,10 @@ router.get("/analytics/hotel/:id", verifyToken, async (req, res) => {
 })
 
 // ── DELETE /api/admin/analytics/hotel/:id ────────────────────
-// Delete hotel and all its bookings/reviews
-router.delete("/analytics/hotel/:id", verifyToken, async (req, res) => {
+// ✅ FIXED — was verifyToken, now verifyAdmin.
+// This is the most critical fix — a regular logged-in user could
+// DELETE any hotel and all its bookings/reviews with a single API call.
+router.delete("/analytics/hotel/:id", verifyAdmin, async (req, res) => {
   try {
     const hotelId = req.params.id
     await Hotel.findByIdAndDelete(hotelId)
@@ -178,8 +164,8 @@ router.delete("/analytics/hotel/:id", verifyToken, async (req, res) => {
 })
 
 // ── GET /api/admin/analytics/user/:id ────────────────────────
-// All bookings by a specific user across all hotels
-router.get("/analytics/user/:id", verifyToken, async (req, res) => {
+// ✅ FIXED — was verifyToken, now verifyAdmin
+router.get("/analytics/user/:id", verifyAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password")
     if (!user) return res.status(404).json({ error: "User not found" })

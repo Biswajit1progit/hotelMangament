@@ -8,11 +8,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ── Shared helper — used by BOTH checkAvailability and createBooking so
-// the exact same logic determines availability in both places. Previously
-// this calculation only lived inside checkAvailability, which meant
-// createBooking had no way to re-verify it without duplicating the logic
-// (and duplicated logic drifts out of sync over time). ──────────────────
+// ── Shared helper — unchanged ────────────────────────────────────────────
 const getAvailability = async (hotelId, checkIn, checkOut, requestedRooms) => {
   const checkInDate = new Date(checkIn);
   const checkOutDate = new Date(checkOut);
@@ -43,20 +39,18 @@ const getAvailability = async (hotelId, checkIn, checkOut, requestedRooms) => {
   };
 };
 
-// ✅ FIX — createBooking now re-checks availability itself, server-side,
-// immediately before saving. Previously this just did `new Booking(req.body)`
-// and saved unconditionally, trusting that the client had already called
-// checkAvailability earlier in the flow. That's a TOCTOU race condition:
-// any number of users can see "available" and all submit before any of
-// them is actually saved, since the check and the save were two separate,
-// unrelated requests with no re-validation in between.
+// ✅ CHANGED — added userId: req.user._id when creating the booking.
 //
-// NOTE: this closes the race condition for the common case (two requests
-// arriving microseconds apart still serialize through this check correctly
-// in practice for typical traffic), but is not a full guarantee under very
-// high concurrency — a fully airtight fix would wrap the check + save in
-// a MongoDB transaction (session) or use an atomic reservation pattern.
-// Flagging this as a known next step rather than overbuilding it now. ───
+// Previously: const booking = new Booking(req.body)
+//   → spread req.body directly, so no userId was ever saved.
+//   → getUserBookings had to fall back to email string matching,
+//     which breaks if the user typed a different email than their
+//     auth token email (e.g. Google OAuth users).
+//
+// Now: userId is explicitly set from req.user._id (verified JWT token),
+//   completely independent of whatever email the user typed in the form.
+//   This requires verifyToken middleware on the createBooking route,
+//   which should already be in place since you added it earlier.
 const createBooking = async (req, res) => {
   try {
     const { hotelId, checkIn, checkOut, rooms } = req.body;
@@ -81,7 +75,15 @@ const createBooking = async (req, res) => {
       });
     }
 
-    const booking = new Booking(req.body);
+    // ✅ CHANGED — spread req.body first, then explicitly set userId from
+    // the verified token. If req.body somehow contained a userId field
+    // (e.g. a malicious client sending it manually), this overwrites it
+    // with the real value from the token — can never be spoofed.
+    const booking = new Booking({
+      ...req.body,
+      userId: req.user._id,
+    });
+
     const savedBooking = await booking.save();
 
     res.status(201).json({
@@ -114,4 +116,25 @@ const checkAvailability = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, checkAvailability };
+// ✅ CHANGED — now queries by userId (ObjectId) instead of email (string).
+//
+// Previously: Booking.find({ email: req.user.email })
+//   → email in booking came from a form input the user typed
+//   → email in token comes from their registered account
+//   → these can differ (Google OAuth, typo, different email used) causing
+//     bookings to silently not appear in the profile page.
+//
+// Now: Booking.find({ userId: req.user._id })
+//   → direct ObjectId match, set at booking creation from the auth token
+//   → always correct, can never mismatch
+const getUserBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ userId: req.user._id })
+      .sort({ createdAt: -1 }); // newest first
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+module.exports = { createBooking, checkAvailability, getUserBookings };

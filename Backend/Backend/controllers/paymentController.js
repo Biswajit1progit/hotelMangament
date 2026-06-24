@@ -15,12 +15,9 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ── Refund window — kept as a single named constant so the frontend and
-// backend can reference the exact same number (2 hours = 7,200,000 ms).
-// If this ever needs to change, it only needs to change here. ──────────
 const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
 
-// Create order
+// Create order — sits behind verifyToken at the route level
 exports.createOrder = async (req, res) => {
   try {
     const { amount } = req.body;
@@ -34,7 +31,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// Verify payment + send notifications
 exports.verifyPayment = async (req, res) => {
   try {
     const {
@@ -46,7 +42,6 @@ exports.verifyPayment = async (req, res) => {
       method,
     } = req.body;
 
-    // 🔐 Verify Razorpay signature
     const isValid = verifySignature(
       razorpay_order_id,
       razorpay_payment_id,
@@ -72,11 +67,13 @@ exports.verifyPayment = async (req, res) => {
       nights: booking.nights,
       name: booking.name,
       email: booking.email,
+      userId: req.user._id, // ✅ ADDED — req.user is set by verifyToken on this
+                            // route, so this is always the authenticated user's
+                            // real DB id, never a spoofable email string.
     });
 
     await payment.save();
 
-    // ✅ 1. Booking confirmed notification — fires only after payment verified
     try {
       await createNotification({
         userEmail: booking.email,
@@ -89,14 +86,12 @@ exports.verifyPayment = async (req, res) => {
       console.warn("Booking confirmed notification failed:", err.message);
     }
 
-    // ✅ 2. Room available notification — reminds user when checkout is near
     try {
       const hotel = await Hotel.findById(booking.hotelId);
       const checkOutDate = new Date(booking.checkOut);
       const now = new Date();
       const daysUntilCheckout = Math.ceil((checkOutDate - now) / (1000 * 60 * 60 * 24));
 
-      // Only send if checkout is within 30 days (avoids noise for far-future bookings)
       if (daysUntilCheckout <= 30 && hotel) {
         await createNotification({
           userEmail: booking.email,
@@ -110,7 +105,6 @@ exports.verifyPayment = async (req, res) => {
       console.warn("Room available notification failed:", err.message);
     }
 
-    // ✅ 3. Send confirmation email with PDF
     try {
       const pdfBuffer = await generateInvoicePDF({
         orderNumber: payment.orderNumber,
@@ -165,8 +159,6 @@ exports.cancelBookingRefund = async (req, res) => {
       return res.status(404).json({ success: false, message: "Payment not found" });
     }
 
-    // ── Block re-refunding an already-refunded payment (existing check,
-    // kept as-is) ──────────────────────────────────────────────────────
     if (payment.status === "refunded") {
       return res.status(400).json({
         success: false,
@@ -174,11 +166,6 @@ exports.cancelBookingRefund = async (req, res) => {
       });
     }
 
-    // ── 2-hour refund window — THE ACTUAL SECURITY BOUNDARY.
-    // The frontend disabling the Cancel button is just UX; this check is
-    // what actually prevents a refund after the window closes, even if
-    // someone calls this endpoint directly (devtools, Postman, etc.)
-    // bypassing the disabled button entirely. ──────────────────────────
     const paidAt = new Date(payment.createdAt).getTime();
     const now = Date.now();
     const elapsed = now - paidAt;
@@ -196,7 +183,6 @@ exports.cancelBookingRefund = async (req, res) => {
     payment.refundAmount = payment.amount;
     await payment.save();
 
-    // ✅ Refund notification
     try {
       await createNotification({
         userEmail: payment.email,
@@ -214,5 +200,26 @@ exports.cancelBookingRefund = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Refund failed" });
+  }
+};
+
+// ✅ CHANGED — now queries by userId (ObjectId from verified JWT token)
+// instead of email (string from booking form). This is the fix for the
+// bug where new bookings weren't showing in the profile:
+//
+// OLD: Payment.find({ email: req.user.email })
+//   → relied on booking.email (form input) matching req.user.email (token)
+//   → breaks if user typed a different email, used Google OAuth, etc.
+//
+// NEW: Payment.find({ userId: req.user._id })
+//   → direct ObjectId match, set at payment creation from the auth token
+//   → never mismatches, always returns the right user's payments
+exports.getUserPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find({ userId: req.user._id })
+      .sort({ createdAt: -1 }); // newest first
+    res.json(payments);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 };

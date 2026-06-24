@@ -1,36 +1,41 @@
-import axios from "axios";
 
-const API = `${process.env.REACT_APP_API_URL}/api/notifications`;
+import api from "./apiClient";
 
-// ✅ Get all notifications for logged-in user
-export const getNotifications = async (email) => {
-  const res = await axios.get(`${API}/${email}`);
+// ✅ FIXED — removed email from all notification URLs.
+// Backend now reads identity from the verified JWT token (req.user),
+// so no email parameter is needed or accepted in the URL anymore.
+//
+// OLD → NEW:
+//   GET  /api/notifications/${email}         →  GET  /api/notifications/me
+//   PATCH /api/notifications/read-all/${email} →  PATCH /api/notifications/read-all
+//
+// The api instance (apiClient.js) sends the Authorization header
+// automatically via the request interceptor — no changes needed there.
+
+export const getNotifications = async () => {
+  const res = await api.get("/api/notifications/me");
   return res.data;
 };
 
-// ✅ Mark one notification as read
 export const markAsRead = async (id) => {
-  const res = await axios.patch(`${API}/read/${id}`);
+  const res = await api.patch(`/api/notifications/read/${id}`);
   return res.data;
 };
 
-// ✅ Mark all as read
-export const markAllAsRead = async (email) => {
-  const res = await axios.patch(`${API}/read-all/${email}`);
+export const markAllAsRead = async () => {
+  const res = await api.patch("/api/notifications/read-all");
   return res.data;
 };
 
-// ✅ Delete one notification
 export const deleteNotification = async (id) => {
-  const res = await axios.delete(`${API}/${id}`);
+  const res = await api.delete(`/api/notifications/${id}`);
   return res.data;
 };
 
-// ✅ Check hotel availability for date range
+// checkAvailability — public route, no auth needed, unchanged
 export const checkAvailability = async ({ hotelId, checkIn, checkOut, rooms }) => {
-  const res = await axios.post(
-    `${process.env.REACT_APP_API_URL}/api/bookings/check-availability`,
-    { hotelId, checkIn, checkOut, rooms }
-  );
+  const res = await api.post("/api/bookings/check-availability", {
+    hotelId, checkIn, checkOut, rooms,
+  });
   return res.data;
 };

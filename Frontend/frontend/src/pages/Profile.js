@@ -1,56 +1,52 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { getToken } from "../utils/auth";
-import { getUserBookings } from "../services/bookingService";
+import { useCallback, useEffect, useRef, useState } from "react";
+import api from "../services/apiClient";
 import { getUserPayments } from "../services/paymentService";
 import { refundPayment } from "../services/paymentService";
 import { getHotelById } from "../services/hotelservice";
-import MyBookings from "../component/MyBooking";
-import PaymentDetails from "../component/PaymentDetails";
-import ImageGallery from "../component/ImageGallery";
 
-// ── Must match REFUND_WINDOW_MS in backend paymentController.js exactly.
-// This is UX only — it lets us disable the button and show a countdown
-// without an extra round-trip. The actual enforcement lives server-side;
-// this number being wrong only affects how the button *looks*, never
-// whether a refund is actually allowed. ────────────────────────────────
-const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
+const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 const isRefundWindowOpen = (createdAt) => {
-  if (!createdAt) return true; // unknown timestamp — let backend be the judge
+  if (!createdAt) return true;
   const paidAt = new Date(createdAt).getTime();
   return Date.now() - paidAt <= REFUND_WINDOW_MS;
 };
 
-// ── Small helper component: fetches and shows a hotel's image for a
-// booking card. Falls back to a styled placeholder if the booking has
-// no hotelId yet (i.e. backend hasn't been updated to include it), or
-// if the fetch fails for any reason — never breaks the card layout. ──
+const formatDate = (dateStr) => {
+  if (!dateStr) return "N/A";
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return "N/A";
+  return new Date(dateStr).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const BookingThumbnail = ({ hotelId, hotelName }) => {
   const [imgUrl, setImgUrl] = useState(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!hotelId) {
-      setFailed(true);
-      return;
-    }
+    if (!hotelId) { setFailed(true); return; }
     let cancelled = false;
-
     getHotelById(hotelId)
       .then((hotel) => {
         if (cancelled) return;
         const url = hotel?.images?.[0];
-        if (url) setImgUrl(url);
-        else setFailed(true);
+        url ? setImgUrl(url) : setFailed(true);
       })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => { if (!cancelled) setFailed(true); });
+    return () => { cancelled = true; };
   }, [hotelId]);
 
   if (!failed && imgUrl) {
@@ -67,16 +63,11 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
     );
   }
 
-  // Placeholder — shown while loading and on any failure
   return (
-    <div className="thumbnail-placeholder w-full h-full rounded-xl bg-gradient-to-br from-blue-100 via-violet-100 to-blue-50 flex items-center justify-center">
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="thumbnail-icon text-blue-300">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
-          d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01"
-        />
+    <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-100 via-violet-100 to-blue-50 flex items-center justify-center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-300">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+          d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01" />
       </svg>
     </div>
   );
@@ -84,123 +75,112 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
 
 const Profile = () => {
   const [user, setUser] = useState(null);
-  const [bookings, setBookings] = useState([]); // ✅ ADD THIS
-  /* Profile */
+  const [bookings, setBookings] = useState([]);
+
+  const userRef = useRef(null);
+  useEffect(() => { userRef.current = user; }, [user]);
+
+  const fetchBookings = useCallback(() => {
+    if (!userRef.current) return;
+    getUserPayments()
+      .then(setBookings)
+      .catch((err) => console.error("Failed to fetch bookings:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchBookings();
+  }, [user, fetchBookings]);
+
+  useEffect(() => {
+    const handleFocus = () => fetchBookings();
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") fetchBookings();
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [fetchBookings]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const justBooked = params.has("booking");
+    const timer = setTimeout(() => fetchBookings(), 3000);
+    const timer2 = justBooked ? setTimeout(() => fetchBookings(), 6000) : null;
+    return () => {
+      clearTimeout(timer);
+      if (timer2) clearTimeout(timer2);
+    };
+  }, [fetchBookings]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/auth/me");
+        setUser(res.data);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleCancelBooking = async (paymentId) => {
     const res = await refundPayment(paymentId);
-
     if (res.success) {
       alert("Refunded Successfully ✅");
-
       setBookings((prev) =>
         prev.map((item) =>
           item._id === paymentId ? { ...item, status: "refunded" } : item
         )
       );
     } else {
-      // ✅ Surface the backend's actual reason — most importantly the
-      // 2-hour refund window message, so a user whose disabled button
-      // somehow got bypassed (or whose page was open past the window)
-      // still gets a clear explanation instead of nothing happening.
       alert(res.message || "Refund failed ❌");
     }
   };
 
-  const fetchBookings = () => {
-    if (!user) return;
-    fetch(`${process.env.REACT_APP_API_URL}/api/payment/user/${user.email}`)
-      .then((res) => res.json())
-      .then(setBookings);
-  };
-
-  /*  Fetch Bookings AFTER user loads */
-  useEffect(() => {
-    if (!user) return; // ✅ IMPORTANT
-    fetchBookings();
-  }, [user]); // ✅ DEPENDENCY FIX
-
-  // ✅ Re-fetch bookings whenever the user comes back to this tab —
-  // fixes the bug where a booking completed in another tab/flow (e.g.
-  // Payment → success → back to Profile) doesn't show up until a full
-  // page reload, since the original fetch only ran once on user load.
-  useEffect(() => {
-    const handleFocus = () => fetchBookings();
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [user]);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-      });
-
-      setUser(res.data);
-    };
-
-    fetchProfile();
-  }, []);
-
   return (
     <div className="profile-page relative min-h-screen p-3 sm:p-6">
 
-      {/* ── Ambient backdrop — soft gradient + blurred glow blobs, fixed
-          behind everything, isolated stacking context. ───────────────── */}
-      <div className="ambient-backdrop fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-slate-50 to-violet-50" />
-      <div className="ambient-blob-1 fixed top-10 right-10 w-80 h-80 -z-10 bg-blue-200/30 rounded-full blur-3xl" />
-      <div className="ambient-blob-2 fixed bottom-20 left-10 w-80 h-80 -z-10 bg-violet-200/30 rounded-full blur-3xl" />
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-slate-50 to-violet-50" />
+      <div className="fixed top-10 right-10 w-80 h-80 -z-10 bg-blue-200/30 rounded-full blur-3xl" />
+      <div className="fixed bottom-20 left-10 w-80 h-80 -z-10 bg-violet-200/30 rounded-full blur-3xl" />
 
       <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
 
+      {/* ── Profile card ─────────────────────────────────────────
+          FIX: was using absolute-positioned logo which overlapped
+          the email text on narrow screens. Now a simple flex row:
+          avatar | name+email (min-w-0 so it can shrink) | logo.
+          Long emails truncate cleanly instead of wrapping/overflowing. */}
       {user && (
-        <div
-          className="
-            profile-card
-            mt-4 relative flex items-center pr-12 sm:pr-4 p-4 rounded-2xl
-            bg-white/70 backdrop-blur-xl backdrop-saturate-150
-            border border-white/60 shadow-lg shadow-blue-100/50
-            animate-[fadeInUp_0.5s_ease-out]
-          "
-        >
+        <div className="mt-4 flex items-center gap-3 p-4 rounded-2xl bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/60 shadow-lg shadow-blue-100/50 animate-[fadeInUp_0.5s_ease-out]">
+
+          {/* Avatar */}
           <div className="rounded-full p-2.5 bg-gradient-to-br from-blue-100 to-violet-100 ring-1 ring-white/80 shadow-inner shrink-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="w-6 h-6 text-blue-600"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1"
-                d="M12 12c2.761 0 5-2.239 5-5S14.761 2 12 2 7 4.239 7 7s2.239 5 5 5zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-blue-600">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1"
+                d="M12 12c2.761 0 5-2.239 5-5S14.761 2 12 2 7 4.239 7 7s2.239 5 5 5zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
             </svg>
           </div>
 
-          <div className="ml-3">
-            <p className="text-gray-900">
-              <strong className="font-semibold">Name:</strong> {user.name}
-            </p>
-            <p className="text-gray-700">
-              <strong className="font-semibold">Email:</strong> {user.email}
-            </p>
+          {/* Name + email — min-w-0 allows flex child to shrink and truncate */}
+          <div className="min-w-0 flex-1">
+            <p className="text-gray-900 font-semibold truncate">{user.name}</p>
+            <p className="text-gray-500 text-sm truncate">{user.email}</p>
           </div>
 
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            {/* Mobile — circle icon only */}
-            <svg className="block sm:hidden" width="40" height="40" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+          {/* Logo — shrink-0 keeps it from being squeezed */}
+          <div className="shrink-0">
+            <svg className="block sm:hidden" width="36" height="36" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
               <circle cx="25" cy="25" r="22" fill="#2563EB" />
               <path d="M8 33 C20 8, 37 8, 48 25" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
               <polygon points="32,14 46,20 32,24 36,30 28,24 16,26" fill="white" />
             </svg>
-
-            {/* Desktop — full logo with text */}
-            <svg className="hidden sm:block" width="160" height="50" viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg">
+            <svg className="hidden sm:block" width="140" height="44" viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg">
               <g transform="translate(0,5)">
                 <circle cx="25" cy="20" r="18" fill="#2563EB" />
                 <path d="M5 28 C18 5, 32 5, 45 20" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
@@ -214,7 +194,6 @@ const Profile = () => {
         </div>
       )}
 
-      {/* 🔥 BOOKING HISTORY */}
       <h2 className="text-xl mt-8 font-semibold text-gray-900 flex items-center gap-2">
         <span className="inline-block w-1.5 h-5 bg-gradient-to-b from-blue-500 to-violet-500 rounded-full" />
         My Bookings
@@ -227,58 +206,67 @@ const Profile = () => {
           {bookings.map((b, i) => (
             <div
               key={b._id}
-              className="
-                booking-card
-                group relative rounded-2xl overflow-hidden
-                bg-white/70 backdrop-blur-xl backdrop-saturate-150
-                border border-white/60 shadow-lg shadow-blue-100/40
-                transition-all duration-500
-                hover:shadow-xl hover:shadow-blue-200/40
-                animate-[fadeInUp_0.5s_ease-out]
-              "
+              className="booking-card group relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/60 shadow-lg shadow-blue-100/40 transition-all duration-500 hover:shadow-xl hover:shadow-blue-200/40 animate-[fadeInUp_0.5s_ease-out]"
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <div className="flex flex-col sm:flex-row">
 
-                {/* ── Details — left ──────────────────────────────── */}
+                {/* Hotel image — top on mobile only */}
+                <div className="w-full h-36 sm:hidden p-3 pb-0">
+                  <BookingThumbnail hotelId={b.hotelId} hotelName={b.hotelName} />
+                </div>
+
+                {/* Details */}
                 <div className="flex-1 p-4 sm:p-5">
-                  <p className="text-gray-900">
-                    <b className="font-semibold">Hotel:</b> {b.hotelName}
-                  </p>
-                  <p className="text-gray-900">
-                    <b className="font-semibold">Amount:</b> ₹{b.amount}
-                  </p>
-                  <p className="text-gray-600 text-sm">
-                    <b className="font-semibold text-gray-900">Order No:</b> {b.orderNumber}
-                  </p>
-                  <p className="text-gray-600 text-sm break-all">
-                    <b className="font-semibold text-gray-900">Booking ID:</b> {b.bookingId}
-                  </p>
-                  <p className="mt-1">
-                    <b className="font-semibold text-gray-900">Status:</b>{" "}
-                    <span
-                      className={`
-                        inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
-                        ${b.status === "success"
-                          ? "bg-green-100 text-green-700"
-                          : b.status === "refunded"
-                          ? "bg-gray-100 text-gray-600"
-                          : "bg-yellow-100 text-yellow-700"}
-                      `}
-                    >
+
+                  {/* Hotel name as card heading */}
+                  <p className="text-base font-semibold text-gray-900 mb-2">{b.hotelName}</p>
+
+                  {/* ── Date pills — NEW ────────────────────────────
+                      Booking date, check-in, check-out as coloured
+                      pill badges so dates are instantly scannable. */}
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      Booked: {formatDateTime(b.createdAt)}
+                    </span>
+                    {b.checkIn && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-green-50 text-green-700 text-xs font-medium">
+                        ↗ Check-in: {formatDate(b.checkIn)}
+                      </span>
+                    )}
+                    {b.checkOut && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-medium">
+                        ↙ Check-out: {formatDate(b.checkOut)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-0.5 text-sm">
+                    <p className="text-gray-900"><b className="font-semibold">Amount:</b> ₹{b.amount}</p>
+                    <p className="text-gray-600"><b className="font-semibold text-gray-900">Order No:</b> {b.orderNumber}</p>
+                    <p className="text-gray-600 break-all"><b className="font-semibold text-gray-900">Booking ID:</b> {b.bookingId}</p>
+                  </div>
+
+                  <p className="mt-2">
+                    <b className="font-semibold text-gray-900 text-sm">Status:</b>{" "}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      b.status === "success" ? "bg-green-100 text-green-700"
+                      : b.status === "refunded" ? "bg-gray-100 text-gray-600"
+                      : "bg-yellow-100 text-yellow-700"}`}>
                       {b.status}
                     </span>
                   </p>
 
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     <button
                       onClick={() => window.open(`/success/${b.bookingId}`)}
-                      className="
-                        bg-gradient-to-r from-blue-600 to-violet-600 text-white
-                        px-3 py-1.5 rounded-lg text-sm font-medium
-                        shadow-sm transition-all duration-300
-                        hover:shadow-md hover:scale-[1.03] active:scale-[0.97]
-                      "
+                      className="bg-gradient-to-r from-blue-600 to-violet-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-[0.97]"
                     >
                       View Receipt
                     </button>
@@ -287,7 +275,6 @@ const Profile = () => {
                       const refunded = b.status === "refunded";
                       const windowOpen = isRefundWindowOpen(b.createdAt);
                       const disabled = refunded || !windowOpen;
-
                       let label = "Cancel Booking";
                       if (refunded) label = "Refunded";
                       else if (!windowOpen) label = "Refund Window Expired";
@@ -296,18 +283,8 @@ const Profile = () => {
                         <button
                           onClick={() => handleCancelBooking(b._id)}
                           disabled={disabled}
-                          title={
-                            !refunded && !windowOpen
-                              ? "Prepaid bookings are non-refundable after 2 hours of payment."
-                              : undefined
-                          }
-                          className="
-                            bg-gradient-to-r from-red-500 to-rose-600 text-white
-                            px-3 py-1.5 rounded-lg text-sm font-medium
-                            shadow-sm transition-all duration-300
-                            hover:shadow-md hover:scale-[1.03] active:scale-[0.97]
-                            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none
-                          "
+                          title={!refunded && !windowOpen ? "Prepaid bookings are non-refundable after 2 hours of payment." : undefined}
+                          className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
                         >
                           {label}
                         </button>
@@ -315,10 +292,6 @@ const Profile = () => {
                     })()}
                   </div>
 
-                  {/* ✅ Visible inline notice once the refund window has
-                      closed — not just a disabled button with no
-                      explanation. Only shown for non-refunded bookings
-                      past the window, so it doesn't clutter every card. */}
                   {b.status !== "refunded" && !isRefundWindowOpen(b.createdAt) && (
                     <p className="mt-2 text-xs text-amber-600 flex items-center gap-1">
                       <span>⏰</span>
@@ -327,10 +300,8 @@ const Profile = () => {
                   )}
                 </div>
 
-                {/* ── Hotel image — right. Falls back to a styled
-                    placeholder if b.hotelId isn't present in the booking
-                    payload yet (depends on backend response shape). ──── */}
-                <div className="w-full sm:w-44 h-36 sm:h-auto p-3 sm:p-3 sm:pl-0">
+                {/* Hotel image — right side on desktop only */}
+                <div className="hidden sm:block w-44 p-3 pl-0">
                   <BookingThumbnail hotelId={b.hotelId} hotelName={b.hotelName} />
                 </div>
               </div>

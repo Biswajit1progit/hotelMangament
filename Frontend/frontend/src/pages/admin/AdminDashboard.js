@@ -757,19 +757,41 @@ function AdminDashboard() {
                   <p>No bookings match your search</p>
                 </div>
               )}
-              {filteredBookings.map((b) => (
-                <div key={b._id} className={`${dark ? "bg-[#1a1d27] border border-[#2e3347]" : "bg-white"} rounded-2xl shadow-sm p-5`}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className={`font-bold ${dm.text1}`}>{b.hotelName}</p>
-                      <p className={`text-sm ${dm.text2}`}>{b.name} · {b.email}</p>
-                      <p className={`text-xs mt-1 ${dm.text3}`}>
-                        {new Date(b.checkIn).toLocaleDateString("en-IN")} → {new Date(b.checkOut).toLocaleDateString("en-IN")} · {b.nights} nights · {b.rooms} rooms
-                      </p>
-                    </div>
-                    <p className="font-bold text-green-500">₹{b.totalPrice?.toLocaleString()}</p>
-                  </div>
-                </div>
+             {filteredBookings.map((b) => (
+  <div key={b._id} className={`${dark ? "bg-[#1a1d27] border border-[#2e3347]" : "bg-white"} rounded-2xl shadow-sm p-5`}>
+    <div className="flex items-start justify-between">
+      <div>
+        <p className={`font-bold ${dm.text1}`}>{b.hotelName}</p>
+        <p className={`text-sm ${dm.text2}`}>{b.name} · {b.email}</p>
+        <p className={`text-xs mt-1 ${dm.text3}`}>
+          {new Date(b.checkIn).toLocaleDateString("en-IN")} → {new Date(b.checkOut).toLocaleDateString("en-IN")} · {b.nights} nights · {b.rooms} rooms
+        </p>
+        {/* ✅ ADDED — when the booking itself was made, distinct
+            from the check-in/check-out stay dates above.
+            Uses Booking doc's createdAt (from timestamps: true).
+            Styled as a pill consistent with the check-in/check-out
+            badges already used in Invoice.jsx, with a dashboard-
+            appropriate indigo tone (dark-mode aware) and a
+            decorative calendar icon — not interactive. */}
+        <span
+          className={
+            dark
+              ? "inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-indigo-900/30 text-indigo-300 text-xs font-medium"
+              : "inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-medium"
+          }
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Booked on {new Date(b.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+        </span>
+      </div>
+      <p className="font-bold text-green-500">₹{b.totalPrice?.toLocaleString()}</p>
+    </div>
+  </div>
               ))}
             </div>
           ))}

@@ -1,5 +1,3 @@
-
-
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -14,7 +12,6 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const generateToken = (user) =>
   jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-// ✅ REGISTER — sends verification email, user must verify before login
 const register = async (req, res) => {
   try {
     const { name, email, password, role, adminSecret } = req.body;
@@ -47,38 +44,35 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const verifyToken = crypto.randomUUID();
 
-    
-const needsVerification = assignedRole === "user"
+    const needsVerification = assignedRole === "user"
 
-await User.create({
-  name, email,
-  password: hashedPassword,
-  role: assignedRole,
-  isVerified: !needsVerification,  // owners and admins auto-verified
-  verifyToken: needsVerification ? verifyToken : null,
-})
+    await User.create({
+      name, email,
+      password: hashedPassword,
+      role: assignedRole,
+      isVerified: !needsVerification,
+      verifyToken: needsVerification ? verifyToken : null,
+    })
 
-// Only send verification email for regular users
-if (needsVerification) {
-  try {
-    await sendVerificationEmail({ to: email, userName: name, token: verifyToken })
-  } catch (emailErr) {
-    console.warn("Verification email failed:", emailErr.message)
-  }
-}
+    if (needsVerification) {
+      try {
+        await sendVerificationEmail({ to: email, userName: name, token: verifyToken })
+      } catch (emailErr) {
+        console.warn("Verification email failed:", emailErr.message)
+      }
+    }
 
-   res.status(201).json({
-  message: needsVerification
-    ? "Account created! Please check your email to verify your account."
-    : "Account created successfully! You can now login.",
-})
+    res.status(201).json({
+      message: needsVerification
+        ? "Account created! Please check your email to verify your account."
+        : "Account created successfully! You can now login.",
+    })
   } catch (err) {
     console.log("REGISTER ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// ✅ VERIFY EMAIL — user clicks link in email
 const verifyEmail = async (req, res) => {
   try {
     const user = await User.findOne({ verifyToken: req.params.token });
@@ -97,7 +91,8 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// ✅ LOGIN — blocks unverified users
+// LOGIN — back to returning token in JSON only, no cookie. This is the
+// version that was reliably working before today's cookie experiment.
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -108,14 +103,11 @@ const login = async (req, res) => {
     if (!user.password)
       return res.status(400).json({ message: "This account uses Google sign-in. Please use Continue with Google." });
 
-   /*  if (!user.isVerified)
-      return res.status(401).json({ message: "Please verify your email first. Check your inbox for the verification link." }); */
-   // Only block regular users who haven't verified
-if (user.role === "user" && !user.isVerified) {
-  return res.status(401).json({ 
-    message: "Please verify your email first. Check your inbox for the verification link." 
-  })
-}
+    if (user.role === "user" && !user.isVerified) {
+      return res.status(401).json({
+        message: "Please verify your email first. Check your inbox for the verification link."
+      })
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
@@ -132,7 +124,6 @@ if (user.role === "user" && !user.isVerified) {
   }
 };
 
-// ✅ GOOGLE AUTH — new
 const googleAuth = async (req, res) => {
   try {
     const { credential } = req.body;
@@ -170,13 +161,11 @@ const googleAuth = async (req, res) => {
   }
 };
 
-// ✅ GET PROFILE — unchanged
 const getProfile = async (req, res) => {
   try { res.json(req.user); }
   catch (error) { res.status(500).json("Server error"); }
 };
 
-// ✅ WISHLIST TOGGLE — unchanged
 const toggleWishlist = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -197,10 +186,9 @@ const toggleWishlist = async (req, res) => {
   }
 };
 
-// ✅ GET WISHLIST — unchanged
 const getWishlist = async (req, res) => {
   const user = await User.findById(req.user._id).populate("wishlist");
   res.json(user.wishlist);
 };
 
-module.exports = { register, verifyEmail, login, googleAuth, getProfile, toggleWishlist, getWishlist }; 
+module.exports = { register, verifyEmail, login, googleAuth, getProfile, toggleWishlist, getWishlist };

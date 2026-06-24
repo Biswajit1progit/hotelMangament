@@ -1,4 +1,3 @@
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -14,35 +13,38 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-/* const uploadRoutes = require("./routes/uploadRoutes"); */
 const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
 const contactRoutes = require("./routes/contactRoutes")
 const app = express();
 
-// Middleware
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:1234",
+  process.env.FRONTEND_URL,
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
+  credentials: true,
+}));
+
 app.use(express.json());
 app.use("/images", express.static("public/images"));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI )
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
 
-// Routes
-
 app.use("/api/hotels", hotelRoutes);
-
 app.use("/api/reviews", reviewRoutes);
-
-
-
-
 app.use("/api/auth", authRoutes);
-
 app.use("/api/bookings", bookingRoutes);
-
 app.use("/api/payment", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
@@ -50,13 +52,11 @@ app.use("/api/owners", ownerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminAnalyticsRoutes)
 app.use("/api/contact", contactRoutes)
-/* app.use("/api/upload", uploadRoutes); */
-// Test route
+
 app.get("/", (req, res) => {
   res.send("API Working ✅");
 });
 
-// Server
 app.listen(process.env.PORT || 5000, () => {
   console.log("Server running on port 5000");
 });
