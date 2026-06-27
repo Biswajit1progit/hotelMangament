@@ -19,6 +19,7 @@
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "events": "^3.3.0",
+    "http-proxy-middleware": "^3.0.7",
     "os-browserify": "^0.3.0",
     "parcel": "^2.16.4",
     "process": "^0.11.10",
@@ -50,6 +51,7 @@
     "react-router-dom": "^6.30.3",
     "react-toastify": "^11.0.5",
     "recharts": "^3.8.1",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "uuid": "^14.0.1"
   }
 }

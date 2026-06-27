@@ -4,6 +4,7 @@ const {
   register,
   verifyEmail,
   login,
+  
   googleAuth,
   getProfile,
   toggleWishlist,

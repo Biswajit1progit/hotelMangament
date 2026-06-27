@@ -1,10 +1,14 @@
 const express = require("express")
-const router = express.Router()
+const router  = express.Router()
 const { BrevoClient } = require("@getbrevo/brevo")
+const { verifyToken } = require("../middleware/authMiddleware")
 
 const brevo = new BrevoClient({ apiKey: process.env.BREVO_API_KEY })
 
-router.post("/", async (req, res) => {
+// ── verifyToken blocks the request entirely if no valid JWT is present.
+//    This is correct here because ContactForm now always sends the token.
+//    Any request without a valid token → 401, frontend redirects to /login.
+router.post("/", verifyToken, async (req, res) => {
   try {
     const { name, email, subject, message, role = "user" } = req.body
 
@@ -12,15 +16,21 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "All fields are required" })
     }
 
-    const sender = {
-      name: "SafarSetu",
-      email: process.env.FROM_EMAIL
+    // Extra safety: make sure the email in the body matches the token's user
+    // (prevents a logged-in user from submitting on behalf of someone else's email)
+    if (req.user?.email && email.toLowerCase() !== req.user.email.toLowerCase()) {
+      return res.status(403).json({ error: "Email does not match your account" })
     }
 
-    // ── 1. Email to company ──────────────────────────────
+    const sender = {
+      name:  "SafarSetu",
+      email: process.env.FROM_EMAIL,
+    }
+
+    // ── 1. Email to company ──────────────────────────────────────────────────
     await brevo.transactionalEmails.sendTransacEmail({
       sender,
-      to: [{ email: process.env.EMAIL_USER }],
+      to:      [{ email: process.env.EMAIL_USER }],
       replyTo: { email },
       subject: `[${role.toUpperCase()}] ${subject} — from ${name}`,
       htmlContent: `
@@ -51,18 +61,10 @@ router.post("/", async (req, res) => {
     </div>
     <div class="body">
       <table>
-        <tr>
-          <td>Name</td>
-          <td>${name}</td>
-        </tr>
-        <tr>
-          <td>Email</td>
-          <td><a href="mailto:${email}" style="color:#2563eb">${email}</a></td>
-        </tr>
-        <tr>
-          <td>Subject</td>
-          <td>${subject}</td>
-        </tr>
+        <tr><td>Name</td><td>${name}</td></tr>
+        <tr><td>Email</td><td><a href="mailto:${email}" style="color:#2563eb">${email}</a></td></tr>
+        <tr><td>Subject</td><td>${subject}</td></tr>
+        <tr><td>User ID</td><td style="font-size:12px;color:#aaa">${req.user?.id || "—"}</td></tr>
       </table>
       <div class="message-box">
         <div class="label">Message</div>
@@ -70,17 +72,17 @@ router.post("/", async (req, res) => {
       </div>
     </div>
     <div class="footer">
-      Received on ${new Date().toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" })}
+      Received on ${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
     </div>
   </div>
 </body>
-</html>`
+</html>`,
     })
 
-    // ── 2. Auto-reply to user ────────────────────────────
+    // ── 2. Auto-reply to user ────────────────────────────────────────────────
     await brevo.transactionalEmails.sendTransacEmail({
       sender,
-      to: [{ email }],
+      to:      [{ email }],
       subject: "We received your query — SafarSetu",
       htmlContent: `
 <!DOCTYPE html>
@@ -120,10 +122,10 @@ router.post("/", async (req, res) => {
     <div class="footer">© ${new Date().getFullYear()} SafarSetu. All rights reserved.</div>
   </div>
 </body>
-</html>`
+</html>`,
     })
 
-    console.log("✅ Emails sent via Brevo API")
+    console.log(`✅ Contact email sent — user: ${req.user?.id} (${email})`)
     return res.json({ success: true, message: "Query sent successfully" })
 
   } catch (err) {

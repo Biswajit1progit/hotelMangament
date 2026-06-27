@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/apiClient";
 import { getUserPayments } from "../services/paymentService";
 import { refundPayment } from "../services/paymentService";
@@ -15,20 +16,15 @@ const isRefundWindowOpen = (createdAt) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return "N/A";
   return new Date(dateStr).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+    day: "numeric", month: "short", year: "numeric",
   });
 };
 
 const formatDateTime = (dateStr) => {
   if (!dateStr) return "N/A";
   return new Date(dateStr).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    day: "numeric", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
   });
 };
 
@@ -53,8 +49,7 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
     return (
       <div className="relative w-full h-full overflow-hidden rounded-xl">
         <img
-          src={imgUrl}
-          alt={hotelName}
+          src={imgUrl} alt={hotelName}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           onError={() => setFailed(true)}
         />
@@ -74,59 +69,94 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
 };
 
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // ── Auth guard — must be before any data-fetching hooks ──────────────────
+  // Read token synchronously so the guard fires on first render,
+  // before any API calls are made, avoiding the 401 entirely.
+  const token = sessionStorage.getItem("token");
+
+  const [user, setUser]         = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const userRef = useRef(null);
   useEffect(() => { userRef.current = user; }, [user]);
+
+  // ── Redirect if no token ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+        state: { from: "/profile" },   // Login page can read this and redirect back
+      });
+      return;
+    }
+    setAuthChecked(true);
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchBookings = useCallback(() => {
     if (!userRef.current) return;
     getUserPayments()
       .then(setBookings)
-      .catch((err) => console.error("Failed to fetch bookings:", err));
-  }, []);
+      .catch((err) => {
+        // If token expired mid-session, send them back to login
+        if (err?.response?.status === 401) {
+          sessionStorage.clear();
+          navigate("/login", { replace: true, state: { from: "/profile" } });
+        } else {
+          console.error("Failed to fetch bookings:", err);
+        }
+      });
+  }, [navigate]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!authChecked || !user) return;
     fetchBookings();
-  }, [user, fetchBookings]);
+  }, [user, authChecked, fetchBookings]);
 
   useEffect(() => {
-    const handleFocus = () => fetchBookings();
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible") fetchBookings();
-    };
+    if (!authChecked) return;
+    const handleFocus      = () => fetchBookings();
+    const handleVisibility = () => { if (document.visibilityState === "visible") fetchBookings(); };
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [fetchBookings]);
+  }, [authChecked, fetchBookings]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const justBooked = params.has("booking");
-    const timer = setTimeout(() => fetchBookings(), 3000);
-    const timer2 = justBooked ? setTimeout(() => fetchBookings(), 6000) : null;
+    if (!authChecked) return;
+    const params      = new URLSearchParams(window.location.search);
+    const justBooked  = params.has("booking");
+    const timer       = setTimeout(() => fetchBookings(), 3000);
+    const timer2      = justBooked ? setTimeout(() => fetchBookings(), 6000) : null;
     return () => {
       clearTimeout(timer);
       if (timer2) clearTimeout(timer2);
     };
-  }, [fetchBookings]);
+  }, [authChecked, fetchBookings]);
 
   useEffect(() => {
+    if (!authChecked) return;
     const fetchProfile = async () => {
       try {
         const res = await api.get("/api/auth/me");
         setUser(res.data);
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
+        if (err?.response?.status === 401) {
+          // Token was in sessionStorage but is expired/invalid on the server
+          sessionStorage.clear();
+          navigate("/login", { replace: true, state: { from: "/profile" } });
+        } else {
+          console.error("Failed to fetch profile:", err);
+        }
       }
     };
     fetchProfile();
-  }, []);
+  }, [authChecked, navigate]);
 
   const handleCancelBooking = async (paymentId) => {
     const res = await refundPayment(paymentId);
@@ -142,6 +172,9 @@ const Profile = () => {
     }
   };
 
+  // While the redirect is in progress (no token), render nothing
+  if (!token || !authChecked) return null;
+
   return (
     <div className="profile-page relative min-h-screen p-3 sm:p-6">
 
@@ -151,11 +184,6 @@ const Profile = () => {
 
       <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
 
-      {/* ── Profile card ─────────────────────────────────────────
-          FIX: was using absolute-positioned logo which overlapped
-          the email text on narrow screens. Now a simple flex row:
-          avatar | name+email (min-w-0 so it can shrink) | logo.
-          Long emails truncate cleanly instead of wrapping/overflowing. */}
       {user && (
         <div className="mt-4 flex items-center gap-3 p-4 rounded-2xl bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/60 shadow-lg shadow-blue-100/50 animate-[fadeInUp_0.5s_ease-out]">
 
@@ -167,13 +195,13 @@ const Profile = () => {
             </svg>
           </div>
 
-          {/* Name + email — min-w-0 allows flex child to shrink and truncate */}
+          {/* Name + email */}
           <div className="min-w-0 flex-1">
             <p className="text-gray-900 font-semibold truncate">{user.name}</p>
             <p className="text-gray-500 text-sm truncate">{user.email}</p>
           </div>
 
-          {/* Logo — shrink-0 keeps it from being squeezed */}
+          {/* Logo */}
           <div className="shrink-0">
             <svg className="block sm:hidden" width="36" height="36" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
               <circle cx="25" cy="25" r="22" fill="#2563EB" />
@@ -218,13 +246,8 @@ const Profile = () => {
 
                 {/* Details */}
                 <div className="flex-1 p-4 sm:p-5">
-
-                  {/* Hotel name as card heading */}
                   <p className="text-base font-semibold text-gray-900 mb-2">{b.hotelName}</p>
 
-                  {/* ── Date pills — NEW ────────────────────────────
-                      Booking date, check-in, check-out as coloured
-                      pill badges so dates are instantly scannable. */}
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -256,7 +279,7 @@ const Profile = () => {
                   <p className="mt-2">
                     <b className="font-semibold text-gray-900 text-sm">Status:</b>{" "}
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      b.status === "success" ? "bg-green-100 text-green-700"
+                      b.status === "success"  ? "bg-green-100 text-green-700"
                       : b.status === "refunded" ? "bg-gray-100 text-gray-600"
                       : "bg-yellow-100 text-yellow-700"}`}>
                       {b.status}
@@ -272,13 +295,10 @@ const Profile = () => {
                     </button>
 
                     {(() => {
-                      const refunded = b.status === "refunded";
+                      const refunded   = b.status === "refunded";
                       const windowOpen = isRefundWindowOpen(b.createdAt);
-                      const disabled = refunded || !windowOpen;
-                      let label = "Cancel Booking";
-                      if (refunded) label = "Refunded";
-                      else if (!windowOpen) label = "Refund Window Expired";
-
+                      const disabled   = refunded || !windowOpen;
+                      const label      = refunded ? "Refunded" : !windowOpen ? "Refund Window Expired" : "Cancel Booking";
                       return (
                         <button
                           onClick={() => handleCancelBooking(b._id)}
@@ -313,7 +333,7 @@ const Profile = () => {
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

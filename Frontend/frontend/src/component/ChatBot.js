@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { sendChatMessage } from "../services/chatService";
 
@@ -18,7 +17,6 @@ const ChatHotelCard = ({ hotel }) => {
       onClick={() => navigate(`/hotel/${hotel._id}`)}
       className="flex gap-3 bg-white rounded-xl p-3 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-blue-200 transition-all duration-200 mt-2"
     >
-      {/* Image */}
       <div className="w-20 h-16 rounded-lg overflow-hidden shrink-0">
         <img
           src={getImageSrc(hotel.images?.[0])}
@@ -26,8 +24,6 @@ const ChatHotelCard = ({ hotel }) => {
           className="w-full h-full object-cover"
         />
       </div>
-
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="font-bold text-gray-800 text-sm truncate">{hotel.name}</p>
         <p className="text-gray-500 text-xs">{hotel.district}, {hotel.state}</p>
@@ -49,7 +45,19 @@ const ChatHotelCard = ({ hotel }) => {
   );
 };
 
-// ✅ Suggested quick prompts
+// ✅ Login nudge banner shown when guest hits rate limit
+const LoginNudge = ({ message, onLoginClick }) => (
+  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mt-2">
+    <p className="text-blue-700 text-xs font-medium">{message}</p>
+    <button
+      onClick={onLoginClick}
+      className="mt-2 w-full text-xs bg-blue-600 text-white py-1.5 rounded-lg hover:bg-blue-700 transition font-semibold"
+    >
+      Login for more messages →
+    </button>
+  </div>
+);
+
 const SUGGESTIONS = [
   "Hotels in Goa under ₹2000",
   "Luxury resorts with pool",
@@ -59,6 +67,7 @@ const SUGGESTIONS = [
 ];
 
 const ChatBot = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -70,22 +79,24 @@ const ChatBot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [rateLimitInfo, setRateLimitInfo] = useState(null)
 
-  // ✅ Stable session ID per component mount
   const sessionId = useRef(crypto.randomUUID());
-
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // ✅ Auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ✅ Focus input when opened
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 300);
   }, [open]);
+
+  const getToken = () => sessionStorage.getItem("token") || null
+
+  // ✅ Re-checks every time chat opens — handles login/logout without remount
+  const isLoggedIn = useMemo(() => !!getToken(), [open])
 
   const sendMessage = async (text) => {
     const userText = text || input.trim();
@@ -93,14 +104,54 @@ const ChatBot = () => {
 
     setInput("");
     setShowSuggestions(false);
+    setRateLimitInfo(null);
 
-    // Add user message
     setMessages((prev) => [...prev, { role: "user", text: userText, hotels: [] }]);
     setLoading(true);
 
     try {
-      // ✅ Pass sessionId — backend handles conversation memory
-      const data = await sendChatMessage(userText, sessionId.current);
+      const token = getToken()
+
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          message: userText,
+          sessionId: sessionId.current,
+        }),
+      })
+
+      if (res.status === 429) {
+        const data = await res.json()
+
+        setRateLimitInfo({
+          isGuest: data.isGuest,
+          message: data.message,
+        })
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "bot",
+            text: data.isGuest
+              ? "⏳ You've reached your free message limit."
+              : "⏳ " + data.message,
+            hotels: [],
+            isRateLimit: true,
+          },
+        ])
+        setLoading(false)
+        return
+      }
+
+      if (!res.ok) {
+        throw new Error("Server error")
+      }
+
+      const data = await res.json()
 
       setMessages((prev) => [
         ...prev,
@@ -131,7 +182,6 @@ const ChatBot = () => {
     }
   };
 
-  // ✅ Also resets server-side session memory
   const handleClear = async () => {
     try {
       await fetch(`${process.env.REACT_APP_API_URL}/api/chat/reset`, {
@@ -151,11 +201,12 @@ const ChatBot = () => {
       },
     ]);
     setShowSuggestions(true);
+    setRateLimitInfo(null);
   };
 
   return (
     <>
-      {/* ✅ Floating Button */}
+      {/* Floating Button */}
       <button
         onClick={() => setOpen(!open)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110"
@@ -171,43 +222,44 @@ const ChatBot = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
         )}
-
-        {/* Pulse animation when closed */}
         {!open && (
-          <span className="absolute w-full h-full rounded-full animate-ping opacity-30"
-            style={{ background: "linear-gradient(135deg, #1d4ed8, #0ea5e9)" }} />
+          <span
+            className="absolute w-full h-full rounded-full animate-ping opacity-30"
+            style={{ background: "linear-gradient(135deg, #1d4ed8, #0ea5e9)" }}
+          />
         )}
       </button>
 
-      {/* ✅ Chat Window */}
+      {/* Chat Window */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
-          style={{ height: "520px" }}>
-
+        <div
+          className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
+          style={{ height: "520px" }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 shrink-0"
-            style={{ background: "linear-gradient(135deg, #1d4ed8, #0ea5e9)" }}>
+          <div
+            className="flex items-center justify-between px-4 py-3 shrink-0"
+            style={{ background: "linear-gradient(135deg, #1d4ed8, #0ea5e9)" }}
+          >
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-lg">
                 🤖
               </div>
               <div>
                 <p className="text-white font-bold text-sm">SafarSetu AI</p>
-                <p className="text-blue-100 text-xs">Hotel Search Assistant</p>
+                <p className="text-blue-100 text-xs">
+                  {isLoggedIn ? "Hotel Search Assistant" : "Guest · 5 msg/hr free"}
+                </p>
               </div>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={handleClear}
                 className="text-white/70 hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-white/10 transition"
-                title="Clear chat"
               >
                 Clear
               </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="text-white/70 hover:text-white transition"
-              >
+              <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -220,8 +272,6 @@ const ChatBot = () => {
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] ${msg.role === "user" ? "" : "w-full"}`}>
-
-                  {/* Bot avatar */}
                   {msg.role === "bot" && (
                     <div className="flex items-start gap-2">
                       <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs shrink-0 mt-1">
@@ -231,7 +281,15 @@ const ChatBot = () => {
                         <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm text-sm text-gray-700 leading-relaxed whitespace-pre-line">
                           {msg.text}
                         </div>
-                        {/* Hotel cards inside chat */}
+                        {msg.isRateLimit && rateLimitInfo?.isGuest && (
+                          <LoginNudge
+                            message={rateLimitInfo.message}
+                            onLoginClick={() => {
+                              setOpen(false)
+                              navigate("/login")
+                            }}
+                          />
+                        )}
                         {msg.hotels?.length > 0 && (
                           <div className="mt-2 space-y-2">
                             {msg.hotels.map((hotel) => (
@@ -242,11 +300,11 @@ const ChatBot = () => {
                       </div>
                     </div>
                   )}
-
-                  {/* User message */}
                   {msg.role === "user" && (
-                    <div className="px-4 py-3 rounded-2xl rounded-tr-none text-sm text-white leading-relaxed"
-                      style={{ background: "linear-gradient(135deg, #1d4ed8, #0ea5e9)" }}>
+                    <div
+                      className="px-4 py-3 rounded-2xl rounded-tr-none text-sm text-white leading-relaxed"
+                      style={{ background: "linear-gradient(135deg, #1d4ed8, #0ea5e9)" }}
+                    >
                       {msg.text}
                     </div>
                   )}
@@ -254,7 +312,6 @@ const ChatBot = () => {
               </div>
             ))}
 
-            {/* Loading dots */}
             {loading && (
               <div className="flex justify-start">
                 <div className="flex items-start gap-2">
@@ -274,7 +331,7 @@ const ChatBot = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* ✅ Quick suggestions */}
+          {/* Quick suggestions */}
           {showSuggestions && (
             <div className="px-3 py-2 bg-gray-50 border-t border-gray-100 shrink-0">
               <p className="text-xs text-gray-400 mb-1.5">Try asking:</p>

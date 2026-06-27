@@ -8,7 +8,7 @@ import ChatBot from "../component/ChatBot";
 const DESTINATIONS = [
   { name: "Goa",       img: "https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?w=400&q=80", tag: "Beaches" },
   { name: "Jaipur",    img: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&q=80", tag: "Heritage" },
-  { name: "Kerala",    img: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&q=80", tag: "Backwaters" },
+  { name: "Kochi",    img: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&q=80", tag: "Backwaters" },
   { name: "Manali",    img: "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=400&q=80", tag: "Mountains" },
   { name: "Varanasi",  img: "https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=400&q=80", tag: "Spiritual" },
   { name: "Coorg",     img: "https://images.unsplash.com/photo-1580889240257-9e6f5c3b8a02?w=400&q=80", tag: "Nature" },

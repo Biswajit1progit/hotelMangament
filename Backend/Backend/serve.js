@@ -17,7 +17,7 @@ const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
 const contactRoutes = require("./routes/contactRoutes")
 const app = express();
-
+app.set("trust proxy", 1) 
 const allowedOrigins = [
   "http://localhost:1234",
   process.env.FRONTEND_URL,

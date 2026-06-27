@@ -12,7 +12,7 @@ export default function Hotelnav() {
   const [show, setShow]             = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [dark, setDark]             = useState(isDarkMode());
-  const [scrolled, setScrolled]     = useState(false); // purely visual, doesn't affect logic
+  const [scrolled, setScrolled]     = useState(false);
   const menuRef                     = useRef(null);
   const user                        = getUser();
 
@@ -58,11 +58,29 @@ export default function Hotelnav() {
     navigate("/login");
   };
 
+  // ── Links shown to ALL users ───────────────────────────────
+  const publicLinks = [
+    { to: "/",       label: "🏠 Home"   },
+    { to: "/hotels", label: "🏨 Hotels" },
+  ];
+
+  // ── Links shown ONLY to logged-in users ───────────────────
+  const authLinks = [
+    { to: "/movies",  label: "🎬 Movies"     },
+    { to: "/flights", label: "✈️ Flights"    },
+    { to: "/events",  label: "🎉 Events"     },
+    { to: "/wishlist",label: "❤️ Wishlist"   },
+    { to: "/profile", label: "👤 Profile"    },
+    { to: "/contact", label: "📨 Contact Us" },
+  ];
+
+  const mobileLinks = user ? [...publicLinks, ...authLinks] : publicLinks;
+
   return (
     <>
       <div className="pt-3 mt-3 px-2 sm:px-4">
 
-        {/* ── Navbar — glass effect, animated border glow, smooth elevation ── */}
+        {/* ── Navbar ── */}
         <nav
           className={`
             relative flex items-center justify-between
@@ -105,7 +123,7 @@ export default function Hotelnav() {
             </svg>
           </div>
 
-          {/* Desktop Nav links — animated underline on hover */}
+          {/* Desktop Nav links */}
           <ul className="hidden lg:flex gap-8 text-gray-700 font-bold">
             {[
               { to: "/",        label: "Home"       },
@@ -127,13 +145,9 @@ export default function Hotelnav() {
             ))}
           </ul>
 
-          {/* Desktop right section */}
+          {/* Desktop right section — search icon removed */}
           <div className="hidden lg:flex items-center gap-3">
             <DarkModeToggle />
-
-            <button className="p-2 rounded-full text-gray-600 transition-all duration-300 hover:bg-blue-50 hover:text-blue-600 hover:scale-110 active:scale-95">
-              🔍
-            </button>
 
             <NotificationBell />
 
@@ -165,10 +179,7 @@ export default function Hotelnav() {
             <DarkModeToggle className="w-9 h-9" />
 
             <button
-              className={`
-                relative p-2 rounded-lg text-gray-700 overflow-hidden
-                transition-all duration-300 hover:bg-blue-50 active:scale-90
-              `}
+              className="relative p-2 rounded-lg text-gray-700 overflow-hidden transition-all duration-300 hover:bg-blue-50 active:scale-90"
               onClick={() => setMobileMenu(!mobileMenu)}
               aria-label="Toggle menu"
             >
@@ -177,7 +188,7 @@ export default function Hotelnav() {
               </span>
             </button>
 
-            {/* Mobile dropdown — slide + fade + scale entrance */}
+            {/* ── Mobile dropdown ── */}
             <div
               className={`
                 absolute right-0 top-12 w-60 z-50
@@ -189,16 +200,8 @@ export default function Hotelnav() {
                   : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}
               `}
             >
-              {[
-                { to: "/",        label: "🏠 Home"       },
-                { to: "/movies",  label: "🎬 Movies"     },
-                { to: "/flights", label: "✈️ Flights"    },
-                { to: "/hotels",  label: "🏨 Hotels"     },
-                { to: "/events",  label: "🎉 Events"     },
-                { to: "/wishlist",label: "❤️ Wishlist"   },
-                { to: "/profile", label: "👤 Profile"    },
-                { to: "/contact", label: "📨 Contact Us" },
-              ].map(({ to, label }, i) => (
+              {/* Nav links — filtered by auth state */}
+              {mobileLinks.map(({ to, label }, i) => (
                 <Link
                   key={to}
                   to={to}
@@ -217,7 +220,7 @@ export default function Hotelnav() {
 
               <div className="border-t border-gray-100 my-1" />
 
-              {/* Dark mode row */}
+              {/* Dark mode row — always visible */}
               <div className="flex items-center justify-between px-3 py-2 rounded-xl transition-colors duration-300 hover:bg-blue-50">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-sm flex-shrink-0 transition-transform duration-300 hover:rotate-12">
@@ -230,15 +233,36 @@ export default function Hotelnav() {
                 <DarkModeToggle className="flex-shrink-0 w-8 h-8" />
               </div>
 
+              {/* Notifications row — only for logged-in users */}
+              {user && (
+                <>
+                  <div className="border-t border-gray-100 my-1" />
+                  <div className="flex items-center justify-between px-3 py-2 rounded-xl transition-colors duration-300 hover:bg-blue-50">
+                    <span className="text-sm font-medium text-gray-700">🔔 Notifications</span>
+                    <NotificationBell />
+                  </div>
+                </>
+              )}
+
               <div className="border-t border-gray-100 my-1" />
 
-              {/* Logout */}
-              <button
-                onClick={() => { handleLogout(); setMobileMenu(false); }}
-                className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-red-500 transition-all duration-300 hover:bg-red-50 hover:translate-x-1"
-              >
-                🚪 Logout
-              </button>
+              {/* Auth action — Logout if logged in, Login if not */}
+              {user ? (
+                <button
+                  onClick={() => { handleLogout(); setMobileMenu(false); }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-red-500 transition-all duration-300 hover:bg-red-50 hover:translate-x-1"
+                >
+                  🚪 Logout
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenu(false)}
+                  className="block px-3 py-2 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 text-center transition-all duration-300"
+                >
+                  🔑 Login
+                </Link>
+              )}
 
             </div>
           </div>

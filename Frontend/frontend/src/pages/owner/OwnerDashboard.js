@@ -582,7 +582,7 @@ function OwnerDashboard() {
 
       </div>
 
-      <Footer />
+    
     </div>
   );
 }

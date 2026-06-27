@@ -384,11 +384,12 @@ export default function HotelDetail() {
                   fontSize: 13,
                   fontWeight: 600,
                   whiteSpace: "nowrap",
+                  borderTop: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
                   borderBottom: `2px solid ${activeTab === t.key ? "#3b82f6" : "transparent"}`,
                   color: activeTab === t.key ? "#3b82f6" : p.text3,
                   background: activeTab === t.key ? (dark ? "#1a2744" : "#eff6ff") : "transparent",
-                  border: "none",
-                  borderBottom: `2px solid ${activeTab === t.key ? "#3b82f6" : "transparent"}`,
                   cursor: "pointer",
                   transition: "all 0.15s",
                 }}>
@@ -408,7 +409,7 @@ export default function HotelDetail() {
               ) : (
                 <div className="space-y-2.5">
                   {bookings.map(b => (
-                    <div key={b._id} style={{ border: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px", transition: "background 0.15s" }}
+                    <div key={b._id} style={{ borderTop: `1px solid ${p.border2}`, borderRight: `1px solid ${p.border2}`, borderLeft: `1px solid ${p.border2}`, borderBottom: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px", transition: "background 0.15s" }}
                       onMouseEnter={e => e.currentTarget.style.background = p.surface2}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
@@ -453,7 +454,7 @@ export default function HotelDetail() {
               ) : (
                 <div className="space-y-2.5">
                   {reviews.map(r => (
-                    <div key={r._id} style={{ border: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px" }}>
+                    <div key={r._id} style={{ borderTop: `1px solid ${p.border2}`, borderRight: `1px solid ${p.border2}`, borderLeft: `1px solid ${p.border2}`, borderBottom: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px" }}>
                       <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <button
                           onClick={() => r.userId && viewUserBookings(r.userId, r.userName)}

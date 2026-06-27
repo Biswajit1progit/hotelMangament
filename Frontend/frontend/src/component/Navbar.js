@@ -66,6 +66,24 @@ export default function Navbar() {
     scrolled ? "hover:bg-gray-100 text-gray-700" : "hover:bg-white/10 text-white"
   }`;
 
+  // ── Links shown to ALL users (logged in or not) ───────────
+  const publicLinks = [
+    { to: "/",        label: "🏠 Home"    },
+    { to: "/hotels",  label: "🏨 Hotels"  },
+  ];
+
+  // ── Links shown ONLY to logged-in users ───────────────────
+  const authLinks = [
+    { to: "/movies",  label: "🎬 Movies"     },
+    { to: "/flights", label: "✈️ Flights"    },
+    { to: "/events",  label: "🎉 Events"     },
+    { to: "/wishlist",label: "❤️ Wishlist"   },
+    { to: "/profile", label: "👤 Profile"    },
+    { to: "/contact", label: "📨 Contact Us" },
+  ];
+
+  const mobileLinks = user ? [...publicLinks, ...authLinks] : publicLinks;
+
   return (
     <>
       <div className="pt-3 mt-3 px-2 sm:px-4">
@@ -150,20 +168,12 @@ export default function Navbar() {
               {mobileMenu ? "✕" : "☰"}
             </button>
 
-            {/* Mobile dropdown */}
+            {/* ── Mobile dropdown ── */}
             {mobileMenu && (
               <div className="absolute right-0 top-12 bg-white shadow-xl rounded-2xl p-3 border w-60 z-50 space-y-1">
 
-                {[
-                  { to: "/",        label: "🏠 Home"       },
-                  { to: "/movies",  label: "🎬 Movies"     },
-                  { to: "/flights", label: "✈️ Flights"    },
-                  { to: "/hotels",  label: "🏨 Hotels"     },
-                  { to: "/events",  label: "🎉 Events"     },
-                  { to: "/wishlist",label: "❤️ Wishlist"   },
-                  { to: "/profile", label: "👤 Profile"    },
-                  { to: "/contact", label: "📨 Contact Us" },
-                ].map(({ to, label }) => (
+                {/* Nav links — filtered by auth state */}
+                {mobileLinks.map(({ to, label }) => (
                   <Link key={to} to={to}
                     onClick={() => setMobileMenu(false)}
                     className="block px-3 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-500 transition">
@@ -173,7 +183,7 @@ export default function Navbar() {
 
                 <div className="border-t border-gray-100 my-1" />
 
-                {/* Dark mode row */}
+                {/* Dark mode row — always visible */}
                 <div className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-50 transition">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm flex-shrink-0">{dark ? "🌙" : "☀️"}</span>
@@ -184,22 +194,34 @@ export default function Navbar() {
                   <DarkModeToggle className="flex-shrink-0 w-8 h-8" />
                 </div>
 
+                {/* Notifications row — only for logged-in users */}
+                {user && (
+                  <>
+                    <div className="border-t border-gray-100 my-1" />
+                    <div className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-50 transition">
+                      <span className="text-sm font-medium text-gray-700">🔔 Notifications</span>
+                      <NotificationBell />
+                    </div>
+                  </>
+                )}
+
                 <div className="border-t border-gray-100 my-1" />
 
-                {/* Notifications row */}
-                <div className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-gray-50 transition">
-                  <span className="text-sm font-medium text-gray-700">🔔 Notifications</span>
-                  <NotificationBell />
-                </div>
-
-                <div className="border-t border-gray-100 my-1" />
-
-                {/* Logout */}
-                <button
-                  onClick={() => { handleLogout(); setMobileMenu(false); }}
-                  className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition">
-                  🚪 Logout
-                </button>
+                {/* Auth action — Logout if logged in, Login if not */}
+                {user ? (
+                  <button
+                    onClick={() => { handleLogout(); setMobileMenu(false); }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition">
+                    🚪 Logout
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenu(false)}
+                    className="block px-3 py-2 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 text-center transition">
+                    🔑 Login
+                  </Link>
+                )}
               </div>
             )}
           </div>

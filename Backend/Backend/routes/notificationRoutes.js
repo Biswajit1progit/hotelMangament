@@ -19,8 +19,12 @@ const {
 //   GET    /api/notifications/me
 //   PATCH  /api/notifications/read-all
 //
-// ⚠️ FRONTEND CHANGE NEEDED: update your notification service/API
-// calls to use the new URLs — see note at bottom of this file.
+// ✅ ALSO FIXED (controller-level, no route signature change needed):
+// /read/:id and /delete/:id used to trust req.params.id alone, with no
+// check that the notification belonged to req.user. That's IDOR — fixed
+// in notificationController.js by scoping the update/delete query to
+// (_id AND (userId OR userEmail) === req.user). Route paths below are
+// unchanged since the fix lives entirely in the controller's query.
 
 router.get("/me", verifyToken, getNotifications);
 router.patch("/read/:id", verifyToken, markAsRead);
@@ -36,4 +40,6 @@ module.exports = router;
 // GET /api/notifications/${email}            →  GET /api/notifications/me
 // PATCH /api/notifications/read-all/${email} →  PATCH /api/notifications/read-all
 //
-// The other two routes (/read/:id and /delete/:id) are unchanged.
+// The other two routes (/read/:id and /delete/:id) keep the same URL
+// shape as before — only the controller's internal query changed to
+// add the ownership check, so no frontend changes needed for those two.

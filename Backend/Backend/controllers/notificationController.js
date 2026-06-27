@@ -28,15 +28,36 @@ const getNotifications = async (req, res) => {
   }
 };
 
-// ✅ UNCHANGED logic — markAsRead by notification _id is safe.
-// The id is a non-guessable Mongo ObjectId and verifyToken is now
-// on this route, so only logged-in users can call it.
-// Full fix would also verify req.user owns this notification —
-// flagging as a known smaller gap, not the priority today.
+// ✅ FIXED — was: Notification.findByIdAndUpdate(req.params.id, ...)
+// That only checked the notification existed — NOT that it belonged to
+// the logged-in user. An ObjectId being "non-guessable" doesn't matter
+// once a user has SEEN any notification ID through normal app use
+// (network tab, API response, bug report, etc). Any authenticated user
+// could mark ANY other user's notification as read just by changing the
+// id in the URL — classic IDOR, even with verifyToken in front of it.
+//
+// Now: ownership is enforced INSIDE the query itself (_id AND
+// (userId OR userEmail) match), as one atomic operation. If the
+// notification doesn't exist OR doesn't belong to this user, we return
+// the same 404 either way — we deliberately don't distinguish
+// "doesn't exist" from "exists but isn't yours", since that distinction
+// itself would leak information to an attacker probing IDs.
 const markAsRead = async (req, res) => {
   try {
-    await Notification.findByIdAndUpdate(req.params.id, { isRead: true });
-    res.json({ message: "Marked as read" });
+    const notification = await Notification.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        $or: [{ userId: req.user._id }, { userEmail: req.user.email }],
+      },
+      { isRead: true },
+      { new: true }
+    );
+
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+
+    res.json({ message: "Marked as read", notification });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -97,10 +118,25 @@ const createNotification = async ({ userEmail, userId = null, title, message, ty
   }
 };
 
-// ✅ UNCHANGED — delete by id, verifyToken now on this route
+// ✅ FIXED — was: Notification.findByIdAndDelete(req.params.id)
+// Same IDOR pattern as markAsRead — deletion by ID alone, no ownership
+// check. This was actually the highest-risk of the two, since delete is
+// destructive and irreversible: any logged-in user could permanently
+// delete any other user's notification just by knowing/guessing its id.
+//
+// Now: ownership enforced inside the query itself, same pattern as
+// markAsRead above. Same 404-for-both-cases reasoning applies.
 const deleteNotification = async (req, res) => {
   try {
-    await Notification.findByIdAndDelete(req.params.id);
+    const notification = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      $or: [{ userId: req.user._id }, { userEmail: req.user.email }],
+    });
+
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+
     res.json({ message: "Deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });

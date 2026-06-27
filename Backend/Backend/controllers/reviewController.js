@@ -75,11 +75,32 @@ await Hotel.findByIdAndUpdate(hotelId, {
 const editReview = async (req, res) => {
   try {
     const { text, rating } = req.body;
-    const review = await Review.findByIdAndUpdate(
-      req.params.id,
+
+    const review = await Review.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id }, // ownership enforced in the query
       { text, rating: Number(rating) },
       { new: true }
     );
+
+    if (!review) {
+      // same reasoning as notifications: don't distinguish
+      // "doesn't exist" from "exists but isn't yours"
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    // keep the hotel's averageRating/totalReviews in sync after an edit too —
+    // addReview recalculates this on create, but editReview changing a rating
+    // currently leaves the hotel's stored average stale until the next add
+    const allReviews = await Review.find({ hotelId: review.hotelId });
+    const totalReviews = allReviews.length;
+    const averageRating =
+      allReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+
+    await Hotel.findByIdAndUpdate(review.hotelId, {
+      averageRating: parseFloat(averageRating.toFixed(1)),
+      totalReviews,
+    });
+
     res.json(review);
   } catch (err) {
     console.error(err);
