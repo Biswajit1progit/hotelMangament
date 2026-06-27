@@ -16,7 +16,6 @@ export default function Hotelnav() {
   const menuRef                     = useRef(null);
   const user                        = getUser();
 
-  // ── Close mobile menu on outside click/touch ──────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -33,7 +32,6 @@ export default function Hotelnav() {
     };
   }, [mobileMenu]);
 
-  // ── Sync dark state with html class ──────────────────────
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setDark(document.documentElement.classList.contains("dark-mode"));
@@ -45,26 +43,30 @@ export default function Hotelnav() {
     return () => observer.disconnect();
   }, []);
 
-  // ── Purely cosmetic scroll listener for navbar elevation ──
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ── Logout fix ────────────────────────────────────────────────────────────
+  // We navigate to "/" with replace:true instead of "/login".
+  // This REPLACES the entire current history entry (payment page) with home.
+  // So pressing back from home goes to whatever was before payment — never
+  // back to payment itself. The login redirect happens naturally if they then
+  // click something that needs auth (profile, booking etc), not on logout.
   const handleLogout = () => {
-    sessionStorage.clear();
     logoutUser();
-    navigate("/login");
+    sessionStorage.clear();
+    setMobileMenu(false);
+    navigate("/", { replace: true });
   };
 
-  // ── Links shown to ALL users ───────────────────────────────
   const publicLinks = [
     { to: "/",       label: "🏠 Home"   },
     { to: "/hotels", label: "🏨 Hotels" },
   ];
 
-  // ── Links shown ONLY to logged-in users ───────────────────
   const authLinks = [
     { to: "/movies",  label: "🎬 Movies"     },
     { to: "/flights", label: "✈️ Flights"    },
@@ -79,8 +81,6 @@ export default function Hotelnav() {
   return (
     <>
       <div className="pt-3 mt-3 px-2 sm:px-4">
-
-        {/* ── Navbar ── */}
         <nav
           className={`
             relative flex items-center justify-between
@@ -95,29 +95,19 @@ export default function Hotelnav() {
             before:transition-opacity before:duration-700
           `}
         >
-
-          {/* Animated gradient accent line on top */}
           <span className="pointer-events-none absolute -top-px left-1/2 h-[2px] w-0 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-blue-500 transition-all duration-700 ease-out group-hover:w-1/2 opacity-0 group-hover:opacity-100" />
 
           {/* Logo */}
           <div className="flex items-center gap-2 group/logo cursor-pointer select-none">
-            <svg
-              width="160" height="50" viewBox="0 0 160 50"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-32 sm:w-40 transition-transform duration-500 ease-out group-hover/logo:scale-105"
-            >
+            <svg width="160" height="50" viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg"
+              className="w-32 sm:w-40 transition-transform duration-500 ease-out group-hover/logo:scale-105">
               <g transform="translate(0,5)" className="origin-center transition-transform duration-700 group-hover/logo:rotate-[6deg]">
                 <circle cx="25" cy="20" r="18" fill="#2563EB" className="transition-all duration-500 group-hover/logo:fill-[#3b82f6]" />
-                <path d="M5 28 C18 5, 32 5, 45 20"
-                  stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                <path d="M5 28 C18 5, 32 5, 45 20" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
                 <polygon points="28,10 42,16 28,20 32,26 24,20 12,22" fill="white" />
               </g>
-              <text x="50" y="31"
-                fontFamily="Poppins, Arial, sans-serif"
-                fontSize="20" fontWeight="600"
-                fill="#091fed"
-                className="transition-opacity duration-500 group-hover/logo:opacity-80"
-              >
+              <text x="50" y="31" fontFamily="Poppins, Arial, sans-serif" fontSize="20" fontWeight="600" fill="#091fed"
+                className="transition-opacity duration-500 group-hover/logo:opacity-80">
                 SafarSetu
               </text>
             </svg>
@@ -134,10 +124,7 @@ export default function Hotelnav() {
               { to: "/contact", label: "Contact Us" },
             ].map(({ to, label }) => (
               <li key={to} className="relative group/link">
-                <Link
-                  to={to}
-                  className="relative inline-block py-1 transition-colors duration-300 group-hover/link:text-blue-600"
-                >
+                <Link to={to} className="relative inline-block py-1 transition-colors duration-300 group-hover/link:text-blue-600">
                   {label}
                   <span className="absolute left-0 -bottom-0.5 h-[2px] w-0 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-300 ease-out group-hover/link:w-full" />
                 </Link>
@@ -145,37 +132,24 @@ export default function Hotelnav() {
             ))}
           </ul>
 
-          {/* Desktop right section — search icon removed */}
+          {/* Desktop right */}
           <div className="hidden lg:flex items-center gap-3">
             <DarkModeToggle />
-
             <NotificationBell />
-
             <button
               onClick={() => setShow(!show)}
-              className={`
-                relative p-2 rounded-full transition-all duration-300
-                hover:bg-blue-50 hover:scale-110 active:scale-95
-                ${show ? "bg-blue-50 ring-2 ring-blue-200" : ""}
-              `}
+              className={`relative p-2 rounded-full transition-all duration-300 hover:bg-blue-50 hover:scale-110 active:scale-95 ${show ? "bg-blue-50 ring-2 ring-blue-200" : ""}`}
             >
               👤
             </button>
-
-            <div className={`
-              absolute right-0 top-14 z-50
-              origin-top-right transform transition-all duration-500 ease-out
-              ${show
-                ? "opacity-100 scale-100 translate-y-0"
-                : "opacity-0 scale-95 -translate-y-3 pointer-events-none"}
-            `}>
+            <div className={`absolute right-0 top-14 z-50 origin-top-right transform transition-all duration-500 ease-out
+              ${show ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-3 pointer-events-none"}`}>
               <ProfileDropdown close={() => setShow(false)} />
             </div>
           </div>
 
-          {/* Mobile — dark toggle + hamburger */}
+          {/* Mobile */}
           <div ref={menuRef} className="lg:hidden relative flex items-center gap-1">
-
             <DarkModeToggle className="w-9 h-9" />
 
             <button
@@ -188,31 +162,21 @@ export default function Hotelnav() {
               </span>
             </button>
 
-            {/* ── Mobile dropdown ── */}
-            <div
-              className={`
-                absolute right-0 top-12 w-60 z-50
-                bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-100
-                p-3 space-y-1 origin-top-right
-                transition-all duration-300 ease-out
-                ${mobileMenu
-                  ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}
-              `}
-            >
-              {/* Nav links — filtered by auth state */}
+            <div className={`
+              absolute right-0 top-12 w-60 z-50
+              bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-100
+              p-3 space-y-1 origin-top-right
+              transition-all duration-300 ease-out
+              ${mobileMenu ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}
+            `}>
               {mobileLinks.map(({ to, label }, i) => (
                 <Link
-                  key={to}
-                  to={to}
+                  key={to} to={to}
                   onClick={() => setMobileMenu(false)}
                   style={{ transitionDelay: mobileMenu ? `${i * 30}ms` : "0ms" }}
-                  className={`
-                    block px-3 py-2 rounded-xl text-sm font-medium text-gray-700
-                    transition-all duration-300 ease-out
-                    hover:bg-blue-50 hover:text-blue-600 hover:translate-x-1
-                    ${mobileMenu ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2"}
-                  `}
+                  className={`block px-3 py-2 rounded-xl text-sm font-medium text-gray-700
+                    transition-all duration-300 ease-out hover:bg-blue-50 hover:text-blue-600 hover:translate-x-1
+                    ${mobileMenu ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2"}`}
                 >
                   {label}
                 </Link>
@@ -220,20 +184,14 @@ export default function Hotelnav() {
 
               <div className="border-t border-gray-100 my-1" />
 
-              {/* Dark mode row — always visible */}
               <div className="flex items-center justify-between px-3 py-2 rounded-xl transition-colors duration-300 hover:bg-blue-50">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm flex-shrink-0 transition-transform duration-300 hover:rotate-12">
-                    {dark ? "🌙" : "☀️"}
-                  </span>
-                  <span className="text-sm font-medium text-gray-700 truncate">
-                    {dark ? "Dark Mode" : "Light Mode"}
-                  </span>
+                  <span className="text-sm flex-shrink-0">{dark ? "🌙" : "☀️"}</span>
+                  <span className="text-sm font-medium text-gray-700 truncate">{dark ? "Dark Mode" : "Light Mode"}</span>
                 </div>
                 <DarkModeToggle className="flex-shrink-0 w-8 h-8" />
               </div>
 
-              {/* Notifications row — only for logged-in users */}
               {user && (
                 <>
                   <div className="border-t border-gray-100 my-1" />
@@ -246,10 +204,9 @@ export default function Hotelnav() {
 
               <div className="border-t border-gray-100 my-1" />
 
-              {/* Auth action — Logout if logged in, Login if not */}
               {user ? (
                 <button
-                  onClick={() => { handleLogout(); setMobileMenu(false); }}
+                  onClick={handleLogout}
                   className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium text-red-500 transition-all duration-300 hover:bg-red-50 hover:translate-x-1"
                 >
                   🚪 Logout
@@ -263,10 +220,8 @@ export default function Hotelnav() {
                   🔑 Login
                 </Link>
               )}
-
             </div>
           </div>
-
         </nav>
       </div>
     </>

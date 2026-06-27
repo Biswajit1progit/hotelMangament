@@ -6,7 +6,7 @@ import HotelDetails from "./pages/hoteldetail";   // 👈 IMPORTANT
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
-import BookingDetails from "./pages/BookingDetails"
+/* import BookingDetails from "./pages/BookingDetails" */
 import Wishlist from "./pages/Wishlist";
 import SuccessPage from "./pages/SuccessPage"; // ✅ NEW
 import PaymentPage  from "./pages/PaymentPage";

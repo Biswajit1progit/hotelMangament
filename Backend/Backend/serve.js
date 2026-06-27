@@ -2,7 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
 dotenv.config();
+
 
 const hotelRoutes = require("./routes/hotelRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
@@ -17,6 +19,7 @@ const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
 const contactRoutes = require("./routes/contactRoutes")
 const app = express();
+
 app.set("trust proxy", 1) 
 const allowedOrigins = [
   "http://localhost:1234",
@@ -33,7 +36,7 @@ app.use(cors({
   },
   credentials: true,
 }));
-
+app.use(cookieParser());
 app.use(express.json());
 app.use("/images", express.static("public/images"));
 
