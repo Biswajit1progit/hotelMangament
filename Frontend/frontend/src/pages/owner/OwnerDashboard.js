@@ -325,7 +325,7 @@ function OwnerDashboard() {
     }
   };
 
-  const handleLogout = () => { sessionStorage.clear(); navigate("/login"); };
+const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
 
   if (loading) return <Shimmer dark={dark} />;
 

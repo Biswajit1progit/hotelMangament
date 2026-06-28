@@ -331,11 +331,10 @@ function AdminDashboard() {
     fetchUsers();
   };
 
-  const handleLogout = () => {
-    sessionStorage.clear();
-    navigate("/login");
-  };
-
+const handleLogout = () => {
+  sessionStorage.clear();
+  navigate("/");
+};
   /* ── Filtered lists ─────────────────────────────────────────────── */
   const filteredUsers = users.filter(
     (u) =>
