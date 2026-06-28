@@ -43,6 +43,10 @@ name: {
     ref: "User"
   },
   rooms: Number,
+    lastBookingAttempt: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 

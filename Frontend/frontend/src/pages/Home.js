@@ -11,7 +11,7 @@ const DESTINATIONS = [
   { name: "Kochi",    img: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&q=80", tag: "Backwaters" },
   { name: "Manali",    img: "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=400&q=80", tag: "Mountains" },
   { name: "Varanasi",  img: "https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=400&q=80", tag: "Spiritual" },
-  { name: "Coorg",     img: "https://images.unsplash.com/photo-1580889240257-9e6f5c3b8a02?w=400&q=80", tag: "Nature" },
+  { name: "Coorg",     img: "https://images.unsplash.com/flagged/photo-1592544858330-7ac10a0468e5?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", tag: "Nature" },
 ];
 
 const WHY_US = [
