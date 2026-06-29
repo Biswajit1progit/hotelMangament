@@ -630,6 +630,67 @@ Error: Index not found
 → Re-run: node scripts/buildIndex.js
 
 
+## 🔐 Security & Architecture Hardening
+
+This section documents real vulnerabilities found and fixed during development — not a theoretical checklist. Each item below was identified, reproduced, fixed, and (where applicable) tested under load.
+
+### 1. IDOR (Insecure Direct Object Reference) — Notification & Review routes
+
+**The problem:** `verifyToken` middleware proves *who you are*, not *what you're allowed to touch*. Several routes (`markAsRead`, `deleteNotification` on notifications; `editReview` on reviews) fetched a resource by ID from the request and mutated it without checking that the resource belonged to the requesting user. Any authenticated user could pass another user's resource ID and modify or delete data they didn't own.
+
+**The fix:** Ownership is now enforced *inside the query filter*, not as a separate check after fetching:
+
+```js
+// Before — vulnerable
+const notif = await Notification.findById(req.params.id);
+notif.read = true;
+await notif.save();
+
+// After — ownership baked into the query itself
+const notif = await Notification.findOneAndUpdate(
+  { _id: req.params.id, userId: req.user.id },
+  { read: true },
+  { new: true }
+);
+if (!notif) return res.status(404).json({ message: "Not found" });
+```
+
+If the resource doesn't belong to the requester, the query simply matches nothing — there's no window where a mismatched check could be bypassed by a race or a logic error in a separate `if` block.
+
+### 2. Race Condition / TOCTOU — Concurrent Booking (Overbooking)
+
+**The problem:** Two users booking the last available room simultaneously could both pass the "is a room available" check before either write completed — a classic Time-Of-Check-to-Time-Of-Use race. Both bookings would succeed, overbooking the hotel.
+
+**The fix:** Booking creation is wrapped in a MongoDB transaction. A sentinel field (`lastBookingAttempt`) on the `Hotel` document is updated inside the transaction, forcing MongoDB's write-conflict detection to kick in if two transactions touch the same hotel concurrently. The losing transaction fails cleanly instead of silently double-booking.
+
+**Verified, not assumed:** A concurrency test harness (`scripts/test-race.js`) fires simultaneous booking requests at the same hotel using `axios` + `Promise.allSettled()`, confirming only one booking succeeds when room availability is exactly 1.
+
+### 3. Authentication Architecture — httpOnly Cookies + In-Memory Access Tokens
+
+**The problem:** Tokens stored in `localStorage` are readable by any JavaScript running on the page — a single XSS vulnerability anywhere in the app (including third-party scripts) means token theft.
+
+**The fix — split-token model:**
+- **Refresh token:** stored in an `httpOnly`, `Secure`, `SameSite=None` cookie — invisible to JavaScript, sent automatically by the browser on cross-origin requests to the API.
+- **Access token:** held only in memory on the client (never written to disk/localStorage/sessionStorage). It's wiped on every page refresh and silently reissued by exchanging the refresh cookie via `/api/auth/refresh` (handled in `initAuth` on app load).
+- **Centralized client (`apiClient.js`):** a single axios instance with:
+  - A request interceptor that attaches the in-memory access token.
+  - A response interceptor that catches `401` responses coded `TOKEN_EXPIRED`/`NO_TOKEN`, transparently calls the refresh endpoint, and retries the original request — including a queue so concurrent requests during an in-flight refresh don't each trigger a duplicate refresh call.
+
+This means an XSS payload can no longer simply read `localStorage.token` and exfiltrate a long-lived credential — there's nothing persistent to steal.
+
+### 4. Cross-Origin Cookie Delivery
+
+Frontend (Netlify) and backend (Render) are deployed on different origins, which makes cookie-based auth nontrivial:
+- **Dev:** a Parcel dev-server proxy (`.proxyrc`) routes API calls through the same origin as the frontend during local development, avoiding `SameSite` cookie rejection between different localhost ports.
+- **Prod:** the refresh cookie is issued with `SameSite=None; Secure`, and CORS on the backend explicitly allows credentials (`Access-Control-Allow-Credentials: true`) from the exact deployed frontend origin.
+
+### 5. Centralized API Client (in progress)
+
+Owner-facing pages previously called `axios` directly with manually attached `Authorization: Bearer <token>` headers per-request — easy to forget, and incompatible with the httpOnly cookie migration. These are being consolidated onto the shared `apiClient` instance described above, so every authenticated call goes through one interceptor rather than duplicating auth logic per file.
+
+---
+
+**Why this matters:** Most of these aren't "added security features" in the abstract — each one maps to a specific exploit path (steal another user's notification/review, overbook a hotel room, steal a session via XSS) that was reachable in an earlier version of this codebase and is now closed.  
 
 ## 🔒 Security
 
@@ -660,7 +721,7 @@ Error: Index not found
 
 ## 👨‍💻 Author
 
-**Biswajit Sahu**
+**Biswajit Sahoo**
 B.Tech Computer Science & Engineering · Government College of Engineering, Keonjhar · 6th Semester
 
 [![GitHub](https://img.shields.io/badge/GitHub-Biswajit1progit-black?style=flat&logo=github)](https://github.com/Biswajit1progit)
