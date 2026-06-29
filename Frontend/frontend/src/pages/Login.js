@@ -1,47 +1,46 @@
-
 import { useState, useEffect } from "react";
 import { loginUser } from "../services/authService";
+import { googleAuthUser } from "../services/authService";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { getUser } from "../utils/auth";
 
 const ROLES = [
-  { value: "user", label: "🧳 Guest" },
-  { value: "hotelOwner", label: "🏨 Owner" },
-  { value: "admin", label: "🔐 Admin" },
+  { value: "user",       label: "🧳 Guest"  },
+  { value: "hotelOwner", label: "🏨 Owner"  },
+  { value: "admin",      label: "🔐 Admin"  },
 ];
 
 function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm]               = useState({ email: "", password: "" });
   const [selectedRole, setSelectedRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [loading, setLoading]         = useState(false);
+  const navigate  = useNavigate();
+  const location  = useLocation();
 
-  // Show verified success message if coming from email verification
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("verified") === "true") {
+    if (params.get("verified") === "true")
       toast.success("Email verified! You can now login 🎉");
-    }
-    if (params.get("error") === "invalid-link") {
+    if (params.get("error") === "invalid-link")
       toast.error("Verification link is invalid or expired");
-    }
-    const token = sessionStorage.getItem("token");
-    if (token) navigate("/");
+
+    // CHANGED: check user object instead of token in sessionStorage
+    // (token is now in memory, not sessionStorage)
+    if (getUser()) navigate("/");
   }, []);
 
-  // ── Email/password login ──────────────────────────────────
+  // ── Email/password login ──────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!form.email || !form.password) {
       toast.error("Email and password required");
       return;
     }
-
     try {
       setLoading(true);
-      const data = await loginUser(form);
+      const data = await loginUser(form);   // sets token in memory + user in sessionStorage
       const role = data?.user?.role || "user";
 
       if (role !== selectedRole) {
@@ -51,19 +50,12 @@ function Login() {
 
       toast.success("Login Successful 🎉");
 
-      if (role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (role === "hotelOwner") {
-        navigate("/owner/dashboard");
-      } else {
-        const redirectTo = location.state?.from || "/";
-        navigate(redirectTo);
-      }
+      if (role === "admin")           navigate("/admin/dashboard");
+      else if (role === "hotelOwner") navigate("/owner/dashboard");
+      else navigate(location.state?.from || "/");
 
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.response?.data?.error || "Login failed";
-
-      // Show specific message for unverified email
       if (errorMsg.includes("verify your email")) {
         toast.error("Please verify your email first. Check your inbox.");
       } else {
@@ -74,30 +66,24 @@ function Login() {
     }
   };
 
-  // ── Google login ──────────────────────────────────────────
+  // ── Google login ──────────────────────────────────────────────────────────
+  // CHANGED: replaced raw fetch() with googleAuthUser() which:
+  //   1. Uses api instance (withCredentials:true) so refresh cookie is received
+  //   2. Stores token in memory via setUserSession, not sessionStorage("token")
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ credential: credentialResponse.credential }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Google login failed");
-
-      sessionStorage.setItem("token", data.token);
-      sessionStorage.setItem("user", JSON.stringify(data.user));
+      const data = await googleAuthUser({ credential: credentialResponse.credential });
 
       toast.success("Login Successful 🎉");
 
       const role = data.user?.role || "user";
-      if (role === "admin") navigate("/admin/dashboard");
+      if (role === "admin")           navigate("/admin/dashboard");
       else if (role === "hotelOwner") navigate("/owner/dashboard");
       else navigate(location.state?.from || "/");
 
     } catch (err) {
-      toast.error(err.message || "Google login failed");
+      toast.error(err.response?.data?.message || err.message || "Google login failed");
     } finally {
       setLoading(false);
     }
@@ -123,7 +109,6 @@ function Login() {
           <p className="text-center text-gray-400 font-serif mb-1">Welcome To SafarSetu</p>
           <h2 className="text-2xl font-semibold text-center mb-4">Login</h2>
 
-          {/* Google login — shows device account automatically */}
           <div className="mb-4">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
@@ -136,14 +121,12 @@ function Login() {
             />
           </div>
 
-          {/* Divider */}
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-gray-200" />
             <span className="text-xs text-gray-400">or login with email</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
-          {/* Role Toggle */}
           <div className="mb-4">
             <p className="text-sm text-gray-500 mb-2 text-center">Login as:</p>
             <div className="flex gap-2 justify-center">
@@ -164,7 +147,6 @@ function Login() {
             </div>
           </div>
 
-          {/* Email */}
           <span className="text-sm font-medium text-gray-600">Email:</span>
           <input
             placeholder="Email"
@@ -172,7 +154,6 @@ function Login() {
             className="border p-2 w-full mb-3 mt-1 rounded-lg text-sm"
           />
 
-          {/* Password */}
           <span className="text-sm font-medium text-gray-600">Password:</span>
           <div className="relative mt-1 mb-4">
             <input

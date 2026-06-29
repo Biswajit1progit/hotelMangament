@@ -13,8 +13,15 @@ export default function Hotelnav() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [dark, setDark]             = useState(isDarkMode());
   const [scrolled, setScrolled]     = useState(false);
+  const [user, setUser]             = useState(getUser()); // ← useState so it reacts to initAuth()
   const menuRef                     = useRef(null);
-  const user                        = getUser();
+
+  // ── Sync user when initAuth() restores session ────────────────────────────
+  useEffect(() => {
+    const sync = () => setUser(getUser());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -49,15 +56,10 @@ export default function Hotelnav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ── Logout fix ────────────────────────────────────────────────────────────
-  // We navigate to "/" with replace:true instead of "/login".
-  // This REPLACES the entire current history entry (payment page) with home.
-  // So pressing back from home goes to whatever was before payment — never
-  // back to payment itself. The login redirect happens naturally if they then
-  // click something that needs auth (profile, booking etc), not on logout.
-  const handleLogout = () => {
-    logoutUser();
-    sessionStorage.clear();
+  // ── Logout: async so backend kills the refresh token cookie ──────────────
+  const handleLogout = async () => {
+    await logoutUser();
+    setUser(null);
     setMobileMenu(false);
     navigate("/", { replace: true });
   };
@@ -81,8 +83,7 @@ export default function Hotelnav() {
   return (
     <>
       <div className="pt-3 mt-3 px-2 sm:px-4">
-        <nav
-          className={`
+        <nav className={`
             relative flex items-center justify-between
             px-4 sm:px-6 py-4 rounded-2xl border
             bg-white/80 backdrop-blur-xl backdrop-saturate-150
@@ -144,7 +145,7 @@ export default function Hotelnav() {
             </button>
             <div className={`absolute right-0 top-14 z-50 origin-top-right transform transition-all duration-500 ease-out
               ${show ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-3 pointer-events-none"}`}>
-              <ProfileDropdown close={() => setShow(false)} />
+              <ProfileDropdown close={() => setShow(false)} onLogout={() => setUser(null)} />
             </div>
           </div>
 

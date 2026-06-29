@@ -1,25 +1,17 @@
 import { useState } from "react"
 import { toast } from "react-toastify"
 import { useNavigate } from "react-router-dom"
+import api from "../services/apiClient"
+import { getUser } from "../utils/auth"
 
 const SUBJECTS = {
   user: [
-    "Booking Issue",
-    "Payment Problem",
-    "Hotel Complaint",
-    "Refund Request",
-    "Account Issue",
-    "General Query",
-    "Other",
+    "Booking Issue", "Payment Problem", "Hotel Complaint",
+    "Refund Request", "Account Issue", "General Query", "Other",
   ],
   hotelOwner: [
-    "Hotel Listing Issue",
-    "Payment Not Received",
-    "Booking Management",
-    "Account Verification",
-    "Technical Problem",
-    "General Query",
-    "Other",
+    "Hotel Listing Issue", "Payment Not Received", "Booking Management",
+    "Account Verification", "Technical Problem", "General Query", "Other",
   ],
 }
 
@@ -35,11 +27,12 @@ export default function ContactForm({ role = "user", userName = "", userEmail = 
   const [loading, setLoading] = useState(false)
   const [sent, setSent]       = useState(false)
 
-  // ── Read token from sessionStorage (same key used everywhere in SafarSetu) ──
-  const token = sessionStorage.getItem("token")
+  // ── Auth check: use getUser() instead of sessionStorage("token") ──────────
+  // Token is now in memory (apiClient.js), not sessionStorage.
+  // getUser() checks sessionStorage("user") which is always written on login.
+  const loggedIn = !!getUser()
 
-  // ── If user is not logged in, show a gate instead of the form ──────────────
-  if (!token) {
+  if (!loggedIn) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-10 text-center max-w-lg mx-auto">
         <div className="text-5xl mb-4">🔒</div>
@@ -58,49 +51,32 @@ export default function ContactForm({ role = "user", userName = "", userEmail = 
     )
   }
 
-  // ── Form submitted ─────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!form.name || !form.email || !form.subject || !form.message) {
       toast.error("All fields are required")
       return
     }
-
     setLoading(true)
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/contact`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // ── Send JWT so backend can verify the request is from a real user ──
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...form, role }),
-      })
-
-      const data = await res.json()
-
-      if (res.status === 401) {
-        // Token expired or tampered — send them to login
-        toast.error("Your session expired. Please login again.")
-        sessionStorage.clear()
-        navigate("/login", { state: { from: "/contact" } })
-        return
-      }
-
-      if (!res.ok) throw new Error(data.error || "Failed to send")
-
+      // ── Use api (axios with interceptor) instead of raw fetch ────────────
+      // The request interceptor attaches the Authorization header automatically.
+      // The response interceptor handles token refresh if needed.
+      await api.post("/api/contact", { ...form, role })
       setSent(true)
       toast.success("Message sent! We'll reply within 24 hours 📧")
     } catch (err) {
-      toast.error(err.message || "Failed to send message")
+      if (err?.response?.status === 401) {
+        toast.error("Your session expired. Please login again.")
+        navigate("/login", { state: { from: "/contact" } })
+      } else {
+        toast.error(err?.response?.data?.error || err.message || "Failed to send message")
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  // ── Success state ──────────────────────────────────────────────────────────
   if (sent) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-8 text-center max-w-lg mx-auto">
@@ -122,7 +98,6 @@ export default function ContactForm({ role = "user", userName = "", userEmail = 
     )
   }
 
-  // ── Main form ──────────────────────────────────────────────────────────────
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 max-w-lg mx-auto">
       <div className="mb-6">
@@ -139,65 +114,39 @@ export default function ContactForm({ role = "user", userName = "", userEmail = 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="text-sm font-medium text-gray-600 block mb-1">Your Name</label>
-          <input
-            type="text"
-            placeholder="Full name"
-            value={form.name}
+          <input type="text" placeholder="Full name" value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
-            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition"
-          />
+            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition" />
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600 block mb-1">Email Address</label>
-          <input
-            type="email"
-            placeholder="your@email.com"
-            value={form.email}
+          <input type="email" placeholder="your@email.com" value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
-            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition"
-          />
+            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition" />
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600 block mb-1">Subject</label>
-          <select
-            value={form.subject}
-            onChange={e => setForm({ ...form, subject: e.target.value })}
-            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition bg-white"
-          >
+          <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}
+            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition bg-white">
             <option value="">Select a subject</option>
-            {SUBJECTS[role].map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            {SUBJECTS[role].map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-
         <div>
           <label className="text-sm font-medium text-gray-600 block mb-1">Message</label>
-          <textarea
-            placeholder="Describe your issue or question in detail..."
-            value={form.message}
-            onChange={e => setForm({ ...form, message: e.target.value })}
-            rows={5}
-            maxLength={500}
-            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition resize-none"
-          />
+          <textarea placeholder="Describe your issue or question in detail..."
+            value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
+            rows={5} maxLength={500}
+            className="border border-gray-200 rounded-xl px-4 py-2.5 w-full text-sm focus:outline-none focus:border-blue-400 transition resize-none" />
           <p className="text-xs text-gray-400 mt-1 text-right">{form.message.length}/500</p>
         </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-60 text-sm"
-        >
+        <button type="submit" disabled={loading}
+          className="bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-60 text-sm">
           {loading ? "Sending..." : "Send Message 📧"}
         </button>
       </form>
 
-      <p className="text-xs text-gray-400 text-center mt-4">
-        We typically respond within 24 hours
-      </p>
+      <p className="text-xs text-gray-400 text-center mt-4">We typically respond within 24 hours</p>
     </div>
   )
 }

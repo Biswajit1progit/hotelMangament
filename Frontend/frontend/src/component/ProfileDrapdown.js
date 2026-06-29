@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { getUser, logoutUser } from "../utils/auth";
 import { useEffect, useRef } from "react";
 
-const ProfileDropdown = ({ close }) => {
+// onLogout prop — called after logout so Navbar/Hotelnav can clear their user state
+const ProfileDropdown = ({ close, onLogout }) => {
   const ref  = useRef();
   const user = getUser();
   const navigate = useNavigate();
@@ -15,12 +16,11 @@ const ProfileDropdown = ({ close }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ── Logout fix: replace current page with "/" so back never returns
-  // to a protected page like /payment ──────────────────────────────────────
-  const handleLogout = () => {
-    logoutUser();
-    sessionStorage.clear();
+  // ── Logout: async — waits for backend to kill refresh cookie ─────────────
+  const handleLogout = async () => {
+    await logoutUser();
     close();
+    if (onLogout) onLogout();      // tell parent navbar to clear user state
     navigate("/", { replace: true });
   };
 

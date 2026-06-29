@@ -13,8 +13,15 @@ export default function Navbar() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled]     = useState(false);
   const [dark, setDark]             = useState(isDarkMode());
+  const [user, setUser]             = useState(getUser()); // ← useState so it reacts to initAuth()
   const menuRef = useRef(null);
-  const user = getUser();
+
+  // ── Sync user when initAuth() restores session (App.jsx fires storage event) ──
+  useEffect(() => {
+    const sync = () => setUser(getUser());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -49,11 +56,10 @@ export default function Navbar() {
     return () => observer.disconnect();
   }, []);
 
-  // ── Logout fix: replace current page with "/" so back never returns
-  // to a protected page like /payment ──────────────────────────────────────
-  const handleLogout = () => {
-    logoutUser();
-    sessionStorage.clear();
+  // ── Logout: async so backend kills the refresh token cookie ──────────────
+  const handleLogout = async () => {
+    await logoutUser();          // clears memory + sessionStorage + cookie
+    setUser(null);               // immediately update navbar UI
     setMobileMenu(false);
     navigate("/", { replace: true });
   };
@@ -136,7 +142,7 @@ export default function Navbar() {
                 ? "opacity-100 scale-100 translate-y-0"
                 : "opacity-0 scale-95 -translate-y-3 pointer-events-none"}
             `}>
-              <ProfileDropdown close={() => setShow(false)} />
+              <ProfileDropdown close={() => setShow(false)} onLogout={() => setUser(null)} />
             </div>
           </div>
 

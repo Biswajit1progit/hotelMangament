@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/apiClient";
-import { getUserPayments } from "../services/paymentService";
-import { refundPayment } from "../services/paymentService";
+import { getUser } from "../utils/auth";
+import { getUserPayments, refundPayment } from "../services/paymentService";
 import { getHotelById } from "../services/hotelservice";
 
 const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 const isRefundWindowOpen = (createdAt) => {
   if (!createdAt) return true;
-  const paidAt = new Date(createdAt).getTime();
-  return Date.now() - paidAt <= REFUND_WINDOW_MS;
+  return Date.now() - new Date(createdAt).getTime() <= REFUND_WINDOW_MS;
 };
 
 const formatDate = (dateStr) => {
@@ -48,16 +47,13 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
   if (!failed && imgUrl) {
     return (
       <div className="relative w-full h-full overflow-hidden rounded-xl">
-        <img
-          src={imgUrl} alt={hotelName}
+        <img src={imgUrl} alt={hotelName}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={() => setFailed(true)}
-        />
+          onError={() => setFailed(true)} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
     );
   }
-
   return (
     <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-100 via-violet-100 to-blue-50 flex items-center justify-center">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-300">
@@ -71,38 +67,34 @@ const BookingThumbnail = ({ hotelId, hotelName }) => {
 const Profile = () => {
   const navigate = useNavigate();
 
-  // ── Auth guard — must be before any data-fetching hooks ──────────────────
-  // Read token synchronously so the guard fires on first render,
-  // before any API calls are made, avoiding the 401 entirely.
-  const token = sessionStorage.getItem("token");
-
-  const [user, setUser]         = useState(null);
-  const [bookings, setBookings] = useState([]);
+  // ── Auth guard — uses getUser() (sessionStorage) instead of token ─────────
+  // Token is now in memory (apiClient.js), not sessionStorage.
+  // getUser() reads the user object which is still in sessionStorage.
+  // If initAuth() ran in App.jsx, user is already set. If not, redirect to login.
   const [authChecked, setAuthChecked] = useState(false);
-
+  const [user, setUser]               = useState(null);
+  const [bookings, setBookings]       = useState([]);
   const userRef = useRef(null);
+
   useEffect(() => { userRef.current = user; }, [user]);
 
-  // ── Redirect if no token ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!token) {
-      navigate("/login", {
-        replace: true,
-        state: { from: "/profile" },   // Login page can read this and redirect back
-      });
+    const sessionUser = getUser();
+    if (!sessionUser) {
+      navigate("/login", { replace: true, state: { from: "/profile" } });
       return;
     }
     setAuthChecked(true);
-  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchBookings = useCallback(() => {
     if (!userRef.current) return;
     getUserPayments()
       .then(setBookings)
       .catch((err) => {
-        // If token expired mid-session, send them back to login
+        // apiClient interceptor handles token refresh automatically.
+        // If we still get 401 here, refresh failed → force logout.
         if (err?.response?.status === 401) {
-          sessionStorage.clear();
           navigate("/login", { replace: true, state: { from: "/profile" } });
         } else {
           console.error("Failed to fetch bookings:", err);
@@ -129,33 +121,23 @@ const Profile = () => {
 
   useEffect(() => {
     if (!authChecked) return;
-    const params      = new URLSearchParams(window.location.search);
-    const justBooked  = params.has("booking");
-    const timer       = setTimeout(() => fetchBookings(), 3000);
-    const timer2      = justBooked ? setTimeout(() => fetchBookings(), 6000) : null;
-    return () => {
-      clearTimeout(timer);
-      if (timer2) clearTimeout(timer2);
-    };
+    const params     = new URLSearchParams(window.location.search);
+    const justBooked = params.has("booking");
+    const t1 = setTimeout(() => fetchBookings(), 3000);
+    const t2 = justBooked ? setTimeout(() => fetchBookings(), 6000) : null;
+    return () => { clearTimeout(t1); if (t2) clearTimeout(t2); };
   }, [authChecked, fetchBookings]);
 
   useEffect(() => {
     if (!authChecked) return;
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get("/api/auth/me");
-        setUser(res.data);
-      } catch (err) {
+    api.get("/api/auth/me")
+      .then((res) => setUser(res.data))
+      .catch((err) => {
+        // Token refresh is handled by interceptor — if still 401, redirect
         if (err?.response?.status === 401) {
-          // Token was in sessionStorage but is expired/invalid on the server
-          sessionStorage.clear();
           navigate("/login", { replace: true, state: { from: "/profile" } });
-        } else {
-          console.error("Failed to fetch profile:", err);
         }
-      }
-    };
-    fetchProfile();
+      });
   }, [authChecked, navigate]);
 
   const handleCancelBooking = async (paymentId) => {
@@ -163,21 +145,17 @@ const Profile = () => {
     if (res.success) {
       alert("Refunded Successfully ✅");
       setBookings((prev) =>
-        prev.map((item) =>
-          item._id === paymentId ? { ...item, status: "refunded" } : item
-        )
+        prev.map((item) => item._id === paymentId ? { ...item, status: "refunded" } : item)
       );
     } else {
       alert(res.message || "Refund failed ❌");
     }
   };
 
-  // While the redirect is in progress (no token), render nothing
-  if (!token || !authChecked) return null;
+  if (!authChecked) return null;
 
   return (
     <div className="profile-page relative min-h-screen p-3 sm:p-6">
-
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-slate-50 to-violet-50" />
       <div className="fixed top-10 right-10 w-80 h-80 -z-10 bg-blue-200/30 rounded-full blur-3xl" />
       <div className="fixed bottom-20 left-10 w-80 h-80 -z-10 bg-violet-200/30 rounded-full blur-3xl" />
@@ -186,22 +164,16 @@ const Profile = () => {
 
       {user && (
         <div className="mt-4 flex items-center gap-3 p-4 rounded-2xl bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/60 shadow-lg shadow-blue-100/50 animate-[fadeInUp_0.5s_ease-out]">
-
-          {/* Avatar */}
           <div className="rounded-full p-2.5 bg-gradient-to-br from-blue-100 to-violet-100 ring-1 ring-white/80 shadow-inner shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6 text-blue-600">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1"
                 d="M12 12c2.761 0 5-2.239 5-5S14.761 2 12 2 7 4.239 7 7s2.239 5 5 5zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z" />
             </svg>
           </div>
-
-          {/* Name + email */}
           <div className="min-w-0 flex-1">
             <p className="text-gray-900 font-semibold truncate">{user.name}</p>
             <p className="text-gray-500 text-sm truncate">{user.email}</p>
           </div>
-
-          {/* Logo */}
           <div className="shrink-0">
             <svg className="block sm:hidden" width="36" height="36" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
               <circle cx="25" cy="25" r="22" fill="#2563EB" />
@@ -214,9 +186,7 @@ const Profile = () => {
                 <path d="M5 28 C18 5, 32 5, 45 20" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
                 <polygon points="28,10 42,16 28,20 32,26 24,20 12,22" fill="white" />
               </g>
-              <text x="50" y="31" fontFamily="Poppins, Arial, sans-serif" fontSize="20" fontWeight="600" fill="#091fed">
-                SafarSetu
-              </text>
+              <text x="50" y="31" fontFamily="Poppins, Arial, sans-serif" fontSize="20" fontWeight="600" fill="#091fed">SafarSetu</text>
             </svg>
           </div>
         </div>
@@ -232,29 +202,20 @@ const Profile = () => {
       ) : (
         <div className="mt-3 flex flex-col gap-4">
           {bookings.map((b, i) => (
-            <div
-              key={b._id}
+            <div key={b._id}
               className="booking-card group relative rounded-2xl overflow-hidden bg-white/70 backdrop-blur-xl backdrop-saturate-150 border border-white/60 shadow-lg shadow-blue-100/40 transition-all duration-500 hover:shadow-xl hover:shadow-blue-200/40 animate-[fadeInUp_0.5s_ease-out]"
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
+              style={{ animationDelay: `${i * 80}ms` }}>
               <div className="flex flex-col sm:flex-row">
-
-                {/* Hotel image — top on mobile only */}
                 <div className="w-full h-36 sm:hidden p-3 pb-0">
                   <BookingThumbnail hotelId={b.hotelId} hotelName={b.hotelName} />
                 </div>
-
-                {/* Details */}
                 <div className="flex-1 p-4 sm:p-5">
                   <p className="text-base font-semibold text-gray-900 mb-2">{b.hotelName}</p>
-
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
+                        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                       </svg>
                       Booked: {formatDateTime(b.createdAt)}
                     </span>
@@ -269,58 +230,45 @@ const Profile = () => {
                       </span>
                     )}
                   </div>
-
                   <div className="space-y-0.5 text-sm">
                     <p className="text-gray-900"><b className="font-semibold">Amount:</b> ₹{b.amount}</p>
                     <p className="text-gray-600"><b className="font-semibold text-gray-900">Order No:</b> {b.orderNumber}</p>
                     <p className="text-gray-600 break-all"><b className="font-semibold text-gray-900">Booking ID:</b> {b.bookingId}</p>
                   </div>
-
                   <p className="mt-2">
                     <b className="font-semibold text-gray-900 text-sm">Status:</b>{" "}
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      b.status === "success"  ? "bg-green-100 text-green-700"
+                      b.status === "success" ? "bg-green-100 text-green-700"
                       : b.status === "refunded" ? "bg-gray-100 text-gray-600"
                       : "bg-yellow-100 text-yellow-700"}`}>
                       {b.status}
                     </span>
                   </p>
-
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <button
-                      onClick={() => window.open(`/success/${b.bookingId}`)}
-                      className="bg-gradient-to-r from-blue-600 to-violet-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-[0.97]"
-                    >
+                    <button onClick={() => window.open(`/success/${b.bookingId}`)}
+                      className="bg-gradient-to-r from-blue-600 to-violet-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-[0.97]">
                       View Receipt
                     </button>
-
                     {(() => {
                       const refunded   = b.status === "refunded";
                       const windowOpen = isRefundWindowOpen(b.createdAt);
                       const disabled   = refunded || !windowOpen;
                       const label      = refunded ? "Refunded" : !windowOpen ? "Refund Window Expired" : "Cancel Booking";
                       return (
-                        <button
-                          onClick={() => handleCancelBooking(b._id)}
-                          disabled={disabled}
-                          title={!refunded && !windowOpen ? "Prepaid bookings are non-refundable after 2 hours of payment." : undefined}
-                          className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none"
-                        >
+                        <button onClick={() => handleCancelBooking(b._id)} disabled={disabled}
+                          title={!refunded && !windowOpen ? "Prepaid bookings are non-refundable after 2 hours." : undefined}
+                          className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
                           {label}
                         </button>
                       );
                     })()}
                   </div>
-
                   {b.status !== "refunded" && !isRefundWindowOpen(b.createdAt) && (
                     <p className="mt-2 text-xs text-amber-600 flex items-center gap-1">
-                      <span>⏰</span>
-                      Refund window has passed. This prepaid booking is no longer refundable.
+                      <span>⏰</span> Refund window has passed. This prepaid booking is no longer refundable.
                     </p>
                   )}
                 </div>
-
-                {/* Hotel image — right side on desktop only */}
                 <div className="hidden sm:block w-44 p-3 pl-0">
                   <BookingThumbnail hotelId={b.hotelId} hotelName={b.hotelName} />
                 </div>
@@ -329,7 +277,6 @@ const Profile = () => {
           ))}
         </div>
       )}
-
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(12px); }

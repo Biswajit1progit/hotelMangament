@@ -20,7 +20,7 @@ const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
 const contactRoutes = require("./routes/contactRoutes")
 const app = express();
 
-app.set("trust proxy", 1) 
+/* app.set("trust proxy", 1) 
 const allowedOrigins = [
   "http://localhost:1234",
   process.env.FRONTEND_URL,
@@ -35,7 +35,32 @@ app.use(cors({
     }
   },
   credentials: true,
+})); */
+const allowedOrigins = [
+  "http://localhost:1234",
+     // add any other local ports you use
+  process.env.FRONTEND_URL, // e.g. https://safarsetu.netlify.app
+];
+ 
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, mobile apps, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
+  credentials: true,   // ← MUST be true for cookies to work cross-origin
 }));
+ 
+// ── Also add this AFTER the cors() middleware ─────────────────────────────────
+// Explicitly set Vary: Origin so CDNs/proxies don't cache the wrong CORS headers
+app.use((req, res, next) => {
+  res.header("Vary", "Origin");
+  next();
+});
 app.use(cookieParser());
 app.use(express.json());
 app.use("/images", express.static("public/images"));

@@ -4,7 +4,7 @@ const {
   register,
   verifyEmail,
   login,
-  
+  refresh, logout,
   googleAuth,
   getProfile,
   toggleWishlist,
@@ -15,6 +15,8 @@ const { verifyToken } = require("../middleware/authMiddleware");
 
 router.post("/register", register);
 router.post("/login", login);
+router.post("/refresh", refresh);
+router.post("/logout", logout);
 router.get("/me", verifyToken, getProfile);
 router.post("/wishlist/:hotelId", verifyToken, toggleWishlist);
 router.get("/wishlist", verifyToken, getWishlist);

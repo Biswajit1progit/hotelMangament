@@ -1,28 +1,28 @@
 const Razorpay = require("razorpay");
-const Payment = require("../models/Payment");
-const Booking = require("../models/Booking");
-const Hotel = require("../models/hotel");
-const { verifySignature } = require("../utils/verifySignature");
-const generateOrderId = require("../utils/generateOrderId");
-const generateInvoicePDF = require("../utils/generateInvoicepdf");
+const Payment  = require("../models/Payment");
+const Booking  = require("../models/Booking");
+const Hotel    = require("../models/hotel");
+const { verifySignature }      = require("../utils/verifySignature");
+const generateOrderId          = require("../utils/generateOrderId");
+const generateInvoicePDF       = require("../utils/generateInvoicepdf");
 const { sendPaymentConfirmation } = require("../service/emailService");
-const { createNotification } = require("./notificationController");
+const { createNotification }   = require("./notificationController");
 const dotenv = require("dotenv");
 dotenv.config();
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
+  key_id:     process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 const REFUND_WINDOW_MS = 2 * 60 * 60 * 1000; // 2 hours
 
-// Create order — sits behind verifyToken at the route level
+// ── createOrder — no user fields needed, unchanged ───────────────────────────
 exports.createOrder = async (req, res) => {
   try {
     const { amount } = req.body;
     const order = await razorpay.orders.create({
-      amount: amount * 100,
+      amount:   amount * 100,
       currency: "INR",
     });
     res.json(order);
@@ -31,24 +31,18 @@ exports.createOrder = async (req, res) => {
   }
 };
 
+// ── verifyPayment ─────────────────────────────────────────────────────────────
 exports.verifyPayment = async (req, res) => {
   try {
     const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      bookingId,
-      amount,
-      method,
+      razorpay_order_id, razorpay_payment_id, razorpay_signature,
+      bookingId, amount, method,
     } = req.body;
 
     const isValid = verifySignature(
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      process.env.RAZORPAY_KEY_SECRET
+      razorpay_order_id, razorpay_payment_id,
+      razorpay_signature, process.env.RAZORPAY_KEY_SECRET
     );
-
     if (!isValid) return res.status(400).json({ success: false });
 
     const booking = await Booking.findById(bookingId);
@@ -56,91 +50,88 @@ exports.verifyPayment = async (req, res) => {
     const payment = new Payment({
       bookingId,
       amount,
-      paymentMethod: method,
+      paymentMethod:     method,
       razorpayPaymentId: razorpay_payment_id,
-      razorpayOrderId: razorpay_order_id,
-      status: "success",
-      orderNumber: generateOrderId(),
-      hotelName: booking.hotelName,
-      guests: booking.guests,
-      rooms: booking.rooms,
-      nights: booking.nights,
-      name: booking.name,
-      email: booking.email,
-      userId: req.user._id, // ✅ ADDED — req.user is set by verifyToken on this
-                            // route, so this is always the authenticated user's
-                            // real DB id, never a spoofable email string.
+      razorpayOrderId:   razorpay_order_id,
+      status:            "success",
+      orderNumber:       generateOrderId(),
+      hotelName:         booking.hotelName,
+      guests:            booking.guests,
+      rooms:             booking.rooms,
+      nights:            booking.nights,
+      name:              booking.name,
+      email:             booking.email,
+      // CHANGED: req.user._id → req.user.id
+      // Old verifyToken returned a Mongoose doc (._id = ObjectId).
+      // New verifyToken decodes JWT payload (.id = string from jwt.sign({ id: user._id })).
+      // req.user._id was undefined → payment stored with no userId
+      // → getUserPayments returned empty array for everyone.
+      userId: req.user.id,   // ✅ FIXED
     });
 
     await payment.save();
 
+    // ── Notifications (unchanged) ─────────────────────────────────────────
     try {
       await createNotification({
         userEmail: booking.email,
-        title: "Booking Confirmed ✅",
-        message: `Your booking at ${booking.hotelName} is confirmed! Check-in: ${new Date(booking.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} | Check-out: ${new Date(booking.checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} | Amount paid: ₹${amount}`,
-        type: "booking_confirmed",
+        title:     "Booking Confirmed ✅",
+        message:   `Your booking at ${booking.hotelName} is confirmed! Check-in: ${new Date(booking.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} | Check-out: ${new Date(booking.checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} | Amount paid: ₹${amount}`,
+        type:      "booking_confirmed",
         bookingId: booking._id,
       });
-    } catch (err) {
-      console.warn("Booking confirmed notification failed:", err.message);
-    }
+    } catch (err) { console.warn("Booking confirmed notification failed:", err.message); }
 
     try {
       const hotel = await Hotel.findById(booking.hotelId);
-      const checkOutDate = new Date(booking.checkOut);
-      const now = new Date();
-      const daysUntilCheckout = Math.ceil((checkOutDate - now) / (1000 * 60 * 60 * 24));
-
+      const checkOutDate    = new Date(booking.checkOut);
+      const daysUntilCheckout = Math.ceil((checkOutDate - new Date()) / (1000 * 60 * 60 * 24));
       if (daysUntilCheckout <= 30 && hotel) {
         await createNotification({
           userEmail: booking.email,
-          title: "Room Available 🏨",
-          message: `Your room at ${booking.hotelName} is ready! Check-in on ${new Date(booking.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}. Enjoy your stay! ${hotel.amenities?.length ? `Amenities: ${hotel.amenities.slice(0, 3).join(", ")}` : ""}`,
-          type: "room_available",
+          title:     "Room Available 🏨",
+          message:   `Your room at ${booking.hotelName} is ready! Check-in on ${new Date(booking.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}. Enjoy your stay! ${hotel.amenities?.length ? `Amenities: ${hotel.amenities.slice(0, 3).join(", ")}` : ""}`,
+          type:      "room_available",
           bookingId: booking._id,
         });
       }
-    } catch (err) {
-      console.warn("Room available notification failed:", err.message);
-    }
+    } catch (err) { console.warn("Room available notification failed:", err.message); }
 
+    // ── Invoice email (unchanged) ─────────────────────────────────────────
     try {
       const pdfBuffer = await generateInvoicePDF({
-        orderNumber: payment.orderNumber,
+        orderNumber:       payment.orderNumber,
         razorpayPaymentId: razorpay_payment_id,
-        name: booking.name,
-        email: booking.email,
-        hotelName: booking.hotelName,
-        rooms: booking.rooms,
-        guests: booking.guests,
-        nights: booking.nights,
-        amount: amount,
-        createdAt: payment.createdAt,
+        name:              booking.name,
+        email:             booking.email,
+        hotelName:         booking.hotelName,
+        rooms:             booking.rooms,
+        guests:            booking.guests,
+        nights:            booking.nights,
+        amount,
+        createdAt:         payment.createdAt,
       });
 
       await sendPaymentConfirmation({
-        to: booking.email,
+        to:       booking.email,
         userName: booking.name,
         hotel: {
-          name: booking.hotelName,
+          name:     booking.hotelName,
           location: "",
-          price: Math.round(amount / booking.nights),
+          price:    Math.round(amount / booking.nights),
         },
         booking: {
-          bookingId: payment._id,
-          checkIn: booking.checkIn,
-          checkOut: booking.checkOut,
-          amount: amount,
-          nights: booking.nights,
-          paymentId: razorpay_payment_id,
+          bookingId:   payment._id,
+          checkIn:     booking.checkIn,
+          checkOut:    booking.checkOut,
+          amount,
+          nights:      booking.nights,
+          paymentId:   razorpay_payment_id,
           paymentDate: payment.createdAt,
         },
         pdfBuffer,
       });
-    } catch (emailErr) {
-      console.warn("Payment email failed:", emailErr.message);
-    }
+    } catch (emailErr) { console.warn("Payment email failed:", emailErr.message); }
 
     res.json({ message: "Payment Successful" });
 
@@ -150,74 +141,63 @@ exports.verifyPayment = async (req, res) => {
   }
 };
 
+// ── cancelBookingRefund ───────────────────────────────────────────────────────
+// CHANGED: added ownership check — previously any logged-in user could refund
+// any payment by knowing the paymentId. Now only the payment owner can refund.
 exports.cancelBookingRefund = async (req, res) => {
   try {
     const { paymentId } = req.params;
 
     const payment = await Payment.findById(paymentId);
-    if (!payment) {
+    if (!payment)
       return res.status(404).json({ success: false, message: "Payment not found" });
-    }
 
-    if (payment.status === "refunded") {
-      return res.status(400).json({
-        success: false,
-        message: "This booking has already been refunded",
-      });
-    }
+    // ── Ownership check ───────────────────────────────────────────────────
+    const isOwner = payment.userId?.toString() === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin)
+      return res.status(403).json({ success: false, message: "Access denied" });
 
-    const paidAt = new Date(payment.createdAt).getTime();
-    const now = Date.now();
-    const elapsed = now - paidAt;
+    if (payment.status === "refunded")
+      return res.status(400).json({ success: false, message: "This booking has already been refunded" });
 
-    if (elapsed > REFUND_WINDOW_MS) {
+    const elapsed = Date.now() - new Date(payment.createdAt).getTime();
+    if (elapsed > REFUND_WINDOW_MS)
       return res.status(400).json({
         success: false,
         message: "Refund window has expired. Prepaid bookings are non-refundable after 2 hours of payment.",
         code: "REFUND_WINDOW_EXPIRED",
       });
-    }
 
-    payment.status = "refunded";
-    payment.refundDate = new Date();
+    payment.status       = "refunded";
+    payment.refundDate   = new Date();
     payment.refundAmount = payment.amount;
     await payment.save();
 
     try {
       await createNotification({
         userEmail: payment.email,
-        title: "Refund Processed 💰",
-        message: `Your refund of ₹${payment.amount} for booking at ${payment.hotelName} has been processed successfully.`,
-        type: "general",
+        title:     "Refund Processed 💰",
+        message:   `Your refund of ₹${payment.amount} for booking at ${payment.hotelName} has been processed successfully.`,
+        type:      "general",
         bookingId: payment.bookingId,
       });
-    } catch (err) {
-      console.warn("Refund notification failed:", err.message);
-    }
+    } catch (err) { console.warn("Refund notification failed:", err.message); }
 
     res.json({ success: true, message: "Refund successful" });
 
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Refund failed" });
   }
 };
 
-// ✅ CHANGED — now queries by userId (ObjectId from verified JWT token)
-// instead of email (string from booking form). This is the fix for the
-// bug where new bookings weren't showing in the profile:
-//
-// OLD: Payment.find({ email: req.user.email })
-//   → relied on booking.email (form input) matching req.user.email (token)
-//   → breaks if user typed a different email, used Google OAuth, etc.
-//
-// NEW: Payment.find({ userId: req.user._id })
-//   → direct ObjectId match, set at payment creation from the auth token
-//   → never mismatches, always returns the right user's payments
+// ── getUserPayments ───────────────────────────────────────────────────────────
+// CHANGED: req.user._id → req.user.id (same reason as verifyPayment above)
 exports.getUserPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({ userId: req.user._id })
-      .sort({ createdAt: -1 }); // newest first
+    const payments = await Payment.find({ userId: req.user.id })  // ✅ FIXED
+      .sort({ createdAt: -1 });
     res.json(payments);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
