@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { sendChatMessage } from "../services/chatService";
+import { getAccessToken } from "../services/apiClient"; // ⚠️ ADJUST THIS PATH to wherever apiClient.js actually lives
 
 // ✅ Mini hotel card shown inside chat
 const ChatHotelCard = ({ hotel }) => {
@@ -93,7 +94,13 @@ const ChatBot = () => {
     if (open) setTimeout(() => inputRef.current?.focus(), 300);
   }, [open]);
 
-  const getToken = () => sessionStorage.getItem("token") || null
+  // ✅ FIXED — was reading sessionStorage.getItem("token"), but the access
+  // token is never stored there; it lives in-memory only, inside
+  // apiClient.js. That meant isLoggedIn was always false and every chat
+  // message was sent with no Authorization header — every logged-in user
+  // was silently treated as a guest (5 msg/hr limit, guest-tier behavior).
+  // getAccessToken() reads the real in-memory token.
+  const getToken = () => getAccessToken() || null;
 
   // ✅ Re-checks every time chat opens — handles login/logout without remount
   const isLoggedIn = useMemo(() => !!getToken(), [open])

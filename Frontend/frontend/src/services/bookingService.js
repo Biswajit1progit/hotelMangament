@@ -25,7 +25,17 @@ export const createBooking = async (bookingData) => {
   const res = await api.post("/api/bookings", bookingData);
   return res.data;
 };
-
+// ✅ NEW — single booking by ID, used on the payment/confirmation page.
+// Before: PaymentPage.js called this with a raw fetch() and zero headers,
+// so it always 401'd once the backend route added verifyToken + ownership
+// checks (see bookingRoutes.js GET /:id).
+// Now: routes through the shared `api` instance, which attaches the
+// in-memory access token automatically and gets silent-refresh-on-401
+// for free, exactly like getUserBookings above.
+export const getBookingById = async (id) => {
+  const res = await api.get(`/api/bookings/${id}`);
+  return res.data;
+};
 // ✅ CHANGED — this is the important one.
 // Before: getUserBookings(email) hit /api/bookings/user/${email} with plain
 // fetch, no credentials, and the backend trusted that email directly —

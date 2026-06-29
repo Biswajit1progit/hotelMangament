@@ -153,7 +153,7 @@ export default function Footer() {
               <>
                 {[
                   { to: "/profile",  label: "My Profile"  },
-                  { to: "/bookings", label: "My Bookings" },
+                  
                   { to: "/wishlist", label: "Wishlist"    },
                   { to: "/contact",  label: "Contact Us"  },
                 ].map(({ to, label }) => (

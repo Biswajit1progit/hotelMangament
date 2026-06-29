@@ -1,7 +1,5 @@
 // ─────────────────────────────────────────────────────────────
 // frontend/src/pages/admin/HotelDetail.jsx
-// Single hotel analytics — dark mode aware
-// Route: /admin/hotel-analytics/:id
 // ─────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react"
@@ -11,11 +9,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   LineChart, Line,
 } from "recharts"
-import axios from "axios"
-import { getToken } from "../../utils/auth"
 import { toast } from "react-toastify"
+import api from "../../services/apiClient"
 
-const API    = `${process.env.REACT_APP_API_URL}/api/admin`
+const API    = "/api/admin"
 const COLORS = ["#10b981", "#f43f5e", "#f59e0b"]
 
 // ── Dark palette helpers ──────────────────────────────────────
@@ -30,7 +27,7 @@ const dp = (dark) => ({
   text3:      dark ? "#555c78" : "#9ca3af",
   gridStroke: dark ? "#2e3347" : "#f3f4f6",
   tickFill:   dark ? "#555c78" : "#9ca3af",
-  tooltip:    {
+  tooltip: {
     borderRadius: 12,
     border: dark ? "1px solid #2e3347" : "none",
     boxShadow: dark ? "none" : "0 4px 20px rgba(0,0,0,0.08)",
@@ -83,16 +80,12 @@ function HotelDetailShimmer({ dark }) {
       <div style={{ maxWidth: 1152, margin: "0 auto", padding: "24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }} className="animate-pulse">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {[...Array(6)].map((_, i) => (
-              <div key={i} style={{ ...pulse, borderRadius: 16, height: 80 }} />
-            ))}
+            {[...Array(6)].map((_, i) => <div key={i} style={{ ...pulse, borderRadius: 16, height: 80 }} />)}
           </div>
           <div style={{ ...pulse, borderRadius: 16, height: 280 }} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }} className="animate-pulse">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} style={{ ...pulse, borderRadius: 16, height: 220 }} />
-          ))}
+          {[...Array(2)].map((_, i) => <div key={i} style={{ ...pulse, borderRadius: 16, height: 220 }} />)}
         </div>
         <div style={{ ...pulse, borderRadius: 16, height: 300 }} className="animate-pulse" />
       </div>
@@ -101,7 +94,7 @@ function HotelDetailShimmer({ dark }) {
 }
 
 // ── Accept/Cancel Bar Chart ───────────────────────────────────
-function AcceptCancelBarChart({ bookings, stats, dark }) {
+function AcceptCancelBarChart({ bookings, dark }) {
   const p = dp(dark)
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
   const now    = new Date()
@@ -178,10 +171,8 @@ function RatioLineChart({ bookings, dark }) {
           <YAxis unit="%" tick={{ fontSize: 10, fill: p.tickFill }} domain={[0, 100]} />
           <Tooltip formatter={v => [`${v}%`]} contentStyle={p.tooltip} />
           <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, color: p.text2 }} />
-          <Line type="monotone" dataKey="Accept %" stroke="#10b981" strokeWidth={2.5}
-            dot={{ r: 4, fill: "#10b981", strokeWidth: 0 }} activeDot={{ r: 6 }} />
-          <Line type="monotone" dataKey="Cancel %" stroke="#f43f5e" strokeWidth={2.5}
-            dot={{ r: 4, fill: "#f43f5e", strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          <Line type="monotone" dataKey="Accept %" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: "#10b981", strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          <Line type="monotone" dataKey="Cancel %" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 4, fill: "#f43f5e", strokeWidth: 0 }} activeDot={{ r: 6 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -198,7 +189,6 @@ export default function HotelDetail() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [userBookings, setUserBookings] = useState(null)
   const [dark, toggleDark]             = useDarkMode()
-  const headers = { Authorization: `Bearer ${getToken()}` }
   const p = dp(dark)
 
   useEffect(() => { fetchData() }, [id])
@@ -206,7 +196,7 @@ export default function HotelDetail() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get(`${API}/analytics/hotel/${id}`, { headers })
+      const res = await api.get(`${API}/analytics/hotel/${id}`)
       setData(res.data)
     } catch {
       toast.error("Failed to load hotel details")
@@ -218,7 +208,7 @@ export default function HotelDetail() {
   const deleteHotel = async () => {
     if (!window.confirm(`Delete "${data.hotel.name}" and all its data?`)) return
     try {
-      await axios.delete(`${API}/analytics/hotel/${id}`, { headers })
+      await api.delete(`${API}/analytics/hotel/${id}`)
       toast.success("Hotel deleted ✅")
       navigate("/admin/dashboard")
     } catch {
@@ -229,7 +219,7 @@ export default function HotelDetail() {
   const deleteUser = async (userId, userName) => {
     if (!window.confirm(`Delete user "${userName}"? This cannot be undone.`)) return
     try {
-      await axios.delete(`${API}/users/${userId}`, { headers })
+      await api.delete(`${API}/users/${userId}`)
       toast.success("User deleted ✅")
       setSelectedUser(null)
       fetchData()
@@ -240,7 +230,7 @@ export default function HotelDetail() {
 
   const viewUserBookings = async (userId, userName) => {
     try {
-      const res = await axios.get(`${API}/analytics/user/${userId}`, { headers })
+      const res = await api.get(`${API}/analytics/user/${userId}`)
       setSelectedUser({ name: userName, id: userId })
       setUserBookings(res.data)
     } catch {
@@ -260,16 +250,16 @@ export default function HotelDetail() {
   ].filter(d => d.value > 0)
 
   const statCards = [
-    { label: "Total Bookings", value: stats.totalBookings,                          accent: "#3b82f6", bg: dark ? "#0d1a2e" : "#eff6ff"  },
-    { label: "Confirmed",      value: stats.confirmed,                               accent: "#10b981", bg: dark ? "#0d2e23" : "#ecfdf5"  },
-    { label: "Cancelled",      value: stats.cancelled,                               accent: "#f43f5e", bg: dark ? "#2e1020" : "#fff1f2"  },
-    { label: "Pending",        value: stats.pending,                                 accent: "#f59e0b", bg: dark ? "#2a1f08" : "#fffbeb"  },
-    { label: "Revenue",        value: `₹${stats.revenue.toLocaleString("en-IN")}`,  accent: "#8b5cf6", bg: dark ? "#1e1230" : "#f5f3ff"  },
-    { label: "Avg Rating",     value: `⭐ ${stats.avgRating}`,                       accent: "#f97316", bg: dark ? "#2a1800" : "#fff7ed"  },
+    { label: "Total Bookings", value: stats.totalBookings,                         accent: "#3b82f6", bg: dark ? "#0d1a2e" : "#eff6ff" },
+    { label: "Confirmed",      value: stats.confirmed,                              accent: "#10b981", bg: dark ? "#0d2e23" : "#ecfdf5" },
+    { label: "Cancelled",      value: stats.cancelled,                              accent: "#f43f5e", bg: dark ? "#2e1020" : "#fff1f2" },
+    { label: "Pending",        value: stats.pending,                                accent: "#f59e0b", bg: dark ? "#2a1f08" : "#fffbeb" },
+    { label: "Revenue",        value: `₹${stats.revenue.toLocaleString("en-IN")}`, accent: "#8b5cf6", bg: dark ? "#1e1230" : "#f5f3ff" },
+    { label: "Avg Rating",     value: `⭐ ${stats.avgRating}`,                      accent: "#f97316", bg: dark ? "#2a1800" : "#fff7ed" },
   ]
 
   const statusStyle = (s) => dark
-    ? (STATUS_STYLES_DARK[s] || "bg-gray-700 text-gray-300")
+    ? (STATUS_STYLES_DARK[s]  || "bg-gray-700 text-gray-300")
     : (STATUS_STYLES_LIGHT[s] || "bg-gray-100 text-gray-600")
 
   return (
@@ -277,9 +267,7 @@ export default function HotelDetail() {
 
       {/* ── Header ── */}
       <div style={{ background: p.surface, borderBottom: `1px solid ${p.border}`, padding: "16px 24px", display: "flex", alignItems: "center", gap: 16 }}>
-        <button
-          onClick={() => navigate("/admin/dashboard")}
-          style={{ color: p.text3, background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+        <button onClick={() => navigate("/admin/dashboard")} style={{ color: p.text3, background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           ← Back
         </button>
 
@@ -301,24 +289,12 @@ export default function HotelDetail() {
           <p style={{ fontSize: 12, color: p.text3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>📍 {hotel.location}</p>
         </div>
 
-        {/* Dark toggle */}
-        <button
-          onClick={toggleDark}
-          title={dark ? "Switch to light mode" : "Switch to dark mode"}
-          style={{
-            width: 36, height: 36, borderRadius: 10, border: "none", cursor: "pointer",
-            background: dark ? "#22263a" : "#f3f4f6",
-            color: dark ? "#fde68a" : "#6b7280",
-            fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
+        <button onClick={toggleDark} title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ width: 36, height: 36, borderRadius: 10, border: "none", cursor: "pointer", background: dark ? "#22263a" : "#f3f4f6", color: dark ? "#fde68a" : "#6b7280", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {dark ? "☀️" : "🌙"}
         </button>
 
-        <button
-          onClick={deleteHotel}
-          style={{ background: "#f43f5e", color: "#fff", padding: "8px 12px", borderRadius: 12, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={deleteHotel} style={{ background: "#f43f5e", color: "#fff", padding: "8px 12px", borderRadius: 12, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
           🗑️ <span className="hidden sm:inline">Delete Hotel</span>
         </button>
       </div>
@@ -327,7 +303,6 @@ export default function HotelDetail() {
 
         {/* ── Stats + Pie ── */}
         <div className="grid lg:grid-cols-2 gap-4 sm:gap-5 mb-5">
-          {/* Stat cards */}
           <div className="grid grid-cols-2 gap-3">
             {statCards.map((s, i) => (
               <div key={i} style={{ background: s.bg, borderRadius: 16, padding: "12px 16px", borderTop: `1px solid ${p.border}`, borderRight: `1px solid ${p.border}`, borderBottom: `1px solid ${p.border}`, borderLeft: `3px solid ${s.accent}` }}>
@@ -337,7 +312,6 @@ export default function HotelDetail() {
             ))}
           </div>
 
-          {/* Pie chart */}
           <div style={{ background: p.surface, borderRadius: 16, border: `1px solid ${p.border}`, padding: "20px" }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: p.text3, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>Overview</p>
             <h3 style={{ fontWeight: 700, color: p.text1, fontSize: 14, marginBottom: 12 }}>Booking Distribution</h3>
@@ -365,9 +339,9 @@ export default function HotelDetail() {
           </div>
         </div>
 
-        {/* ── Accept/Cancel Charts ── */}
+        {/* ── Charts ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-          <AcceptCancelBarChart bookings={bookings} stats={stats} dark={dark} />
+          <AcceptCancelBarChart bookings={bookings} dark={dark} />
           <RatioLineChart bookings={bookings} dark={dark} />
         </div>
 
@@ -379,20 +353,7 @@ export default function HotelDetail() {
               { key: "reviews",  label: `⭐ Reviews (${stats.reviewCount})`    },
             ].map(t => (
               <button key={t.key} onClick={() => setActiveTab(t.key)}
-                style={{
-                  padding: "14px 24px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  borderTop: "none",
-                  borderLeft: "none",
-                  borderRight: "none",
-                  borderBottom: `2px solid ${activeTab === t.key ? "#3b82f6" : "transparent"}`,
-                  color: activeTab === t.key ? "#3b82f6" : p.text3,
-                  background: activeTab === t.key ? (dark ? "#1a2744" : "#eff6ff") : "transparent",
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                }}>
+                style={{ padding: "14px 24px", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", borderTop: "none", borderLeft: "none", borderRight: "none", borderBottom: `2px solid ${activeTab === t.key ? "#3b82f6" : "transparent"}`, color: activeTab === t.key ? "#3b82f6" : p.text3, background: activeTab === t.key ? (dark ? "#1a2744" : "#eff6ff") : "transparent", cursor: "pointer", transition: "all 0.15s" }}>
                 {t.label}
               </button>
             ))}
@@ -409,20 +370,17 @@ export default function HotelDetail() {
               ) : (
                 <div className="space-y-2.5">
                   {bookings.map(b => (
-                    <div key={b._id} style={{ borderTop: `1px solid ${p.border2}`, borderRight: `1px solid ${p.border2}`, borderLeft: `1px solid ${p.border2}`, borderBottom: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px", transition: "background 0.15s" }}
+                    <div key={b._id}
+                      style={{ borderTop: `1px solid ${p.border2}`, borderRight: `1px solid ${p.border2}`, borderLeft: `1px solid ${p.border2}`, borderBottom: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px", transition: "background 0.15s" }}
                       onMouseEnter={e => e.currentTarget.style.background = p.surface2}
                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <button
-                              onClick={() => b.userId && viewUserBookings(b.userId, b.userName)}
-                              style={{ fontWeight: 700, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0 }}>
+                            <button onClick={() => b.userId && viewUserBookings(b.userId, b.userName)} style={{ fontWeight: 700, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0 }}>
                               👤 {b.userName}
                             </button>
-                            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${statusStyle(b.paymentStatus)}`}>
-                              {b.paymentStatus}
-                            </span>
+                            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${statusStyle(b.paymentStatus)}`}>{b.paymentStatus}</span>
                           </div>
                           <p style={{ color: p.text3, fontSize: 12, wordBreak: "break-word" }}>{b.userEmail} · 📞 {b.phone}</p>
                           <p style={{ color: p.text3, fontSize: 12, marginTop: 4, wordBreak: "break-word" }}>
@@ -456,22 +414,16 @@ export default function HotelDetail() {
                   {reviews.map(r => (
                     <div key={r._id} style={{ borderTop: `1px solid ${p.border2}`, borderRight: `1px solid ${p.border2}`, borderLeft: `1px solid ${p.border2}`, borderBottom: `1px solid ${p.border2}`, borderRadius: 12, padding: "12px 16px" }}>
                       <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                        <button
-                          onClick={() => r.userId && viewUserBookings(r.userId, r.userName)}
-                          style={{ fontWeight: 600, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0 }}>
+                        <button onClick={() => r.userId && viewUserBookings(r.userId, r.userName)} style={{ fontWeight: 600, color: "#3b82f6", background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: 0 }}>
                           👤 {r.userName}
                         </button>
                         <div className="flex">
-                          {[1,2,3,4,5].map(s => (
-                            <span key={s} style={{ fontSize: 14, color: s <= r.rating ? "#f59e0b" : dark ? "#374151" : "#e5e7eb" }}>★</span>
-                          ))}
+                          {[1,2,3,4,5].map(s => <span key={s} style={{ fontSize: 14, color: s <= r.rating ? "#f59e0b" : dark ? "#374151" : "#e5e7eb" }}>★</span>)}
                         </div>
                       </div>
                       {r.userEmail && <p style={{ color: p.text3, fontSize: 12, marginBottom: 4 }}>{r.userEmail}</p>}
                       <p style={{ color: p.text2, fontSize: 13, wordBreak: "break-word" }}>{r.text}</p>
-                      <p style={{ color: p.text3, fontSize: 11, marginTop: 6, opacity: 0.7 }}>
-                        {new Date(r.createdAt).toLocaleDateString("en-IN")}
-                      </p>
+                      <p style={{ color: p.text3, fontSize: 11, marginTop: 6, opacity: 0.7 }}>{new Date(r.createdAt).toLocaleDateString("en-IN")}</p>
                     </div>
                   ))}
                 </div>
@@ -483,18 +435,12 @@ export default function HotelDetail() {
 
       {/* ── User detail modal ── */}
       {selectedUser && userBookings && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50, backdropFilter: "blur(4px)" }}
-          className="sm:items-center">
-          <div style={{ background: p.surface, borderRadius: "16px 16px 0 0", width: "100%", maxWidth: 512, maxHeight: "90vh", overflowY: "auto", border: `1px solid ${p.border}` }}
-            className="sm:rounded-2xl">
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 50, backdropFilter: "blur(4px)" }} className="sm:items-center">
+          <div style={{ background: p.surface, borderRadius: "16px 16px 0 0", width: "100%", maxWidth: 512, maxHeight: "90vh", overflowY: "auto", border: `1px solid ${p.border}` }} className="sm:rounded-2xl">
             <div style={{ padding: "24px" }}>
-
-              {/* Modal header */}
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
                 <div style={{ minWidth: 0, flex: 1, marginRight: 12 }}>
-                  <h3 style={{ fontWeight: 800, color: p.text1, fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    👤 {selectedUser.name}
-                  </h3>
+                  <h3 style={{ fontWeight: 800, color: p.text1, fontSize: 16, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>👤 {selectedUser.name}</h3>
                   <p style={{ color: p.text3, fontSize: 13, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userBookings.user?.email}</p>
                   <span style={{
                     fontSize: 11, fontWeight: 600, padding: "2px 10px", borderRadius: 9999, marginTop: 6, display: "inline-block",
@@ -502,19 +448,14 @@ export default function HotelDetail() {
                     color: userBookings.user?.role === "admin" ? "#f43f5e" : userBookings.user?.role === "hotelOwner" ? "#8b5cf6" : p.text2,
                   }}>{userBookings.user?.role}</span>
                 </div>
-                <button
-                  onClick={() => { setSelectedUser(null); setUserBookings(null) }}
-                  style={{ color: p.text3, background: "none", border: "none", cursor: "pointer", fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
-                  ×
-                </button>
+                <button onClick={() => { setSelectedUser(null); setUserBookings(null) }} style={{ color: p.text3, background: "none", border: "none", cursor: "pointer", fontSize: 28, lineHeight: 1, flexShrink: 0 }}>×</button>
               </div>
 
-              {/* Stat chips */}
               <div className="grid grid-cols-3 gap-2 mb-5">
                 {[
-                  { label: "Total",     value: userBookings.bookings.length, color: "#3b82f6", bg: dark ? "#0d1a2e" : "#eff6ff" },
-                  { label: "Confirmed", value: userBookings.bookings.filter(b => b.paymentStatus === "success").length, color: "#10b981", bg: dark ? "#0d2e23" : "#ecfdf5" },
-                  { label: "Cancelled", value: userBookings.bookings.filter(b => b.paymentStatus === "refunded").length, color: "#f43f5e", bg: dark ? "#2e1020" : "#fff1f2" },
+                  { label: "Total",     value: userBookings.bookings.length,                                                   color: "#3b82f6", bg: dark ? "#0d1a2e" : "#eff6ff" },
+                  { label: "Confirmed", value: userBookings.bookings.filter(b => b.paymentStatus === "success").length,        color: "#10b981", bg: dark ? "#0d2e23" : "#ecfdf5" },
+                  { label: "Cancelled", value: userBookings.bookings.filter(b => b.paymentStatus === "refunded").length,       color: "#f43f5e", bg: dark ? "#2e1020" : "#fff1f2" },
                 ].map((chip, i) => (
                   <div key={i} style={{ background: chip.bg, borderRadius: 12, padding: "12px 8px", textAlign: "center" }}>
                     <p style={{ fontSize: 10, fontWeight: 600, color: p.text3, textTransform: "uppercase", letterSpacing: "0.08em" }}>{chip.label}</p>
@@ -523,7 +464,6 @@ export default function HotelDetail() {
                 ))}
               </div>
 
-              {/* Bookings list */}
               <p style={{ fontWeight: 700, color: p.text1, fontSize: 14, marginBottom: 10 }}>All Bookings</p>
               <div className="space-y-2 mb-5">
                 {userBookings.bookings.length === 0 ? (
@@ -539,9 +479,7 @@ export default function HotelDetail() {
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0 }}>
                         <p style={{ fontWeight: 800, fontSize: 13, color: "#10b981" }}>₹{b.totalPrice?.toLocaleString("en-IN")}</p>
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${statusStyle(b.paymentStatus)}`}>
-                          {b.paymentStatus}
-                        </span>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${statusStyle(b.paymentStatus)}`}>{b.paymentStatus}</span>
                       </div>
                     </div>
                   </div>
@@ -549,9 +487,7 @@ export default function HotelDetail() {
               </div>
 
               {userBookings.user?.role !== "admin" && (
-                <button
-                  onClick={() => deleteUser(selectedUser.id, selectedUser.name)}
-                  style={{ width: "100%", background: "#f43f5e", color: "#fff", padding: "12px", borderRadius: 12, fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer" }}>
+                <button onClick={() => deleteUser(selectedUser.id, selectedUser.name)} style={{ width: "100%", background: "#f43f5e", color: "#fff", padding: "12px", borderRadius: 12, fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer" }}>
                   🗑️ Delete User Account
                 </button>
               )}

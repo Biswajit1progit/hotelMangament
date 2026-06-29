@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getHotelById } from "../services/hotelservice";
+import { getReviews } from "../services/reviewserve"; // ⚠️ ADJUST THIS PATH to wherever reviewApi.js actually lives
 import ImageGallery from "../component/ImageGallery";
 import ReviewForm from "../component/ReviewForm";
 import ReviewList from "../component/ReviewList";
@@ -59,11 +60,20 @@ function HotelDetails() {
     }
   };
 
+  // ✅ FIXED — was a raw fetch() with no headers at all, so it never sent
+  // an Authorization token (hence the "NO_TOKEN" 401). Now routes through
+  // getReviews() from reviewApi.js, which uses the shared axios instance
+  // (apiClient.js) that attaches the in-memory access token automatically
+  // and gets silent-refresh-on-401 for free.
   const fetchReviews = async () => {
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/reviews/${id}`);
-    const data = await res.json();
-    setReviews(data);
-    fetchHotel();
+    try {
+      const { data } = await getReviews(id);
+      setReviews(data);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    } finally {
+      fetchHotel();
+    }
   };
 
   if (loading) return (

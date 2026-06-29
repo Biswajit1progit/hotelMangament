@@ -38,7 +38,8 @@ api.interceptors.response.use(
     const status   = error.response?.status;
     const code     = error.response?.data?.code;
 
-    if (status === 401 && code === "TOKEN_EXPIRED" && !original._retry) {
+    /* if (status === 401 && code === "TOKEN_EXPIRED" && !original._retry) { */
+    if (status === 401 && (code === "TOKEN_EXPIRED" || code === "NO_TOKEN") && !original._retry) {
       original._retry = true;
 
       if (isRefreshing) {

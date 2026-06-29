@@ -4,13 +4,12 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { getToken } from "../../utils/auth";
+import api from "../../services/apiClient";
 import { toast } from "react-toastify";
 import { uploadImagesToCloudinary } from "../../services/uploadService";
 import HotelMap from "../../component/HotelMap";
 
-const API = `${process.env.REACT_APP_API_URL}/api/owners`;
+const OWNERS = "/api/owners";
 
 const capFirst = (val) => val ? val.charAt(0).toUpperCase() + val.slice(1) : "";
 const capWord  = (val) => val ? val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() : "";
@@ -93,18 +92,14 @@ function OwnerRequests() {
 
   const fetchRequests = async () => {
     try {
-      const res = await axios.get(`${API}/requests`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await api.get(`${OWNERS}/requests`);
       setRequests(res.data);
     } catch (err) { console.error(err); }
   };
 
   const fetchMyHotel = async () => {
     try {
-      const res = await axios.get(`${API}/hotel`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await api.get(`${OWNERS}/hotel`);
       setMyHotel(res.data);
       setType("update_hotel");
     } catch {
@@ -115,9 +110,7 @@ function OwnerRequests() {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get(`${API}/bookings`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await api.get(`${OWNERS}/bookings`);
       setBookings(res.data);
     } catch (err) { console.error(err); }
   };
@@ -196,10 +189,9 @@ function OwnerRequests() {
       const finalDetails = { ...details, ...(type === "add_hotel" && { images: uploadedImages }) };
       const hotelId   = ["delete_hotel", "update_hotel", "room_availability"].includes(type) ? myHotel?._id : undefined;
       const bookingId = type === "cancel_booking" ? details.bookingId : undefined;
-      await axios.post(
-        `${API}/request`,
-        { type, details: finalDetails, reason, hotelId, bookingId },
-        { headers: { Authorization: `Bearer ${getToken()}` } }
+      await api.post(
+        `${OWNERS}/request`,
+        { type, details: finalDetails, reason, hotelId, bookingId }
       );
       toast.success("Request submitted to admin ✅");
       resetForm(); fetchRequests();

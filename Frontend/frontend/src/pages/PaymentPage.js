@@ -4,6 +4,7 @@ import PaymentForm from "../component/PaymentForm";
 import BookingSummary from "../component/BookingSummary";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";
+import { getBookingById } from "../services/bookingService"; // ⚠️ ADJUST THIS PATH to wherever bookingService.js actually lives
 
 // ── Shimmer Skeleton ──────────────────────────────────────────
 const PaymentPageSkeleton = () => (
@@ -43,11 +44,20 @@ const PaymentPage = () => {
   const { id } = useParams();
   const [booking, setBooking] = useState(null);
 
+  // ✅ FIXED — was a raw fetch() with no headers at all, so it never sent
+  // an Authorization token. Once the backend's GET /api/bookings/:id route
+  // added verifyToken + ownership checks, this always 401'd. Now routes
+  // through getBookingById() from bookingService.js, which uses the shared
+  // axios instance (apiClient.js) that attaches the in-memory access token
+  // automatically and gets silent-refresh-on-401 for free.
   useEffect(() => {
     const fetchBooking = async () => {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/bookings/${id}`);
-      const data = await res.json();
-      setBooking(data);
+      try {
+        const data = await getBookingById(id);
+        setBooking(data);
+      } catch (err) {
+        console.error("Failed to fetch booking:", err);
+      }
     };
     fetchBooking();
   }, [id]);

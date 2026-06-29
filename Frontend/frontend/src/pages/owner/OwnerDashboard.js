@@ -5,12 +5,12 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { getToken, getUser } from "../../utils/auth";
+import { getUser, logoutUser } from "../../utils/auth";
+import api from "../../services/apiClient";
 import ContactForm from "../../component/ContactForm";
 import Footer from "../../component/footer";
 
-const API = `${process.env.REACT_APP_API_URL}/api/owners`;
+const API = "/api/owners";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
@@ -98,43 +98,28 @@ const STYLES = `
     box-shadow: 0 1px 3px rgba(0,0,0,0.28);
   }
 
-  /* ── Responsive ─────────────────────────────────────────── */
-
-  /* Two-col panels → single col */
   @media (max-width: 700px) {
     .owner-two-col { grid-template-columns: 1fr !important; }
   }
-
-  /* Stat grid: 2 cols on mobile */
   @media (max-width: 600px) {
     .owner-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
   }
-
-  /* Header: wrap brand + buttons to two rows on mobile */
   @media (max-width: 600px) {
     .owner-header { flex-wrap: wrap; gap: 10px !important; padding: 12px 16px !important; }
     .owner-header-actions { width: 100%; justify-content: space-between !important; }
     .owner-header-actions .nav-btn { flex: 1; justify-content: center !important; }
   }
-
-  /* Banner: stack vertically on mobile */
   @media (max-width: 520px) {
     .owner-banner { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
     .owner-banner-occ { align-self: flex-start !important; }
   }
-
-  /* Page padding: tighter on mobile */
   @media (max-width: 600px) {
     .owner-page-inner { padding: 16px 12px !important; }
   }
-
-  /* Booking row: tighter on mobile */
   @media (max-width: 480px) {
     .booking-row-inner { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
     .booking-row-right { align-self: flex-end !important; }
   }
-
-  /* Warning banner: stack on mobile */
   @media (max-width: 480px) {
     .owner-warn-banner { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
     .owner-warn-btn { align-self: stretch !important; text-align: center !important; }
@@ -178,23 +163,15 @@ function StatCard({ icon, label, value, accent, accentBg, border, surface, text1
     <div
       className="stat-card section-card"
       style={{
-        background: surface,
-        padding: "16px 16px 14px",
-        borderTop: `1px solid ${border}`,
-        borderRight: `1px solid ${border}`,
-        borderBottom: `1px solid ${border}`,
-        borderLeft: `4px solid ${accent}`,
+        background: surface, padding: "16px 16px 14px",
+        borderTop: `1px solid ${border}`, borderRight: `1px solid ${border}`,
+        borderBottom: `1px solid ${border}`, borderLeft: `4px solid ${accent}`,
         boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
         display: "flex", flexDirection: "column", gap: 12,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{
-          width: 38, height: 38, borderRadius: 11,
-          background: accentBg,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 18,
-        }}>
+        <div style={{ width: 38, height: 38, borderRadius: 11, background: accentBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
           {icon}
         </div>
         <span className="badge" style={{ background: accentBg, color: accent }}>Live</span>
@@ -230,11 +207,7 @@ function OccupancyBar({ occupied, total, dark }) {
 function InsightRow({ icon, label, value, dark, last }) {
   const p = dp(dark);
   return (
-    <div style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "9px 0",
-      borderBottom: last ? "none" : `1px solid ${p.border}`,
-    }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 0", borderBottom: last ? "none" : `1px solid ${p.border}` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{icon}</span>
         <span style={{ fontSize: 13, color: p.text2, fontWeight: 500 }}>{label}</span>
@@ -251,25 +224,13 @@ function BookingRow({ b, dark }) {
   return (
     <div
       className="booking-row"
-      style={{
-        padding: "13px 14px", borderRadius: 14, gap: 12,
-        background: p.surface2, marginBottom: 8, cursor: "default",
-      }}
+      style={{ padding: "13px 14px", borderRadius: 14, gap: 12, background: p.surface2, marginBottom: 8, cursor: "default" }}
       onMouseEnter={e => e.currentTarget.style.background = p.surface3}
       onMouseLeave={e => e.currentTarget.style.background = p.surface2}
     >
-      <div
-        className="booking-row-inner"
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
-      >
+      <div className="booking-row-inner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "flex", gap: 12, flex: 1, minWidth: 0, alignItems: "center" }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-            background: `hsl(${hue}, 55%, ${dark ? 26 : 90}%)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 15, fontWeight: 800,
-            color: `hsl(${hue}, 60%, ${dark ? 72 : 36}%)`,
-          }}>
+          <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: `hsl(${hue}, 55%, ${dark ? 26 : 90}%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: `hsl(${hue}, 60%, ${dark ? 72 : 36}%)` }}>
             {b.name?.[0]?.toUpperCase() || "?"}
           </div>
           <div style={{ minWidth: 0 }}>
@@ -314,9 +275,7 @@ function OwnerDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API}/dashboard`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await api.get(`${API}/dashboard`);
       setStats(res.data);
     } catch (err) {
       console.error(err);
@@ -325,7 +284,10 @@ function OwnerDashboard() {
     }
   };
 
-const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate("/", { replace: true });
+  };
 
   if (loading) return <Shimmer dark={dark} />;
 
@@ -341,93 +303,52 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
       {/* ── Header ────────────────────────────────────────────── */}
       <div
         className="owner-header"
-        style={{
-          background: p.surface, borderBottom: `1px solid ${p.border}`,
-          padding: "14px 28px",
-          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-          position: "sticky", top: 0, zIndex: 40,
-        }}
+        style={{ background: p.surface, borderBottom: `1px solid ${p.border}`, padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, position: "sticky", top: 0, zIndex: 40 }}
       >
-        {/* Brand */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 11, flexShrink: 0,
-            background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
-          }}>🏨</div>
+          <div style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: "linear-gradient(135deg, #3b82f6, #6366f1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🏨</div>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ fontSize: 15, fontWeight: 800, color: p.text1, margin: 0, letterSpacing: "-0.01em" }}>Owner Dashboard</h1>
             <p style={{ fontSize: 12, color: p.text3, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Welcome back, {user?.name}</p>
           </div>
         </div>
 
-        {/* Actions */}
-        <div
-          className="owner-header-actions"
-          style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap" }}
-        >
-          <button
-            className="nav-btn"
-            onClick={() => navigate("/owner/bookings")}
-            style={{ background: p.accentBg, color: p.accent, padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}
-          >
+        <div className="owner-header-actions" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
+          <button className="nav-btn" onClick={() => navigate("/owner/bookings")}
+            style={{ background: p.accentBg, color: p.accent, padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
             📋 <span className="nav-btn-label">Bookings</span>
           </button>
 
-          <button
-            className="nav-btn"
-            onClick={() => navigate("/owner/requests")}
-            style={{ background: p.amberBg, color: p.amber, padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, position: "relative" }}
-          >
+          <button className="nav-btn" onClick={() => navigate("/owner/requests")}
+            style={{ background: p.amberBg, color: p.amber, padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, position: "relative" }}>
             📝 <span className="nav-btn-label">Requests</span>
             {stats?.pendingRequests > 0 && (
-              <span style={{
-                position: "absolute", top: -6, right: -6,
-                background: p.red, color: "#fff",
-                fontSize: 10, fontWeight: 700, borderRadius: 99, minWidth: 18, height: 18,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 3, padding: "0 5px",
-              }}>
+              <span style={{ position: "absolute", top: -6, right: -6, background: p.red, color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 99, minWidth: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 3, padding: "0 5px" }}>
                 <span className="pulse-dot" />
                 {stats.pendingRequests}
               </span>
             )}
           </button>
 
-          <button
-            className="toggle-track"
-            onClick={toggleDark}
-            title={dark ? "Switch to light" : "Switch to dark"}
-            style={{ background: dark ? "#3b82f6" : "#cbd5e1" }}
-          >
+          <button className="toggle-track" onClick={toggleDark} title={dark ? "Switch to light" : "Switch to dark"} style={{ background: dark ? "#3b82f6" : "#cbd5e1" }}>
             <div className="toggle-thumb" style={{ left: dark ? 21 : 3 }} />
           </button>
 
-          <button
-            className="nav-btn"
-            onClick={handleLogout}
-            style={{ background: p.red, color: "#fff", padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}
-          >
+          <button className="nav-btn" onClick={handleLogout}
+            style={{ background: p.red, color: "#fff", padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
             🚪 Logout
           </button>
         </div>
       </div>
 
       {/* ── Page Body ─────────────────────────────────────────── */}
-      <div
-        className="owner-page-inner"
-        style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}
-      >
+      <div className="owner-page-inner" style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
 
         {/* ── Hotel Banner ───────────────────────────────────── */}
         {stats?.hotelName ? (
           <div
             className="owner-banner"
-            style={{
-              background: "linear-gradient(135deg, #1d4ed8 0%, #4f46e5 55%, #7c3aed 100%)",
-              borderRadius: 20, padding: "22px 24px", marginBottom: 24,
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-              position: "relative", overflow: "hidden",
-            }}
+            style={{ background: "linear-gradient(135deg, #1d4ed8 0%, #4f46e5 55%, #7c3aed 100%)", borderRadius: 20, padding: "22px 24px", marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, position: "relative", overflow: "hidden" }}
           >
             <div style={{ position: "absolute", right: -50, top: -50, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
             <div style={{ position: "absolute", right: 80, bottom: -70, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
@@ -438,13 +359,7 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
                 <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, marginTop: 7 }}>📍 {stats.hotelLocation}</p>
               )}
             </div>
-            <div
-              className="owner-banner-occ"
-              style={{
-                position: "relative", zIndex: 1, background: "rgba(255,255,255,0.13)",
-                borderRadius: 16, padding: "12px 20px", textAlign: "center", flexShrink: 0,
-              }}
-            >
+            <div className="owner-banner-occ" style={{ position: "relative", zIndex: 1, background: "rgba(255,255,255,0.13)", borderRadius: 16, padding: "12px 20px", textAlign: "center", flexShrink: 0 }}>
               <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 10, fontWeight: 600, letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: 5 }}>Occupancy</p>
               <p style={{ color: "#fff", fontSize: 28, fontWeight: 800, lineHeight: 1, margin: 0, fontFamily: "'DM Mono', monospace" }}>{occupiedPct}%</p>
             </div>
@@ -452,39 +367,25 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
         ) : (
           <div
             className="owner-warn-banner"
-            style={{
-              background: p.amberBg,
-              borderTop: `1px solid ${dark ? "#4a3010" : "#fde68a"}`,
-              borderRight: `1px solid ${dark ? "#4a3010" : "#fde68a"}`,
-              borderBottom: `1px solid ${dark ? "#4a3010" : "#fde68a"}`,
-              borderLeft: `4px solid ${p.amber}`,
-              borderRadius: 18, padding: "18px 20px", marginBottom: 24,
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-            }}
+            style={{ background: p.amberBg, borderTop: `1px solid ${dark ? "#4a3010" : "#fde68a"}`, borderRight: `1px solid ${dark ? "#4a3010" : "#fde68a"}`, borderBottom: `1px solid ${dark ? "#4a3010" : "#fde68a"}`, borderLeft: `4px solid ${p.amber}`, borderRadius: 18, padding: "18px 20px", marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}
           >
             <div>
               <p style={{ fontWeight: 700, color: dark ? "#fde68a" : "#92400e", fontSize: 14, marginBottom: 4 }}>⚠️ No hotel listed yet</p>
               <p style={{ fontSize: 12, color: dark ? "#d97706" : "#b45309" }}>Submit a request to admin to get your property listed on SafarSetu</p>
             </div>
-            <button
-              className="action-btn owner-warn-btn"
-              onClick={() => navigate("/owner/requests")}
-              style={{ background: p.amber, color: "#fff", padding: "10px 20px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
-            >
+            <button className="action-btn owner-warn-btn" onClick={() => navigate("/owner/requests")}
+              style={{ background: p.amber, color: "#fff", padding: "10px 20px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
               + Add Hotel
             </button>
           </div>
         )}
 
         {/* ── Stat Cards ─────────────────────────────────────── */}
-        <div
-          className="owner-stat-grid"
-          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 24 }}
-        >
-          <StatCard icon="📋" label="Total Bookings"   value={stats?.totalBookings || 0}                                accent="#3b82f6" accentBg={p.accentBg} border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub="All time" />
-          <StatCard icon="💰" label="Total Revenue"    value={`₹${(stats?.totalRevenue || 0).toLocaleString("en-IN")}`}  accent="#10b981" accentBg={p.greenBg}  border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub={`Avg ₹${avgRevPerBooking.toLocaleString("en-IN")} / booking`} />
-          <StatCard icon="🛏️" label="Occupied Rooms"   value={`${stats?.occupiedRooms || 0} / ${stats?.totalRooms || 0}`} accent="#f59e0b" accentBg={p.amberBg}  border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub={`${occupiedPct}% occupancy`} />
-          <StatCard icon="✅" label="Available Rooms"  value={stats?.availableRooms || 0}                                accent="#8b5cf6" accentBg={p.purpleBg} border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub="Ready to book" />
+        <div className="owner-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14, marginBottom: 24 }}>
+          <StatCard icon="📋" label="Total Bookings"  value={stats?.totalBookings || 0}                                  accent="#3b82f6" accentBg={p.accentBg} border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub="All time" />
+          <StatCard icon="💰" label="Total Revenue"   value={`₹${(stats?.totalRevenue || 0).toLocaleString("en-IN")}`}   accent="#10b981" accentBg={p.greenBg}  border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub={`Avg ₹${avgRevPerBooking.toLocaleString("en-IN")} / booking`} />
+          <StatCard icon="🛏️" label="Occupied Rooms"  value={`${stats?.occupiedRooms || 0} / ${stats?.totalRooms || 0}`} accent="#f59e0b" accentBg={p.amberBg}  border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub={`${occupiedPct}% occupancy`} />
+          <StatCard icon="✅" label="Available Rooms" value={stats?.availableRooms || 0}                                  accent="#8b5cf6" accentBg={p.purpleBg} border={p.border} surface={p.surface} text1={p.text1} text2={p.text2} sub="Ready to book" />
         </div>
 
         {/* ── Two-column ─────────────────────────────────────── */}
@@ -514,15 +415,11 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { icon: "📋", label: "View All Bookings",  sub: "Browse & manage reservations",  bg: p.accentBg, color: p.accent, path: "/owner/bookings" },
-                { icon: "📝", label: "Manage Requests",    sub: "Submit or track hotel requests", bg: p.amberBg,  color: p.amber,  path: "/owner/requests" },
+                { icon: "📋", label: "View All Bookings", sub: "Browse & manage reservations",  bg: p.accentBg, color: p.accent, path: "/owner/bookings" },
+                { icon: "📝", label: "Manage Requests",   sub: "Submit or track hotel requests", bg: p.amberBg,  color: p.amber,  path: "/owner/requests" },
               ].map((a, i) => (
-                <button
-                  key={i}
-                  className="action-btn"
-                  onClick={() => navigate(a.path)}
-                  style={{ display: "flex", alignItems: "center", gap: 14, background: a.bg, borderRadius: 14, padding: "14px 16px", border: "none", cursor: "pointer", textAlign: "left", width: "100%" }}
-                >
+                <button key={i} className="action-btn" onClick={() => navigate(a.path)}
+                  style={{ display: "flex", alignItems: "center", gap: 14, background: a.bg, borderRadius: 14, padding: "14px 16px", border: "none", cursor: "pointer", textAlign: "left", width: "100%" }}>
                   <span style={{ fontSize: 22, flexShrink: 0 }}>{a.icon}</span>
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: a.color, margin: 0 }}>{a.label}</p>
@@ -532,13 +429,7 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
                 </button>
               ))}
 
-              {/* Revenue pill */}
-              <div style={{
-                marginTop: 4,
-                background: dark ? "linear-gradient(135deg, #0d2e23, #091f18)" : "linear-gradient(135deg, #ecfdf5, #d1fae5)",
-                borderRadius: 14, padding: "16px 18px",
-                border: `1px solid ${dark ? "#134e35" : "#a7f3d0"}`,
-              }}>
+              <div style={{ marginTop: 4, background: dark ? "linear-gradient(135deg, #0d2e23, #091f18)" : "linear-gradient(135deg, #ecfdf5, #d1fae5)", borderRadius: 14, padding: "16px 18px", border: `1px solid ${dark ? "#134e35" : "#a7f3d0"}` }}>
                 <p style={{ fontSize: 11, color: p.green, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Total Earned</p>
                 <p className="mono" style={{ fontSize: 22, fontWeight: 800, color: p.green, margin: 0 }}>
                   ₹{(stats?.totalRevenue || 0).toLocaleString("en-IN")}
@@ -561,10 +452,7 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
                 <span className="badge" style={{ background: p.accentBg, color: p.accent }}>{stats.recentBookings.length} latest</span>
               )}
             </div>
-            <button
-              onClick={() => navigate("/owner/bookings")}
-              style={{ color: p.accent, background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}
-            >
+            <button onClick={() => navigate("/owner/bookings")} style={{ color: p.accent, background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
               View all →
             </button>
           </div>
@@ -581,8 +469,6 @@ const handleLogout = () => { sessionStorage.clear(); navigate("/"); };
         </div>
 
       </div>
-
-    
     </div>
   );
 }
