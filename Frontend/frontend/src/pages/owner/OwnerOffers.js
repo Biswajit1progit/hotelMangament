@@ -13,7 +13,7 @@ import {
   createOffer,
   updateOffer,
   deleteOffer,
-} from "../../services/offerService";
+} from "../../services/Offerservice";
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
