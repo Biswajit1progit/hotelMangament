@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { getUser } from "../utils/auth";
 import { createBooking } from "../services/bookingService";
 import { checkAvailability } from "../services/notificationService";
-import { validateOffer, getOffersForHotel } from "../services/offerService";
+import { validateOffer, getOffersForHotel } from "../services/Offerservice";
 
 const BookingForm = ({ hotel }) => {
   const navigate = useNavigate();

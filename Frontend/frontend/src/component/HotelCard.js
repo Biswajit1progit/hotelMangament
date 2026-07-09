@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toggleWishlist } from "../services/authService";
 import { isLoggedIn } from "../utils/auth";
-import { getOffersForHotel } from "../services/offerService";
+import { getOffersForHotel } from "../services/Offerservice";
 
 function HotelCard({ hotel, wishlist = [], setWishlist, onRemove, index = 0 }) {
   const navigate = useNavigate();
