@@ -4,7 +4,7 @@ import { getUser, logoutUser } from "../../utils/auth";
 import { toast } from "react-toastify";
 import api from "../../services/apiClient";
 import HotelAnalytics from "./HotelAnalytics";
-import AdminOffers from "./AdminOffers";
+import AdminOffers from "./Adminoffers";
 
 import {
   StatCardsSkeleton,
