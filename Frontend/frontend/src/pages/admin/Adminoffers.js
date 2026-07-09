@@ -5,7 +5,7 @@ import {
   createOffer,
   updateOffer,
   deleteOffer,
-} from "../../services/offerService";
+} from "../../services/Offerservice";
 import api from "../../services/apiClient";
 
 const EMPTY_FORM = {
