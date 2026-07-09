@@ -3,18 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { getUser } from "../utils/auth";
 import { createBooking } from "../services/bookingService";
 import { checkAvailability } from "../services/notificationService";
+import { validateOffer, getOffersForHotel } from "../services/offerService";
 
 const BookingForm = ({ hotel }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const user = getUser();
 
-  // ✅ Read dates from URL if user came from home page search
- /*  const params = new URLSearchParams(location.search);
-  const urlCheckIn = params.get("checkIn") || "";
-  const urlCheckOut = params.get("checkOut") || ""; */
-   const urlCheckIn = location.state?.checkIn || "";
-   const urlCheckOut = location.state?.checkOut || "";
+  const urlCheckIn = location.state?.checkIn || "";
+  const urlCheckOut = location.state?.checkOut || "";
 
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -28,12 +25,37 @@ const BookingForm = ({ hotel }) => {
   });
 
   const [nights, setNights] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [availability, setAvailability] = useState(null); // null | { bookedRooms, isAvailable }
+  const [totalPrice, setTotalPrice] = useState(0); // pre-discount total
+  const [availability, setAvailability] = useState(null);
   const [checkingAvail, setCheckingAvail] = useState(false);
   const [availError, setAvailError] = useState("");
 
-  // ✅ Calculate nights whenever dates change
+  // ── Offer/coupon state ────────────────────────────────────────────────
+  const [couponCode, setCouponCode] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [appliedOffer, setAppliedOffer] = useState(null); // { offerId, discount, finalAmount, applicableMethods, code }
+
+  // ── Available offers for this hotel — fetched once we know the hotel ────
+  const [availableOffers, setAvailableOffers] = useState([]);
+  const [loadingOffers, setLoadingOffers] = useState(true);
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      if (!hotel?._id) return;
+      setLoadingOffers(true);
+      try {
+        const offers = await getOffersForHotel(hotel._id);
+        setAvailableOffers(offers.filter((o) => o.code)); // only code-based offers are user-selectable here
+      } catch (err) {
+        console.error("Failed to load offers:", err);
+      } finally {
+        setLoadingOffers(false);
+      }
+    };
+    fetchOffers();
+  }, [hotel?._id]);
+
   useEffect(() => {
     if (form.checkIn && form.checkOut) {
       const inDate = new Date(form.checkIn);
@@ -48,7 +70,16 @@ const BookingForm = ({ hotel }) => {
     }
   }, [form.checkIn, form.checkOut, form.rooms, hotel?.pricePerNight]);
 
-  // ✅ Check availability whenever dates or hotel changes
+  // Any change to the amount invalidates a previously applied coupon —
+  // re-validating against a stale bookingAmount could under/overcharge.
+  useEffect(() => {
+    if (appliedOffer) {
+      setAppliedOffer(null);
+      setCouponError("Room/date changed — please re-apply your coupon.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalPrice]);
+
   useEffect(() => {
     const check = async () => {
       if (!form.checkIn || !form.checkOut || !hotel?._id) return;
@@ -73,7 +104,6 @@ const BookingForm = ({ hotel }) => {
       }
     };
 
-    // Debounce: wait 600ms after user stops changing dates
     const timer = setTimeout(check, 600);
     return () => clearTimeout(timer);
   }, [form.checkIn, form.checkOut, hotel?._id]);
@@ -84,10 +114,86 @@ const BookingForm = ({ hotel }) => {
 
   const handleDateChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setAvailability(null); // reset availability on date change
+    setAvailability(null);
   };
 
   const today = new Date().toISOString().split("T")[0];
+
+  // ── Apply coupon ─────────────────────────────────────────────────────
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    if (!hotel?._id || totalPrice <= 0) {
+      setCouponError("Select valid dates first");
+      return;
+    }
+
+    setApplyingCoupon(true);
+    setCouponError("");
+
+    try {
+      const result = await validateOffer({
+        code: couponCode.trim(),
+        hotelId: hotel._id,
+        bookingAmount: totalPrice,
+        // paymentMethod intentionally omitted — not chosen yet at this stage.
+        // Final enforcement happens server-side after payment (see paymentController).
+      });
+
+      setAppliedOffer({
+        offerId: result.offerId,
+        discount: result.discount,
+        finalAmount: result.finalAmount,
+        applicableMethods: result.applicableMethods || ["any"],
+        code: couponCode.trim().toUpperCase(),
+      });
+    } catch (err) {
+      setAppliedOffer(null);
+      setCouponError(err.response?.data?.message || "Invalid or expired coupon code");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedOffer(null);
+    setCouponCode("");
+    setCouponError("");
+  };
+
+  // ── Select an offer card directly — applies it without the user having
+  // to also type the code into the input box. ─────────────────────────
+  const handleSelectOfferCard = async (offer) => {
+    if (!hotel?._id || totalPrice <= 0) {
+      setCouponError("Select valid dates first");
+      return;
+    }
+    setCouponCode(offer.code);
+    setApplyingCoupon(true);
+    setCouponError("");
+
+    try {
+      const result = await validateOffer({
+        code: offer.code,
+        hotelId: hotel._id,
+        bookingAmount: totalPrice,
+      });
+
+      setAppliedOffer({
+        offerId: result.offerId,
+        discount: result.discount,
+        finalAmount: result.finalAmount,
+        applicableMethods: result.applicableMethods || ["any"],
+        code: offer.code.toUpperCase(),
+      });
+    } catch (err) {
+      setAppliedOffer(null);
+      setCouponError(err.response?.data?.message || "This offer could not be applied");
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const payableAmount = appliedOffer ? appliedOffer.finalAmount : totalPrice;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,13 +209,6 @@ const BookingForm = ({ hotel }) => {
       return;
     }
 
-    // ✅ Defensive check — don't rely solely on the button being disabled.
-    // Same principle as the refund-window fix: a disabled button is UX,
-    // not enforcement. If this handler somehow fires while availability
-    // is still unknown or unconfirmed (e.g. a fast double-click, or a
-    // race in React's state batching), block here too rather than
-    // submitting blind. The real authority is still the backend's
-    // re-check in createBooking — this is just an additional layer.
     if (availability?.isAvailable !== true) {
       alert("Please wait for availability to be confirmed before booking.");
       return;
@@ -119,25 +218,19 @@ const BookingForm = ({ hotel }) => {
       ...form,
       hotelId: hotel._id,
       hotelName: hotel.name,
-      totalPrice,
+      totalPrice,                                       // pre-discount, matches original room price math
       nights,
+      offerId: appliedOffer?.offerId || null,            // NEW
+      discountApplied: appliedOffer?.discount || 0,      // NEW
     };
 
     try {
       const res = await createBooking(bookingData);
-      /* const bookingId = res.data?._id || res._id; */
       const bookingId = res.data?._id || res._id || res.data?.id;
 
-      // ✅ Handle the backend's 409 ROOMS_UNAVAILABLE response — the real
-      // server-side re-check (see bookingController.js createBooking) can
-      // still reject this even if the frontend thought it was fine, e.g.
-      // if someone else booked the last room a moment earlier. Without
-      // this check, the old code would just show the confusing
-      // "Booking saved but ID missing ❌" message for what is actually
-      // an expected, legitimate "someone beat you to it" scenario.
       if (res.code === "ROOMS_UNAVAILABLE" || res.error) {
         alert(res.error || "Sorry, those rooms were just booked by someone else. Please try different dates.");
-        setAvailability(null); // force a fresh re-check before allowing another attempt
+        setAvailability(null);
         return;
       }
 
@@ -147,7 +240,15 @@ const BookingForm = ({ hotel }) => {
       }
 
       alert("Booking Successful ✅");
-      navigate(`/payment/${bookingId}`);
+      // Pass along the offer's payment-method restriction + discounted
+      // amount so the payment page can enforce/display it correctly.
+      navigate(`/payment/${bookingId}`, {
+        state: {
+          payableAmount,
+          discountApplied: appliedOffer?.discount || 0,
+          applicableMethods: appliedOffer?.applicableMethods || ["any"],
+        },
+      });
     } catch (err) {
       console.error(err);
       alert("Booking Failed ❌");
@@ -155,15 +256,11 @@ const BookingForm = ({ hotel }) => {
   };
 
   return (
-    // ── Full-width container — removed the old `max-w-md mx-auto` cap that
-    // was forcing this form into a narrow centered card regardless of how
-    // wide its parent section was. Now it fills the space it's given. ────
     <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-md w-full">
       <h2 className="text-lg sm:text-xl font-bold mb-4">Guest Details:</h2>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-        {/* Name + Email — paired now that there's horizontal room to spare */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-sm font-medium">Full Name *</label>
@@ -188,7 +285,6 @@ const BookingForm = ({ hotel }) => {
           </div>
         </div>
 
-        {/* Phone */}
         <div>
           <label className="text-sm font-medium">Phone *</label>
           <input
@@ -201,7 +297,6 @@ const BookingForm = ({ hotel }) => {
           />
         </div>
 
-        {/* Dates */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-sm font-medium">Check-in *</label>
@@ -230,7 +325,6 @@ const BookingForm = ({ hotel }) => {
           </div>
         </div>
 
-        {/* ✅ Availability Status */}
         {(checkingAvail || availability || availError) && (
           <div className={`text-sm px-3 py-2 rounded-lg font-medium ${
             checkingAvail
@@ -251,7 +345,6 @@ const BookingForm = ({ hotel }) => {
           </div>
         )}
 
-        {/* Rooms + Guests */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-sm font-medium">Rooms</label>
@@ -293,7 +386,6 @@ const BookingForm = ({ hotel }) => {
           </div>
         </div>
 
-        {/* Special Requests */}
         <div>
           <label className="text-sm font-medium">Special Requests</label>
           <textarea
@@ -303,6 +395,96 @@ const BookingForm = ({ hotel }) => {
             rows="3"
             onChange={handleChange}
           />
+        </div>
+
+        {/* ── Available offers — discoverable cards ────────────────────── */}
+        {!loadingOffers && availableOffers.length > 0 && !appliedOffer && (
+          <div>
+            <label className="text-sm font-medium mb-2 block">Available offers</label>
+            <div className="flex flex-col gap-2">
+              {availableOffers.map((o) => (
+                <button
+                  key={o._id}
+                  type="button"
+                  onClick={() => handleSelectOfferCard(o)}
+                  disabled={applyingCoupon || totalPrice <= 0}
+                  className={`text-left border rounded-lg px-3 py-2.5 transition ${
+                    totalPrice <= 0
+                      ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
+                      : "border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 cursor-pointer"
+                  }`}
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-blue-700">
+                        🎟️ {o.code} — {o.discountType === "flat" ? `₹${o.value} off` : `${o.value}% off${o.maxDiscountAmount ? ` (up to ₹${o.maxDiscountAmount})` : ""}`}
+                      </p>
+                      {o.title && <p className="text-xs text-gray-600 mt-0.5">{o.title}</p>}
+                      {o.minBookingAmount > 0 && (
+                        <p className="text-xs text-gray-400 mt-0.5">Min booking ₹{o.minBookingAmount}</p>
+                      )}
+                      {!o.applicableMethods?.includes("any") && (
+                        <p className="text-xs text-amber-600 mt-0.5">Valid only for: {o.applicableMethods.join(", ")}</p>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-blue-600 whitespace-nowrap">Tap to apply</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Coupon / Offer section ─────────────────────────────────── */}
+        <div>
+          <label className="text-sm font-medium">Have a coupon code?</label>
+          {!appliedOffer ? (
+            <div className="flex gap-2 mt-1">
+              <input
+                type="text"
+                placeholder="Enter coupon code"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                className="flex-1 border p-2 sm:p-3 rounded text-sm sm:text-base uppercase tracking-wide"
+                disabled={applyingCoupon || totalPrice <= 0}
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={applyingCoupon || !couponCode.trim() || totalPrice <= 0}
+                className={`px-4 sm:px-5 rounded text-sm sm:text-base font-medium transition ${
+                  applyingCoupon || !couponCode.trim() || totalPrice <= 0
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {applyingCoupon ? "..." : "Apply"}
+              </button>
+            </div>
+          ) : (
+            <div className="mt-1 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
+              <div>
+                <p className="text-sm font-semibold text-green-700">
+                  🎟️ {appliedOffer.code} applied — you save ₹{appliedOffer.discount}
+                </p>
+                {!appliedOffer.applicableMethods.includes("any") && (
+                  <p className="text-xs text-green-600 mt-0.5">
+                    Valid only for: {appliedOffer.applicableMethods.join(", ")}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveCoupon}
+                className="text-xs font-medium text-red-500 hover:text-red-600 flex-shrink-0 ml-2"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+          {couponError && (
+            <p className="text-xs text-red-500 mt-1">⚠️ {couponError}</p>
+          )}
         </div>
 
         {/* ✅ Dynamic Price Box */}
@@ -325,11 +507,25 @@ const BookingForm = ({ hotel }) => {
             <span>Guests</span>
             <span>{form.guests}</span>
           </div>
+
+          {appliedOffer && (
+            <>
+              <div className="flex justify-between mb-1 mt-2 pt-2 border-t border-gray-300">
+                <span>Subtotal</span>
+                <span>₹{totalPrice}</span>
+              </div>
+              <div className="flex justify-between mb-1 text-green-600">
+                <span>Coupon discount ({appliedOffer.code})</span>
+                <span>−₹{appliedOffer.discount}</span>
+              </div>
+            </>
+          )}
+
           <hr className="my-2" />
           <div className="flex justify-between font-semibold text-base sm:text-lg">
             <span>Total</span>
             <span className="text-blue-600">
-              {totalPrice > 0 ? `₹${totalPrice}` : "—"}
+              {payableAmount > 0 ? `₹${payableAmount}` : "—"}
             </span>
           </div>
           {nights > 0 && (
@@ -339,18 +535,7 @@ const BookingForm = ({ hotel }) => {
           )}
         </div>
 
-        {/* Submit */}
         {(() => {
-          // ✅ FIX — previously this only disabled when availability was
-          // explicitly known to be false. The moment dates changed,
-          // availability reset to null (see handleDateChange), and
-          // `null?.isAvailable === false` evaluates to false — meaning
-          // the button was clickable during the entire debounce + network
-          // round-trip window, before the new check even came back.
-          // A user could submit during that gap using stale/unknown
-          // availability. Now the button also disables whenever
-          // availability hasn't been confirmed yet (checking, unknown,
-          // or errored), not only when we know for certain it's full.
           const availabilityConfirmedOk = availability?.isAvailable === true;
           const blocked =
             nights <= 0 ||

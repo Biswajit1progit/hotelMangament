@@ -333,7 +333,10 @@ function OwnerDashboard() {
           <button className="toggle-track" onClick={toggleDark} title={dark ? "Switch to light" : "Switch to dark"} style={{ background: dark ? "#3b82f6" : "#cbd5e1" }}>
             <div className="toggle-thumb" style={{ left: dark ? 21 : 3 }} />
           </button>
-
+          <button className="nav-btn" onClick={() => navigate("/owner/offers")}
+          style={{ background: p.purpleBg, color: p.purple, padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+            🎟️ <span className="nav-btn-label">Offers</span>
+          </button>
           <button className="nav-btn" onClick={handleLogout}
             style={{ background: p.red, color: "#fff", padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
             🚪 Logout

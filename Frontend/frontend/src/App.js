@@ -17,6 +17,7 @@ import OwnerBookings   from "./pages/owner/OwnerBookings";
 import AdminDashboard  from "./pages/admin/AdminDashboard";
 import HotelDetail     from "./pages/admin/HotelDetail";
 import ContactPage     from "./pages/ContactPage";
+import OwnerOffers     from "./pages/owner/OwnerOffers"
 import UnderMaintenance from "./pages/UnderMaintenance";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -72,6 +73,7 @@ function App() {
         <Route path="/wishlist"                  element={<Wishlist />} />
         <Route path="/owner/dashboard"           element={<OwnerDashboard />} />
         <Route path="/owner/requests"            element={<OwnerRequests />} />
+        <Route path="/owner/offers" element={<OwnerOffers />} />
         <Route path="/owner/bookings"            element={<OwnerBookings />} />
         <Route path="/admin/dashboard"           element={<AdminDashboard />} />
         <Route path="/admin/hotel-analytics/:id" element={<HotelDetail />} />

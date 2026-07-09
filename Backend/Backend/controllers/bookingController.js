@@ -36,15 +36,15 @@ const getAvailability = async (hotelId, checkIn, checkOut, requestedRooms) => {
 
 
 // ── createBooking ─────────────────────────────────────────────────────────────
-// CHANGED: req.user._id → req.user.id
-// Old verifyToken did User.findById() and returned a Mongoose doc (which has ._id).
-// New verifyToken decodes JWT and sets req.user from the payload (which has .id).
-// Using req.user._id with new middleware = undefined = booking stored with no userId
-// = ownership check in GET /:id always fails.
+// NEW: accepts optional offerId + discountApplied from the frontend (set after
+// the user applies a coupon via POST /api/offers/validate). These are stored on
+// the booking as a record of intent — the offer is NOT redeemed here. Real
+// enforcement + redemption happens in paymentController.verifyPayment, once the
+// actual payment method is known and payment is confirmed.
 const createBooking = async (req, res) => {
   const session = await mongoose.startSession();
   try {
-    const { hotelId, checkIn, checkOut, rooms } = req.body;
+    const { hotelId, checkIn, checkOut, rooms, offerId, discountApplied } = req.body;
 
     if (!hotelId || !checkIn || !checkOut)
       return res.status(400).json({ error: "hotelId, checkIn, checkOut required" });
@@ -80,7 +80,9 @@ const createBooking = async (req, res) => {
 
       const booking = new Booking({
         ...req.body,
-        userId: req.user.id,   // ✅ FIXED: was req.user._id (undefined with new middleware)
+        userId: req.user.id,
+        offerId: offerId || null,               // NEW
+        discountApplied: discountApplied || 0,  // NEW
       });
       savedBooking = await booking.save({ session });
     });
@@ -122,10 +124,9 @@ const checkAvailability = async (req, res) => {
 
 
 // ── getUserBookings ───────────────────────────────────────────────────────────
-// CHANGED: req.user._id → req.user.id (same reason as createBooking)
 const getUserBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ userId: req.user.id })  // ✅ FIXED
+    const bookings = await Booking.find({ userId: req.user.id })
       .sort({ createdAt: -1 });
     res.json(bookings);
   } catch (err) {

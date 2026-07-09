@@ -4,6 +4,8 @@ import { getUser, logoutUser } from "../../utils/auth";
 import { toast } from "react-toastify";
 import api from "../../services/apiClient";
 import HotelAnalytics from "./HotelAnalytics";
+import AdminOffers from "./AdminOffers";
+
 import {
   StatCardsSkeleton,
   RequestsSkeleton,
@@ -417,6 +419,7 @@ function AdminDashboard() {
     { key: "hotels",    label: "🏨 Hotels" },
     { key: "users",     label: "👥 Users" },
     { key: "bookings",  label: "📋 Bookings" },
+    { key: "offers",    label: "🎟️ Offers" },   // NEW
     { key: "analytics", label: "📈 Analytics" },
   ];
 
@@ -706,6 +709,8 @@ function AdminDashboard() {
             ))}
           </div>
         ))}
+        {activeTab === "offers" && <AdminOffers dark={dark} />}
+
 
         {/* ══ Analytics Tab ═════════════════════════════════════════ */}
         {activeTab === "analytics" && (tabLoading ? <AnalyticsSkeleton /> : <HotelAnalytics dark={dark} />)}

@@ -15,6 +15,8 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const offerRoutes = require("./routes/offerRoutes");   // NEW
+
 const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
 const contactRoutes = require("./routes/contactRoutes")
@@ -80,6 +82,7 @@ app.use("/api/owners", ownerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminAnalyticsRoutes)
 app.use("/api/contact", contactRoutes)
+app.use("/api/offers", offerRoutes);   // NEW
 
 app.get("/", (req, res) => {
   res.send("API Working ✅");

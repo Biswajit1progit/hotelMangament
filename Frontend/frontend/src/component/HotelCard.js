@@ -1,10 +1,36 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toggleWishlist } from "../services/authService";
 import { isLoggedIn } from "../utils/auth";
+import { getOffersForHotel } from "../services/offerService";
 
 function HotelCard({ hotel, wishlist = [], setWishlist, onRemove, index = 0 }) {
   const navigate = useNavigate();
+
+  // ── Offer badge — lightweight per-card check for any active offer.
+  // NOTE: this fires one request per visible card. Fine for a listing
+  // page with a normal number of results; if the grid grows large or
+  // this feels slow, the better fix is a backend change — have your
+  // hotels-list endpoint return a `hasActiveOffers` boolean per hotel
+  // (a single aggregate query) so this per-card fetch isn't needed at all.
+  const [hasOffers, setHasOffers] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkOffers = async () => {
+      if (!hotel?._id) return;
+      try {
+        const offers = await getOffersForHotel(hotel._id);
+        if (!cancelled) setHasOffers(offers.length > 0);
+      } catch (err) {
+        // Silent fail — a missing badge isn't worth surfacing an error for
+        if (!cancelled) setHasOffers(false);
+      }
+    };
+    checkOffers();
+    return () => { cancelled = true; };
+  }, [hotel?._id]);
 
   const handleClick = () => {
     // ── FIXED: was reading sessionStorage.getItem("token") which is always
@@ -72,6 +98,13 @@ function HotelCard({ hotel, wishlist = [], setWishlist, onRemove, index = 0 }) {
         <p className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white font-bold py-1 px-3 rounded-full text-sm">
           {hotel.type}
         </p>
+
+        {/* NEW: offer availability badge */}
+        {hasOffers && (
+          <p className="absolute top-3 right-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-1 px-3 rounded-full text-xs shadow-md flex items-center gap-1">
+            🎟️ Offers
+          </p>
+        )}
       </div>
 
       {/* Info */}

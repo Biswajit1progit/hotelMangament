@@ -1,4 +1,4 @@
- const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema({
   hotelId: {
@@ -57,6 +57,17 @@ const bookingSchema = new mongoose.Schema({
   checkoutNotified: {
     type: Boolean,
     default: false,
+  },
+
+  // 🎟️ OFFER DATA (NEW)
+  offerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Offer",
+    default: null,
+  },
+  discountApplied: {
+    type: Number,
+    default: 0,
   },
 }, { timestamps: true });
 

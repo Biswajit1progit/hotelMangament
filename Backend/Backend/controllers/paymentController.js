@@ -7,6 +7,7 @@ const generateOrderId          = require("../utils/generateOrderId");
 const generateInvoicePDF       = require("../utils/generateInvoicepdf");
 const { sendPaymentConfirmation } = require("../service/emailService");
 const { createNotification }   = require("./notificationController");
+const { confirmOfferForPayment, redeemOfferInternal } = require("./offerController"); // NEW
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -32,6 +33,10 @@ exports.createOrder = async (req, res) => {
 };
 
 // ── verifyPayment ─────────────────────────────────────────────────────────────
+// NEW: if the booking has an offerId attached (set at createBooking time), this
+// now enforces the payment-method restriction for real (using the actual `method`
+// Razorpay returned) and redeems the offer — incrementing usedCount and writing
+// an OfferRedemption record — only once payment is confirmed valid.
 exports.verifyPayment = async (req, res) => {
   try {
     const {
@@ -46,6 +51,35 @@ exports.verifyPayment = async (req, res) => {
     if (!isValid) return res.status(400).json({ success: false });
 
     const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    // ── NEW: enforce + redeem offer if one was applied to this booking ──────
+    let discountApplied = 0;
+    if (booking.offerId) {
+      try {
+        const preDiscountAmount = amount + (booking.discountApplied || 0);
+
+        const { discount } = await confirmOfferForPayment({
+          offerId: booking.offerId,
+          bookingAmount: preDiscountAmount,
+          paymentMethod: method,
+        });
+
+        await redeemOfferInternal({
+          offerId: booking.offerId,
+          userId: req.user.id,
+          bookingId: booking._id,
+          discountApplied: discount,
+        });
+
+        discountApplied = discount;
+      } catch (offerErr) {
+        console.warn("Offer redemption failed:", offerErr.message);
+        return res.status(400).json({ success: false, message: offerErr.message });
+      }
+    }
 
     const payment = new Payment({
       bookingId,
@@ -61,12 +95,8 @@ exports.verifyPayment = async (req, res) => {
       nights:            booking.nights,
       name:              booking.name,
       email:             booking.email,
-      // CHANGED: req.user._id → req.user.id
-      // Old verifyToken returned a Mongoose doc (._id = ObjectId).
-      // New verifyToken decodes JWT payload (.id = string from jwt.sign({ id: user._id })).
-      // req.user._id was undefined → payment stored with no userId
-      // → getUserPayments returned empty array for everyone.
-      userId: req.user.id,   // ✅ FIXED
+      userId:            req.user.id,
+      discountApplied,   // NEW — nice to have on the Payment record too
     });
 
     await payment.save();
@@ -142,8 +172,7 @@ exports.verifyPayment = async (req, res) => {
 };
 
 // ── cancelBookingRefund ───────────────────────────────────────────────────────
-// CHANGED: added ownership check — previously any logged-in user could refund
-// any payment by knowing the paymentId. Now only the payment owner can refund.
+// Unchanged from your version — ownership check already in place.
 exports.cancelBookingRefund = async (req, res) => {
   try {
     const { paymentId } = req.params;
@@ -152,7 +181,6 @@ exports.cancelBookingRefund = async (req, res) => {
     if (!payment)
       return res.status(404).json({ success: false, message: "Payment not found" });
 
-    // ── Ownership check ───────────────────────────────────────────────────
     const isOwner = payment.userId?.toString() === req.user.id;
     const isAdmin = req.user.role === "admin";
     if (!isOwner && !isAdmin)
@@ -193,10 +221,9 @@ exports.cancelBookingRefund = async (req, res) => {
 };
 
 // ── getUserPayments ───────────────────────────────────────────────────────────
-// CHANGED: req.user._id → req.user.id (same reason as verifyPayment above)
 exports.getUserPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({ userId: req.user.id })  // ✅ FIXED
+    const payments = await Payment.find({ userId: req.user.id })
       .sort({ createdAt: -1 });
     res.json(payments);
   } catch (err) {

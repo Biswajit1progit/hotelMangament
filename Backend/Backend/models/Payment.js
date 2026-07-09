@@ -1,4 +1,4 @@
- const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema({
   bookingId: {
@@ -17,7 +17,7 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ["card", "upi", "netbanking"],
+    enum: ["card", "upi", "netbanking", "wallet"], // NOTE: added "wallet" — offer.applicableMethods supports it, this didn't
   },
   razorpayOrderId: String,
   razorpayPaymentId: String,
@@ -49,6 +49,12 @@ const paymentSchema = new mongoose.Schema({
 
 refundDate: Date,
 refundAmount: Number,
+
+// 🎟️ OFFER DATA (NEW)
+discountApplied: {
+  type: Number,
+  default: 0,
+},
   
 }, { timestamps: true });
 
