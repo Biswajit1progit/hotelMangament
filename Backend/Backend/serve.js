@@ -1,3 +1,6 @@
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -16,7 +19,8 @@ const chatRoutes = require("./routes/chatRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const offerRoutes = require("./routes/offerRoutes");   // NEW
-
+const movieRoutes = require("./routes/movieRoutes");
+const movieBookingRoutes = require("./routes/movieBookingRoutes");
 const { runCheckoutNotifier } = require("./script/checkoutNotifier");
 const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes")
 const contactRoutes = require("./routes/contactRoutes")
@@ -83,7 +87,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminAnalyticsRoutes)
 app.use("/api/contact", contactRoutes)
 app.use("/api/offers", offerRoutes);   // NEW
-
+app.use("/api/movies", movieRoutes);
+app.use("/api/movie-bookings", movieBookingRoutes);
 app.get("/", (req, res) => {
   res.send("API Working ✅");
 });
@@ -93,3 +98,7 @@ app.listen(process.env.PORT || 5000, () => {
 });
 
 runCheckoutNotifier();
+
+
+const { releaseExpiredReservations } = require("./controllers/movieBookingController");
+setInterval(() => releaseExpiredReservations().catch(console.error), 60 * 1000); // every 60 second

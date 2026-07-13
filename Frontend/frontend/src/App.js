@@ -19,6 +19,14 @@ import HotelDetail     from "./pages/admin/HotelDetail";
 import ContactPage     from "./pages/ContactPage";
 import OwnerOffers     from "./pages/owner/OwnerOffers"
 import UnderMaintenance from "./pages/UnderMaintenance";
+
+// NEW — Movies feature
+import Movies              from "./pages/Movies";
+import MovieDetails        from "./pages/MovieDetails";
+import SeatPicker          from "./pages/SeatPicker";
+import MoviePaymentPage    from "./pages/MoviePaymentPage";
+import MovieBookingSuccess from "./pages/MovieBookingSuccess";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -78,7 +86,15 @@ function App() {
         <Route path="/admin/dashboard"           element={<AdminDashboard />} />
         <Route path="/admin/hotel-analytics/:id" element={<HotelDetail />} />
         <Route path="/contact"                   element={<ContactPage />} />
-        <Route path="/movies"                    element={<UnderMaintenance />} />
+
+        {/* ── Movies (replaces the old UnderMaintenance placeholder) ────── */}
+        <Route path="/movies"                    element={<Movies />} />
+        <Route path="/movies/:id"                element={<MovieDetails />} />
+        <Route path="/movies/show/:showId"       element={<SeatPicker />} />
+        <Route path="/movies/payment/:bookingId" element={<MoviePaymentPage />} />
+        <Route path="/movies/success/:bookingId" element={<MovieBookingSuccess />} />
+
+        {/* Flights/Events still pending — left as-is */}
         <Route path="/flights"                   element={<UnderMaintenance />} />
         <Route path="/events"                    element={<UnderMaintenance />} />
       </Routes>

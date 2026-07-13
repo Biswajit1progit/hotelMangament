@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import api from "../../services/apiClient";
 import HotelAnalytics from "./HotelAnalytics";
 import AdminOffers from "./Adminoffers";
+import AdminMovies from "./AdminMovies";
 
 import {
   StatCardsSkeleton,
@@ -419,7 +420,8 @@ function AdminDashboard() {
     { key: "hotels",    label: "🏨 Hotels" },
     { key: "users",     label: "👥 Users" },
     { key: "bookings",  label: "📋 Bookings" },
-    { key: "offers",    label: "🎟️ Offers" },   // NEW
+    { key: "offers",    label: "🎟️ Offers" }, 
+    { key: "movies", label: "🎬 Movies" },   // add to the TABS array
     { key: "analytics", label: "📈 Analytics" },
   ];
 
@@ -710,6 +712,7 @@ function AdminDashboard() {
           </div>
         ))}
         {activeTab === "offers" && <AdminOffers dark={dark} />}
+        {activeTab === "movies" && <AdminMovies dark={dark} />}
 
 
         {/* ══ Analytics Tab ═════════════════════════════════════════ */}
