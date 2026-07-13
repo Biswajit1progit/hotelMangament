@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { getMovies } from "../services/movieService";
-import MovieCard from "../component/MovieCard";
+import MovieCard from "../component/Moviecard";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";
 
