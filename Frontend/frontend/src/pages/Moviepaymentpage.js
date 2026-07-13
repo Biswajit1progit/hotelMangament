@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getMovieBookingById, createMovieOrder, verifyMoviePayment, cancelReservation } from "../services/movieService";
+import { getMovieBookingById, createMovieOrder, verifyMoviePayment, cancelReservation } from "../services/Movieservice";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";
 

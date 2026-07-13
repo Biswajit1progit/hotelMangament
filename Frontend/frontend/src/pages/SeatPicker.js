@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getShowById, reserveSeats } from "../services/movieService";
+import { getShowById, reserveSeats } from "../services/Movieservice";
 import { getUser } from "../utils/auth";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";

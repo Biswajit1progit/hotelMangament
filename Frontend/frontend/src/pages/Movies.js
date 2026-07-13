@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { getMovies } from "../services/movieService";
+import { getMovies } from "../services/Movieservice";
 import MovieCard from "../component/Moviecard";
 import Hotelnav from "../component/filters/Hotelnav";
 import Footer from "../component/footer";
