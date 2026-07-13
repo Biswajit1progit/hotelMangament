@@ -11,7 +11,7 @@ import {
   createShow,
   deleteShow,
   getShowsForMovie,
-} from "../../services/movieService";
+} from "../../services/Movieservice";
 
 const SECTIONS = [
   { key: "movies", label: "🎬 Movies" },
