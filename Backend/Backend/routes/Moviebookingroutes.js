@@ -8,7 +8,7 @@ const {
   verifyMoviePayment,
   getUserMovieBookings,
   getMovieBookingById,
-} = require("../controllers/movieBookingController");
+} = require("../controllers/Moviebookingcontroller");
 
 const { verifyToken } = require("../middleware/authMiddleware");
 

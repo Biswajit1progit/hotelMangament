@@ -7,21 +7,21 @@ const {
   getMovies,
   getMovieById,
   setMovieActive,
-} = require("../controllers/movieController");
+} = require("../controllers/Moviecontroller");
 
 const {
   createTheater,
   getTheaters,
   updateTheater,
   deleteTheater,
-} = require("../controllers/theaterController");
+} = require("../controllers/Theatercontroller");
 
 const {
   createShow,
   getShowsForMovie,
   getShowById,
   deleteShow,
-} = require("../controllers/showController");
+} = require("../controllers/Showcontroller");
 
 const { verifyToken, verifyAdmin } = require("../middleware/authMiddleware");
 
