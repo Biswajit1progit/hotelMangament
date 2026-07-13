@@ -1,6 +1,6 @@
 import Navbar from "../component/Navbar";
 import Searchbar from "../component/Searchbar";
-import Movecard from "../component/Moviecard";
+import Movecard from "../component/Movecard";
 import Footer from "../component/footer";
 import ChatBot from "../component/ChatBot";
 
