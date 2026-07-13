@@ -22,10 +22,10 @@ import UnderMaintenance from "./pages/UnderMaintenance";
 
 // NEW — Movies feature
 import Movies              from "./pages/Movies";
-import MovieDetails        from "./pages/MovieDetails";
+import MovieDetails        from "./pages/Moviedetails";
 import SeatPicker          from "./pages/SeatPicker";
-import MoviePaymentPage    from "./pages/MoviePaymentPage";
-import MovieBookingSuccess from "./pages/MovieBookingSuccess";
+import MoviePaymentPage    from "./pages/Moviepaymentpage";
+import MovieBookingSuccess from "./pages/Moviebookingsuccess";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
