@@ -3,7 +3,7 @@ const Razorpay = require("razorpay");
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const Theater = require("../models/Theater");
-const MovieBooking = require("../models/MovieBooking");
+const MovieBooking = require("../models/Moviebooking");
 const { verifySignature } = require("../utils/verifySignature");
 
 const razorpay = new Razorpay({
