@@ -9,7 +9,7 @@ const {
   getUserMovieBookings,
   getMovieBookingById,
 } = require("../controllers/Moviebookingcontroller");
-
+/* new change */
 const { verifyToken } = require("../middleware/authMiddleware");
 
 router.post("/reserve", verifyToken, reserveSeats);
