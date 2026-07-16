@@ -5,7 +5,7 @@ const Movie = require("../models/Movie");
 const Theater = require("../models/Theater");
 const MovieBooking = require("../models/MovieBooking");
 const { verifySignature } = require("../utils/verifySignature");
-const generateMovieInvoicePDF = require("../utils/generateMovieInvoicePdf"); // NEW
+const generateMovieInvoicePDF = require("../utils/generateInvoicepdf"); // NEW
 const { sendMovieBookingConfirmation } = require("../service/emailService"); // NEW — note: singular "service", matching paymentController.js's require path
 const { createNotification } = require("./notificationController"); // NEW
 
