@@ -9,7 +9,7 @@
  */
 
 const cron = require("node-cron");
-const MovieBooking = require("../models/MovieBooking");
+const MovieBooking = require("../models/Moviebooking");
 const { createNotification } = require("../controllers/notificationController");
 const { sendShowReminder } = require("../service/emailService"); // singular "service", matching your existing require paths
 
