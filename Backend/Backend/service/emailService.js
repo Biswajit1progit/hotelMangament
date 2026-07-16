@@ -214,4 +214,144 @@ async function sendPaymentConfirmation({ to, userName, hotel, booking, pdfBuffer
   })
 }
 
-module.exports = { sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmation }
+// ─────────────────────────────────────────────────────────────
+// ADD THIS to backend/services/emailService.js — append the function
+// below (right after sendPaymentConfirmation, before module.exports),
+// then update the module.exports line at the bottom as shown.
+// Nothing in the existing three functions needs to change.
+// ─────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────
+// EMAIL 4: Movie booking confirmation
+// ─────────────────────────────────────────────────────────────
+async function sendMovieBookingConfirmation({ to, userName, booking }) {
+  const { movieTitle, theaterName, showDate, showTime, seats, totalPrice, _id, razorpayPaymentId } = booking;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px}
+  .container{max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden}
+  .header{background:#1a1a1a;padding:32px;text-align:center}
+  .header h1{color:#fff;margin:0;font-size:24px}
+  .header p{color:#888;margin:6px 0 0;font-size:14px}
+  .success{background:#fdeaea;color:#c81e3a;text-align:center;padding:20px;font-size:18px;font-weight:600}
+  .body{padding:32px}
+  .label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+  .movie-card{background:#f9f9f9;border-radius:12px;padding:18px;margin-bottom:20px}
+  .movie-name{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+  .movie-loc{font-size:13px;color:#888}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px}
+  td{padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;color:#555}
+  td:last-child{text-align:right;font-weight:500;color:#1a1a1a}
+  .total td{border:none;font-size:17px;font-weight:700;color:#1a1a1a;padding-top:14px}
+  .booking-id{background:#f5f5f5;border-radius:8px;padding:12px 16px;font-family:monospace;font-size:13px;color:#555;margin-bottom:20px}
+  p{font-size:13px;color:#888;line-height:1.7}
+  .footer{background:#f9f9f9;padding:20px;text-align:center;font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>SafarSetu</h1>
+      <p>Your travel companion</p>
+    </div>
+    <div class="success">🎟️ Tickets Confirmed</div>
+    <div class="body">
+      <p style="font-size:15px;color:#333;margin-bottom:20px">Hi ${userName}, your movie tickets are booked!</p>
+      <p class="label">Movie</p>
+      <div class="movie-card">
+        <div class="movie-name">${movieTitle}</div>
+        <div class="movie-loc">${theaterName}</div>
+      </div>
+      <p class="label">Show Details</p>
+      <table>
+        <tr><td>Date</td><td>${new Date(showDate).toDateString()}</td></tr>
+        <tr><td>Time</td><td>${showTime}</td></tr>
+        <tr><td>Seats</td><td>${seats.join(", ")}</td></tr>
+      </table>
+      <p class="label">Invoice</p>
+      <table>
+        <tr class="total"><td>Total Paid</td><td>₹${totalPrice}</td></tr>
+      </table>
+      <p class="label">Booking ID</p>
+      <div class="booking-id">
+        🎫 ${_id}<br>
+        <span style="font-size:11px;color:#aaa">Payment ID: ${razorpayPaymentId || "N/A"}</span>
+      </div>
+      <p>Show this booking ID at the theater counter.<br>
+      For help, contact us at <a href="mailto:${process.env.EMAIL_USER}" style="color:#1a1a1a">${process.env.EMAIL_USER}</a></p>
+    </div>
+    <div class="footer">© ${new Date().getFullYear()} SafarSetu. All rights reserved.</div>
+  </div>
+</body>
+</html>`
+
+  return sendEmail({
+    to,
+    subject: `🎟️ Tickets Confirmed — ${movieTitle} | SafarSetu`,
+    html,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────
+// EMAIL 5: Show reminder (day-of, sent by showReminderNotifier.js)
+// ─────────────────────────────────────────────────────────────
+async function sendShowReminder({ to, userName, booking }) {
+  const { movieTitle, theaterName, showTime, seats, _id } = booking;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px}
+  .container{max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden}
+  .header{background:#1a1a1a;padding:32px;text-align:center}
+  .header h1{color:#fff;margin:0;font-size:24px}
+  .body{padding:40px 32px;text-align:center}
+  .emoji{font-size:48px;margin-bottom:20px}
+  h2{font-size:20px;color:#1a1a1a;margin-bottom:12px}
+  p{font-size:14px;color:#666;line-height:1.7;margin-bottom:8px}
+  .highlight{font-weight:700;color:#1a1a1a}
+  .footer{background:#f9f9f9;padding:20px;text-align:center;font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><h1>SafarSetu</h1></div>
+    <div class="body">
+      <div class="emoji">🍿</div>
+      <h2>Your show is today, ${userName}!</h2>
+      <p><span class="highlight">${movieTitle}</span> at ${theaterName}</p>
+      <p>Showtime: <span class="highlight">${showTime}</span></p>
+      <p>Seats: <span class="highlight">${seats.join(", ")}</span></p>
+      <p style="margin-top:16px;font-size:12px;color:#aaa">Booking ID: ${_id}</p>
+    </div>
+    <div class="footer">© ${new Date().getFullYear()} SafarSetu</div>
+  </div>
+</body>
+</html>`
+
+  return sendEmail({
+    to,
+    subject: `🍿 Reminder: ${movieTitle} today at ${showTime}`,
+    html,
+  })
+}
+
+// ─────────────────────────────────────────────────────────────
+// UPDATE your existing module.exports line at the bottom of the file
+// to include the two new functions:
+// ─────────────────────────────────────────────────────────────
+// module.exports = {
+//   sendVerificationEmail,
+//   sendWelcomeEmail,
+//   sendPaymentConfirmation,
+//   sendMovieBookingConfirmation,  // NEW
+//   sendShowReminder,              // NEW
+// }
+
+module.exports = { sendVerificationEmail, sendWelcomeEmail, sendPaymentConfirmation, sendMovieBookingConfirmation, sendShowReminder }

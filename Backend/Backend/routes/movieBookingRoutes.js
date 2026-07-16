@@ -8,8 +8,9 @@ const {
   verifyMoviePayment,
   getUserMovieBookings,
   getMovieBookingById,
+  downloadInvoice,
 } = require("../controllers/movieBookingController");
-/* new change */
+
 const { verifyToken } = require("../middleware/authMiddleware");
 
 router.post("/reserve", verifyToken, reserveSeats);
@@ -17,6 +18,7 @@ router.delete("/:id/cancel", verifyToken, cancelReservation);
 router.post("/order", verifyToken, createMovieOrder);
 router.post("/verify", verifyToken, verifyMoviePayment);
 router.get("/my", verifyToken, getUserMovieBookings);
+router.get("/:id/invoice", verifyToken, downloadInvoice);
 router.get("/:id", verifyToken, getMovieBookingById);
 
-module.exports = router;
+module.exports = router; 

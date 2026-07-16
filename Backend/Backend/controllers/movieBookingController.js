@@ -3,8 +3,11 @@ const Razorpay = require("razorpay");
 const Show = require("../models/Show");
 const Movie = require("../models/Movie");
 const Theater = require("../models/Theater");
-const MovieBooking = require("../models/Moviebooking");
+const MovieBooking = require("../models/MovieBooking");
 const { verifySignature } = require("../utils/verifySignature");
+const generateMovieInvoicePDF = require("../utils/generateMovieInvoicePdf"); // NEW
+const { sendMovieBookingConfirmation } = require("../service/emailService"); // NEW — note: singular "service", matching paymentController.js's require path
+const { createNotification } = require("./notificationController"); // NEW
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -213,6 +216,28 @@ exports.verifyMoviePayment = async (req, res) => {
     booking.razorpayPaymentId = razorpay_payment_id;
     await booking.save();
 
+    // ── NEW: Notification (same pattern as paymentController.verifyPayment) ──
+    try {
+      await createNotification({
+        userEmail: booking.email,
+        userId: req.user.id,
+        title: "Tickets Confirmed 🎟️",
+        message: `Your tickets for ${booking.movieTitle} at ${booking.theaterName} are confirmed! Show: ${new Date(booking.showDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} at ${booking.showTime}. Seats: ${booking.seats.join(", ")}.`,
+        type: "movie_booking_confirmed",
+        bookingId: booking._id,
+        domain: "movie", // NEW
+      });
+    } catch (err) { console.warn("Movie booking notification failed:", err.message); }
+
+    // ── NEW: Confirmation email ────────────────────────────────────────────
+    try {
+      await sendMovieBookingConfirmation({
+        to: booking.email,
+        userName: booking.name,
+        booking,
+      });
+    } catch (err) { console.warn("Movie booking confirmation email failed:", err.message); }
+
     res.json({ message: "Payment successful, booking confirmed" });
   } catch (err) {
     console.error("verifyMoviePayment error:", err);
@@ -231,6 +256,31 @@ exports.getMovieBookingById = async (req, res) => {
     res.json(booking);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch booking" });
+  }
+};
+
+// ── Download invoice PDF for a confirmed booking ─────────────────────────
+exports.downloadInvoice = async (req, res) => {
+  try {
+    const booking = await MovieBooking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (booking.userId.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    if (booking.status !== "confirmed") {
+      return res.status(400).json({ message: "Invoice only available for confirmed bookings" });
+    }
+
+    const pdfBuffer = await generateMovieInvoicePDF(booking);
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="SafarSetu-Movie-Invoice-${booking._id}.pdf"`,
+    });
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error("downloadInvoice error:", err);
+    res.status(500).json({ message: "Failed to generate invoice" });
   }
 };
 

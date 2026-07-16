@@ -15,6 +15,8 @@ const authRoutes = require("./routes/authRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const { runShowReminderNotifier } = require("./script/showReminderNotifier");
+
 const chatRoutes = require("./routes/chatRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
 const adminRoutes = require("./routes/adminRoutes");
@@ -98,6 +100,7 @@ app.listen(process.env.PORT || 5000, () => {
 });
 
 runCheckoutNotifier();
+runShowReminderNotifier(); // NEW
 
 
 const { releaseExpiredReservations } = require("./controllers/movieBookingController");

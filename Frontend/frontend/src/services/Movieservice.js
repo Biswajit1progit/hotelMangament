@@ -104,3 +104,9 @@ export const getMovieBookingById = async (id) => {
   const { data } = await api.get(`${BOOKINGS}/${id}`);
   return data;
 };
+
+// Returns a Blob — caller triggers the browser download
+export const downloadMovieInvoice = async (bookingId) => {
+  const response = await api.get(`${BOOKINGS}/${bookingId}/invoice`, { responseType: "blob" });
+  return response.data;
+};

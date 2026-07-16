@@ -31,6 +31,8 @@ const movieBookingSchema = new mongoose.Schema(
 
     razorpayOrderId: String,
     razorpayPaymentId: String,
+    reminderSent: { type: Boolean, default: false },
+
   },
   { timestamps: true }
 );

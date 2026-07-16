@@ -87,11 +87,19 @@ const markAllAsRead = async (req, res) => {
 };
 
 // ✅ createNotification — internal helper called by paymentController,
-// bookingController, adminController, checkoutNotifier etc.
+// bookingController, adminController, checkoutNotifier, movieBookingController,
+// showReminderNotifier, etc.
 // Accepts optional userId so callers that DO have it (e.g. verifyPayment
 // where req.user._id is available) can pass it for better linking.
 // userEmail stays required since most callers only have that.
-const createNotification = async ({ userEmail, userId = null, title, message, type, bookingId }) => {
+//
+// NEW: accepts optional domain ("hotel" | "movie" | "flight" | "event" | "system").
+// Defaults to "hotel" so every EXISTING call site across the whole codebase
+// (paymentController, bookingController, checkoutNotifier — none of which
+// pass domain) keeps working exactly as before with zero changes required
+// there. Only new call sites (movie notifications) need to pass domain
+// explicitly going forward.
+const createNotification = async ({ userEmail, userId = null, title, message, type, bookingId, domain = "hotel" }) => {
   try {
     // ✅ If userId not passed but we have the email, look up the user
     // so the notification gets userId linked automatically.
@@ -110,6 +118,7 @@ const createNotification = async ({ userEmail, userId = null, title, message, ty
       message,
       type,
       bookingId,
+      domain, // NEW
     });
     await notification.save();
     return notification;
