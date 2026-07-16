@@ -15,7 +15,7 @@ const authRoutes = require("./routes/authRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const { runShowReminderNotifier } = require("./script/showReminderNotifier");
+const { runShowReminderNotifier } = require("./script/showremindernotifier");
 
 const chatRoutes = require("./routes/chatRoutes");
 const ownerRoutes = require("./routes/ownerRoutes");
